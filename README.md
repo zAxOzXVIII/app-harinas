@@ -1,6 +1,6 @@
 # App Harinas — Nativa Superalimentos C.A
 
-Aplicación móvil (Expo + React Native + TypeScript) y API REST (Node.js + Express + MongoDB) para gestión de inventario de harinas: autenticación JWT, dashboard y CRUD completo.
+Aplicación móvil (Expo + React Native + TypeScript) y API REST (Node.js + Express + MongoDB) para Nativa Superalimentos: inventario de harinas (modulo actual), **roles Gerente / Supervisor / Operador** y CRUD de equipo para el Gerente; evolucion hacia monitoreo Arduino (temperatura y humedad en MVP).
 
 ## Estructura del repositorio
 
@@ -43,7 +43,7 @@ Opcional para el script de usuario inicial:
 
 | Variable | Descripción |
 |----------|-------------|
-| `ADMIN_EMAIL` | Email del administrador (por defecto `admin@nativa.com`) |
+| `ADMIN_EMAIL` | Email de la **cuenta Gerente** (por defecto `admin@nativa.com`) |
 | `ADMIN_PASSWORD` | Contraseña del seed |
 | `ADMIN_NOMBRE` | Nombre mostrado |
 
@@ -111,10 +111,12 @@ Metro queda por defecto en el **puerto 8082** (scripts en `package.json`).
 
 ### Credenciales de prueba (tras `seed:admin`)
 
-Si no cambiaste `ADMIN_EMAIL` / `ADMIN_PASSWORD` en `.env`:
+El script crea o migra la **cuenta Gerente** (`rol: gerente`). Si no cambiaste `ADMIN_EMAIL` / `ADMIN_PASSWORD` en `.env`:
 
 - **Email:** `admin@nativa.com`
 - **Contraseña:** `admin123` (o la que definas en `ADMIN_PASSWORD`)
+
+Desde esa cuenta puedes registrar **Supervisores** y **Operadores** en la app (Equipo).
 
 ---
 
@@ -126,7 +128,7 @@ Si no cambiaste `ADMIN_EMAIL` / `ADMIN_PASSWORD` en `.env`:
 |---------|-------------|
 | `npm run dev` | Servidor con nodemon (desarrollo) |
 | `npm start` | Servidor sin recarga automática |
-| `npm run seed:admin` | Crea el usuario admin si no existe |
+| `npm run seed:admin` | Crea o migra la cuenta **Gerente** y roles en usuarios legacy |
 
 ### Frontend (`frontend/`)
 
@@ -150,8 +152,12 @@ Base URL local: `http://localhost:4000`
 | `POST` | `/api/harinas` | Bearer JWT |
 | `PUT` | `/api/harinas/:id` | Bearer JWT |
 | `DELETE` | `/api/harinas/:id` | Bearer JWT |
+| `GET` | `/api/users` | Bearer JWT (**solo rol gerente**) |
+| `POST` | `/api/users` | Bearer JWT (**solo gerente**; cuerpo: supervisor u operador) |
+| `PUT` | `/api/users/:id` | Bearer JWT (**solo gerente**; no modificar cuenta gerente) |
+| `DELETE` | `/api/users/:id` | Bearer JWT (**solo gerente**; no eliminar cuenta gerente) |
 
-Colección Postman: `backend/docs/postman/App-Harinas.postman_collection.json`.
+Colección Postman: `backend/docs/postman/App-Harinas.postman_collection.json` (actualizar con `/api/users` si usas la coleccion en equipo).
 
 ---
 

@@ -20,6 +20,12 @@ const userSchema = new mongoose.Schema(
       required: true,
       trim: true,
     },
+    rol: {
+      type: String,
+      enum: ["gerente", "supervisor", "operador"],
+      required: true,
+      default: "operador",
+    },
   },
   {
     versionKey: false,

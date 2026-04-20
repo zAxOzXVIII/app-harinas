@@ -19,8 +19,19 @@ const loginUser = async ({ email, password }) => {
     throw err;
   }
 
+  const adminEmail = (process.env.ADMIN_EMAIL || "admin@nativa.com").toLowerCase();
+  if (!user.rol) {
+    user.rol = user.email === adminEmail ? "gerente" : "operador";
+    await user.save();
+  }
+
   const token = jwt.sign(
-    { userId: user._id.toString(), email: user.email, nombre: user.nombre },
+    {
+      userId: user._id.toString(),
+      email: user.email,
+      nombre: user.nombre,
+      rol: user.rol,
+    },
     env.jwtSecret,
     { expiresIn: env.jwtExpiresIn }
   );
@@ -31,6 +42,7 @@ const loginUser = async ({ email, password }) => {
       id: user._id,
       email: user.email,
       nombre: user.nombre,
+      rol: user.rol,
     },
   };
 };

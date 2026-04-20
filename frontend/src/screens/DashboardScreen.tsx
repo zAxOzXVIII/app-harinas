@@ -1,8 +1,10 @@
 import { useCallback, useMemo } from "react";
 import { RefreshControl, ScrollView, StyleSheet, View } from "react-native";
 import { Button, Card, Text } from "react-native-paper";
-import { useFocusEffect } from "@react-navigation/native";
+import { useFocusEffect, useNavigation } from "@react-navigation/native";
+import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { useAuthStore } from "../store/auth.store";
+import type { GerenteStackParamList } from "../navigation/types";
 import { useHarinasStore } from "../store/harinas.store";
 import { HarinaListItem } from "../components/HarinaListItem";
 
@@ -10,9 +12,13 @@ interface Props {
   onGoToGestion: () => void;
 }
 
+type Nav = NativeStackNavigationProp<GerenteStackParamList>;
+
 export const DashboardScreen = ({ onGoToGestion }: Props) => {
+  const navigation = useNavigation<Nav>();
   const user = useAuthStore((state) => state.user);
   const logout = useAuthStore((state) => state.logout);
+  const isGerente = user?.rol === "gerente" || !user?.rol;
 
   const harinas = useHarinasStore((state) => state.harinas);
   const isLoading = useHarinasStore((state) => state.isLoading);
@@ -63,6 +69,39 @@ export const DashboardScreen = ({ onGoToGestion }: Props) => {
         </Button>
       </View>
 
+      {isGerente ? (
+        <Card style={styles.card}>
+          <Card.Content>
+            <Text variant="titleMedium" style={styles.blockTitle}>
+              Panel Gerente
+            </Text>
+            <Text variant="bodySmall" style={styles.muted}>
+              Registro de equipo, muro y vistas previas de otros roles (base para demo).
+            </Text>
+            <View style={styles.gerenteRow}>
+              <Button mode="contained-tonal" onPress={() => navigation.navigate("EquipoList")}>
+                Equipo (CRUD)
+              </Button>
+            </View>
+            <View style={styles.gerenteRow}>
+              <Button mode="contained-tonal" onPress={() => navigation.navigate("MuroGerente")}>
+                Muro
+              </Button>
+            </View>
+            <View style={styles.gerenteRow}>
+              <Button mode="outlined" onPress={() => navigation.navigate("PreviewSupervisor")}>
+                Vista Supervisor (preview)
+              </Button>
+            </View>
+            <View style={styles.gerenteRow}>
+              <Button mode="outlined" onPress={() => navigation.navigate("PreviewOperador")}>
+                Vista Operador (preview)
+              </Button>
+            </View>
+          </Card.Content>
+        </Card>
+      ) : null}
+
       <View style={styles.buttonRow}>
         <Button mode="outlined" onPress={logout}>
           Cerrar sesion
@@ -93,5 +132,12 @@ const styles = StyleSheet.create({
   errorText: {
     marginTop: 8,
     color: "#c62828",
+  },
+  gerenteRow: {
+    marginTop: 8,
+  },
+  muted: {
+    opacity: 0.75,
+    marginBottom: 4,
   },
 });

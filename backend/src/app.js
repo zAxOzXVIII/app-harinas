@@ -4,6 +4,7 @@ const helmet = require("helmet");
 const morgan = require("morgan");
 const authRoutes = require("./routes/auth.routes");
 const harinaRoutes = require("./routes/harina.routes");
+const userRoutes = require("./routes/user.routes");
 const { errorHandler } = require("./middlewares/error.middleware");
 
 const app = express();
@@ -22,6 +23,7 @@ app.get("/api/health", (_req, res) => {
 
 app.use("/api/auth", authRoutes);
 app.use("/api/harinas", harinaRoutes);
+app.use("/api/users", userRoutes);
 
 app.use((_req, _res, next) => {
   const err = new Error("Ruta no encontrada");

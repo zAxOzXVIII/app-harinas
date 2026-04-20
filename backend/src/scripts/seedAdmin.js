@@ -11,9 +11,17 @@ const seedAdmin = async () => {
     const password = process.env.ADMIN_PASSWORD || "admin123";
     const nombre = process.env.ADMIN_NOMBRE || "Administrador";
 
-    const exists = await User.findOne({ email });
+    const adminEmailLower = email.toLowerCase().trim();
+
+    await User.updateMany({ email: adminEmailLower }, { $set: { rol: "gerente" } });
+    await User.updateMany(
+      { $or: [{ rol: { $exists: false } }, { rol: null }], email: { $ne: adminEmailLower } },
+      { $set: { rol: "operador" } }
+    );
+
+    const exists = await User.findOne({ email: adminEmailLower });
     if (exists) {
-      console.log("El usuario administrador ya existe");
+      console.log("Cuenta Gerente ya existe (rol verificado/migrado)");
       process.exit(0);
     }
 
@@ -21,11 +29,12 @@ const seedAdmin = async () => {
 
     await User.create({
       nombre,
-      email,
+      email: adminEmailLower,
       password: hashedPassword,
+      rol: "gerente",
     });
 
-    console.log("Usuario administrador creado correctamente");
+    console.log("Cuenta Gerente creada correctamente");
     console.log(`Email: ${email}`);
     console.log("Contraseña: (la definida en ADMIN_PASSWORD o admin123)");
     process.exit(0);
