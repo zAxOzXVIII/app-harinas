@@ -34,7 +34,7 @@ El proyecto es un **sistema Arduino monitoreado desde una app movil**: el hardwa
 - [x] JWT y login devuelven `rol`; middleware enriquece tokens antiguos leyendo la BD.
 - [x] Seed `npm run seed:admin`: crea o migra la **cuenta Gerente** (`ADMIN_EMAIL`) y asigna `rol` a usuarios legacy sin rol.
 - [x] API **solo Gerente**: `GET/POST/PUT/DELETE /api/users` para alta/baja de **supervisores y operadores** (no se puede crear ni borrar Gerente por API).
-- [x] App: navegacion por rol; **Gerente** tiene panel con **Equipo (CRUD)**, **Muro** (placeholder), preview Supervisor/Operador (placeholders); Supervisor y Operador ven pantalla base en blanco con cierre de sesion.
+- [x] App: navegacion por rol; **Gerente** panel con **Equipo (CRUD)**, **Muro** (lecturas + alertas), **Alertas** y vistas previas; **Supervisor** calibracion; **Operador** monitoreo + alertas.
 
 ### Variables de control (por grupo de rubro)
 Cada **grupo de rubro** tiene su propia calibracion y visualizacion de:
@@ -212,7 +212,7 @@ Dejar la app lista para pruebas internas y crecimiento, y preparar el salto al *
 
 ---
 
-## Sprint 5 - Roles Gerente/Supervisor/Operador + grupos de rubro + calibracion por pareja
+## Sprint 5 - Roles Gerente/Supervisor/Operador + grupos de rubro + calibracion por pareja (completado ✅)
 
 ### Contexto empresa
 Nativa Superalimentos C.A. (Tucapé, Estado Táchira) requiere sustituir registros manuales por un sistema **Arduino + app** con trazabilidad y decisiones mas oportunas en despacho y proceso.
@@ -220,35 +220,45 @@ Nativa Superalimentos C.A. (Tucapé, Estado Táchira) requiere sustituir registr
 ### Objetivo
 Implementar el **modelo de datos y permisos** que refleja el negocio: parejas de materia prima como **grupos de rubro**, calibracion por Supervisor, lectura y alarmas por Operador, control total y registro de equipo por Gerente.
 
-### Alcance
-- **Seguridad y roles**:
-  - roles en JWT: `gerente`, `supervisor`, `operador` (base de equipo y CRUD ya entregados para Gerente).
-  - `supervisor`: CRUD de **calibraciones** y parametros globales (humedad comun); creacion de grupos de rubro.
-  - `operador`: lectura de estado, historial de lecturas, alertas visuales; sin editar calibracion.
-  - `gerente`: ya puede registrar equipo; extender permisos de negocio segun necesidad.
-  - middleware `requireRole` y respuestas estandar (401/403/422/500).
-- **Dominio “grupo de rubro”** (parejas fijas):
-  1. Garbanzo + Lenteja  
-  2. Platano + Cambur  
-  3. Yuca + Batata  
-  - cada grupo tiene **su propia calibracion** para: nivel de secado (ventilador), tiempo de secado, temperatura; humedad con **reglas globales** compartidas.
-- **Persistencia de calibracion** (por grupo):
-  - umbrales / escalas para **nivel de secado** (intensidad ventilador)
-  - **tiempo de secado** (estimado o relativo: definir unidad en implementacion)
-  - **temperatura** (min/max advertencia/critico segun politica)
-  - **humedad**: parametros globales + lectura asociada (sensor unico o logica compartida)
-- **Auditoria minima**: quien cambio calibracion y cuando.
-
-### Entregables
-- Backend: usuarios con rol, endpoints de calibracion por `grupoRubroId`, endpoint de config global de humedad.
-- Frontend: navegacion **Gerente / Supervisor / Operador**; pantallas de calibracion (Supervisor) y monitoreo (Operador); Gerente con muro y vistas consolidadas cuando existan datos Arduino.
+### Alcance ejecutado
+- **Backend**:
+  - Modelo `GrupoRubro` con sub-doc `calibracion` (temperatura min/max + criticos, nivelSecado min/max, tiempoSecado estimadoMin) y campos de auditoria `actualizadoPor`/`actualizadoEn`.
+  - Modelo `HumedadConfig` singleton (scope `global`) con min/max + criticos.
+  - Services `grupoRubro.service` (list, getById, updateCalibracion con validacion logica min<=max) y `humedadConfig.service` (getOrCreate, update).
+  - Controllers `grupoRubro.controller` y `humedadConfig.controller` con respuestas estandar.
+  - Rutas:
+    - `GET /api/grupos-rubro` (autenticado)
+    - `GET /api/grupos-rubro/:id` (autenticado)
+    - `PUT /api/grupos-rubro/:id/calibracion` (gerente / supervisor)
+    - `GET /api/config/humedad` (autenticado)
+    - `PUT /api/config/humedad` (gerente / supervisor)
+  - Validaciones con `express-validator` en cada endpoint editable.
+  - Script `npm run seed:grupos` que siembra las 3 parejas y la `HumedadConfig` global con valores por defecto.
+- **Frontend**:
+  - Tipos TS para `GrupoRubro`, `Calibracion`, `HumedadConfig` y payloads.
+  - `gruposService` y `humedadService` en `services/grupos.service.ts`.
+  - `useGruposStore` con `fetchAll`, `updateCalibracion`, `updateHumedad`.
+  - Componente reutilizable `GrupoRubroCard` con chips de items y resumen de calibracion.
+  - Pantallas:
+    - `GruposListScreen` (lista + tarjeta de humedad global).
+    - `CalibracionFormScreen` (editor por grupo: temperatura, nivel secado, tiempo).
+    - `HumedadFormScreen` (editor de la politica global).
+    - `SupervisorHomeScreen` (home real con accesos).
+    - `OperadorHomeScreen` (vista read-only de grupos + humedad global).
+  - `RootNavigator` actualizado: stack Gerente con `GruposList`/`CalibracionEdit`/`HumedadEdit`, stack Supervisor real, stack Operador real.
+  - Acceso a `GruposList` desde el Panel Gerente del `DashboardScreen`.
+  - Eliminados `SupervisorPlaceholderScreen` y `OperadorPlaceholderScreen` (reemplazados por las pantallas reales).
+- **Auditoria minima**: cada update de calibracion y de humedad guarda `actualizadoPor` (id del usuario JWT) y `actualizadoEn`.
 
 ### Check de estado
 - [x] Roles `gerente`/`supervisor`/`operador` en modelo y JWT (entrega base).
-- [ ] Pantallas completas de Supervisor (grupos + calibracion T/HR) y Operador (alarmas, informes).
-- [ ] Modelo `GrupoRubro` (o equivalente) con las tres parejas sembradas (seed).
-- [ ] Calibracion persistida por grupo (secado, tiempo, temp) + humedad global.
-- [ ] Auditoria de cambios de calibracion.
+- [x] Modelo `GrupoRubro` y seed con las tres parejas (`seed:grupos`).
+- [x] Calibracion persistida por grupo (secado, tiempo, temp) + humedad global (`HumedadConfig`).
+- [x] Pantallas completas de Supervisor (grupos + calibracion + humedad global).
+- [x] Pantalla Operador read-only con grupos y umbrales calibrados.
+- [x] Validacion logica `min <= max` y rangos 0–100 en humedad / nivel secado.
+- [x] Auditoria de cambios de calibracion (`actualizadoPor`/`actualizadoEn`).
+- [x] `npx tsc --noEmit` y `node --check` sin errores.
 
 ### Prompt listo para usar
 
@@ -262,7 +272,7 @@ Incluye auditoria de cambios de calibracion.
 
 ---
 
-## Sprint 6 - Integracion Arduino (lecturas de proceso -> backend -> app)
+## Sprint 6 - Integracion Arduino (lecturas de proceso -> backend -> app) (completado ✅)
 
 ### Contexto
 El Arduino monitorea el proceso de secado; la app consume el estado y las alertas segun la **calibracion** definida por el Supervisor (y politicas del Gerente).
@@ -287,10 +297,12 @@ Recibir **telemetria de proceso** desde Arduino alineada a las variables por gru
 - Simulador de Arduino o script que envie telemetria de prueba.
 
 ### Check de estado
-- [ ] Contrato de telemetria definido y versionado en docs.
-- [ ] Ingestion con validacion + anti-duplicados + rate limit.
-- [ ] Telemetria asociada al `grupoRubro` correcto.
-- [ ] UI operador muestra las cuatro dimensiones y estado vs calibracion.
+- [x] Contrato de telemetria definido y versionado en docs (`backend/docs/arduino-telemetry-contract.md`).
+- [x] Ingestion con validacion + deduplicacion por `eventId` + rate limit por `deviceId`.
+- [x] Telemetria asociada al `grupoRubro` correcto por `grupoRubroId` o `codigoGrupo`.
+- [x] API de consulta para app: `GET /api/telemetry/latest` y `GET /api/telemetry/group/:grupoRubroId`.
+- [x] UI Operador muestra las cuatro dimensiones y estado (`OK` / `ALERTA` / `CRITICO`) vs calibracion/humedad.
+- [x] Simulador de carga para pruebas: `npm run simulate:telemetry`.
 
 ### Prompt listo para usar
 
@@ -304,31 +316,37 @@ Actualiza UI: vista por grupo y comparacion contra calibracion del Supervisor.
 
 ---
 
-## Sprint 7 - Notificaciones y alertas (proceso + stock si aplica)
+## Sprint 7 - Notificaciones y alertas (proceso + stock si aplica) (completado ✅ in-app; push pendiente)
 
 ### Objetivo
 Avisar al operador (y opcionalmente al Gerente) cuando las lecturas **salgan de los rangos calibrados** (temperatura, humedad, secado, tiempo) y mantener la linea de **stock critico** si el negocio sigue requiriendo inventario.
 
-### Alcance
-- **Algoritmo de monitoreo**:
-  - evaluar telemetria vs calibracion por grupo (temp, nivel secado, tiempo)
-  - humedad evaluada contra **politica global**
-  - anti-spam: ultima alerta por tipo + ventana de tiempo
-- **Notificaciones**:
-  - POC con Expo Push Notifications
-  - alertas in-app (lista/badges) como respaldo
-- **UX**:
-  - panel de alertas para operador; resumen para Gerente
+### Alcance ejecutado (in-app + backend)
+- **Algoritmo de monitoreo** (tras cada `POST /api/arduino/telemetry` exitoso, no deduplicado):
+  - temperatura critica vs `calibracion.temperatura.criticoMin/Max` → alerta `temp_critico`
+  - temperatura fuera de rango operativo `min/max` (si no hubo critico) → `temp_fuera_rango`
+  - humedad critica vs `HumedadConfig.criticoMin/Max` → `humedad_critico`; si no, fuera de `min/max` global → `humedad_fuera`
+  - nivel de secado fuera de `calibracion.nivelSecado.min/max` → `nivel_secado_fuera`
+  - tiempo de secado mayor que `calibracion.tiempoSecado.estimadoMin` → `tiempo_secado_exceso`
+- **Anti-spam**: no se crea otra alerta del mismo `tipo` para el mismo `grupoRubroId` dentro de **5 minutos** (persistido consultando `ProcessAlert`).
+- **API** (`requireAuth`):
+  - `GET /api/alerts`, `GET /api/alerts/count`, `PATCH /api/alerts/:id/read`, `POST /api/alerts/mark-all-read`
+- **Frontend**:
+  - `AlertsListScreen` + `alertsService` + `useAlertsStore`
+  - **Operador**: boton a alertas + contador sin leer; lista con marcar leida / todas
+  - **Gerente**: acceso desde panel + **Muro** con ultimas lecturas y alertas (polling 15s + pull-to-refresh)
+- **Notificaciones push (Expo)**: **pendiente** (siguiente iteracion; requiere `expo-notifications`, tokens en backend y envio desde servidor).
 
 ### Entregables
-- Alertas de proceso segun calibracion.
-- Push POC + persistencia anti-spam.
+- Alertas de proceso segun calibracion (persistidas en MongoDB).
+- Anti-spam persistido por ventana de tiempo.
+- UI in-app para Operador y Gerente (Muro).
 
 ### Check de estado
-- [ ] Reglas de alerta alineadas a calibracion por grupo + humedad global.
-- [ ] push notifications POC funcionando.
-- [ ] anti-spam implementado y persistido.
-- [ ] UI de alertas para operador (y opcional Gerente).
+- [x] Reglas de alerta alineadas a calibracion por grupo + humedad global.
+- [ ] push notifications POC funcionando (pendiente — fase 7b).
+- [x] anti-spam implementado y persistido.
+- [x] UI de alertas para operador y resumen en Muro Gerente.
 
 ### Prompt listo para usar
 
@@ -341,7 +359,7 @@ Mantén o agrega alertas de stock minimo solo si el negocio lo sigue requiriendo
 
 ---
 
-## Sprint 8 - Respaldo y seguridad de datos (backups + cifrado + hardening)
+## Sprint 8 - Respaldo y seguridad de datos (backups + cifrado + hardening) (implementado ✅)
 
 ### Objetivo
 Garantizar integridad y disponibilidad de la informacion ante fallos de hardware o accesos no autorizados.
@@ -360,10 +378,10 @@ Garantizar integridad y disponibilidad de la informacion ante fallos de hardware
 - Checklist de seguridad y configuracion por ambiente (dev/qa/prod).
 
 ### Check de estado
-- [ ] Backup automatizado y rotacion configurada.
-- [ ] Restore probado y documentado.
-- [ ] Hardening aplicado (rate limit/CORS/headers/logs).
-- [ ] Documentacion de seguridad y secretos.
+- [x] Backup script con `mongodump` (`npm run backup:mongo`) y carpeta dedicada `backend/backups/`.
+- [ ] Restore **ejecutado en entorno real** y validado (script implementado: `npm run restore:mongo -- <ruta_dump>`).
+- [x] Hardening aplicado (rate limit + CORS por ambiente + `helmet` + logging de errores HTTP).
+- [x] Documentacion de seguridad y secretos (`backend/docs/BACKUP-SECURITY.md`, `.env.example`, README).
 
 ### Prompt listo para usar
 

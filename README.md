@@ -38,6 +38,10 @@ Copia desde `backend/.env.example`:
 | `MONGODB_URI` | Cadena de conexión MongoDB |
 | `JWT_SECRET` | Secreto para firmar tokens (obligatorio en producción) |
 | `JWT_EXPIRES_IN` | Duración del token (ej. `8h`) |
+| `NODE_ENV` | Entorno (`development` / `production`) |
+| `CORS_ORIGINS` | Orígenes permitidos por CORS (csv) |
+| `RATE_LIMIT_WINDOW_MS` | Ventana de rate limit en ms |
+| `RATE_LIMIT_MAX` | Máximo de requests por IP en la ventana |
 
 Opcional para el script de usuario inicial:
 
@@ -129,6 +133,8 @@ Desde esa cuenta puedes registrar **Supervisores** y **Operadores** en la app (E
 | `npm run dev` | Servidor con nodemon (desarrollo) |
 | `npm start` | Servidor sin recarga automática |
 | `npm run seed:admin` | Crea o migra la cuenta **Gerente** y roles en usuarios legacy |
+| `npm run backup:mongo` | Genera backup con `mongodump` en `backend/backups/` |
+| `npm run restore:mongo -- <ruta_dump>` | Restaura backup con `mongorestore --drop` |
 
 ### Frontend (`frontend/`)
 
@@ -243,6 +249,7 @@ Configura variables de entorno del build (por ejemplo `EXPO_PUBLIC_API_URL` apun
 
 - Plan de trabajo y prompts por sprint: `SPRINTS.md`
 - Guía rápida Postman: `backend/docs/postman/USO-RAPIDO.md`
+- Seguridad y backups (Sprint 8): `backend/docs/BACKUP-SECURITY.md`
 
 ---
 

@@ -6,7 +6,11 @@
   "scripts": {
     "dev": "nodemon src/server.js",
     "start": "node src/server.js",
-    "seed:admin": "node src/scripts/seedAdmin.js"
+    "seed:admin": "node src/scripts/seedAdmin.js",
+    "seed:grupos": "node src/scripts/seedGrupos.js",
+    "simulate:telemetry": "node src/scripts/simulateTelemetry.js",
+    "backup:mongo": "node src/scripts/backupMongo.js",
+    "restore:mongo": "node src/scripts/restoreMongo.js"
   },
   "keywords": [],
   "author": "",
@@ -17,6 +21,7 @@
     "cors": "^2.8.6",
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
+    "express-rate-limit": "^8.4.1",
     "express-validator": "^7.3.2",
     "helmet": "^8.1.0",
     "jsonwebtoken": "^9.0.3",

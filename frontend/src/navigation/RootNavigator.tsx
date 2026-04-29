@@ -7,13 +7,17 @@ import { HarinaFormScreen } from "../screens/HarinaFormScreen";
 import { EquipoListScreen } from "../screens/EquipoListScreen";
 import { UsuarioFormScreen } from "../screens/UsuarioFormScreen";
 import { MuroGerenteScreen } from "../screens/MuroGerenteScreen";
-import { SupervisorPlaceholderScreen } from "../screens/SupervisorPlaceholderScreen";
-import { OperadorPlaceholderScreen } from "../screens/OperadorPlaceholderScreen";
+import { GruposListScreen } from "../screens/GruposListScreen";
+import { CalibracionFormScreen } from "../screens/CalibracionFormScreen";
+import { HumedadFormScreen } from "../screens/HumedadFormScreen";
+import { SupervisorHomeScreen } from "../screens/SupervisorHomeScreen";
+import { OperadorHomeScreen } from "../screens/OperadorHomeScreen";
+import { AlertsListScreen } from "../screens/AlertsListScreen";
 import { useAuthStore } from "../store/auth.store";
 import { LoadingScreen } from "../components/LoadingScreen";
 import { useBootstrapSession } from "../hooks/useBootstrapSession";
 import type { Rol } from "../types/auth";
-import type { GerenteStackParamList } from "./types";
+import type { GerenteStackParamList, GruposStackParamList, OperadorStackParamList } from "./types";
 
 type AuthStackParamList = {
   Login: undefined;
@@ -21,7 +25,8 @@ type AuthStackParamList = {
 
 const AuthStack = createNativeStackNavigator<AuthStackParamList>();
 const GerenteStack = createNativeStackNavigator<GerenteStackParamList>();
-const RolStack = createNativeStackNavigator<{ Home: undefined }>();
+const SupervisorStack = createNativeStackNavigator<GruposStackParamList>();
+const OperadorStack = createNativeStackNavigator<OperadorStackParamList>();
 
 const AuthNavigator = () => (
   <AuthStack.Navigator screenOptions={{ headerShown: false }}>
@@ -70,28 +75,86 @@ const GerenteNavigator = () => (
     />
     <GerenteStack.Screen name="MuroGerente" options={{ title: "Muro" }} component={MuroGerenteScreen} />
     <GerenteStack.Screen
+      name="AlertsList"
+      options={{ title: "Alertas de proceso" }}
+      component={AlertsListScreen}
+    />
+    <GerenteStack.Screen
+      name="GruposList"
+      options={{ title: "Grupos de rubro" }}
+      component={GruposListScreen}
+    />
+    <GerenteStack.Screen
+      name="CalibracionEdit"
+      options={{ title: "Calibracion" }}
+      children={({ route, navigation }) => (
+        <CalibracionFormScreen
+          grupoId={route.params.grupoId}
+          onSuccess={() => navigation.goBack()}
+        />
+      )}
+    />
+    <GerenteStack.Screen
+      name="HumedadEdit"
+      options={{ title: "Humedad global" }}
+      children={({ navigation }) => <HumedadFormScreen onSuccess={() => navigation.goBack()} />}
+    />
+    <GerenteStack.Screen
       name="PreviewSupervisor"
       options={{ title: "Vista Supervisor" }}
-      component={SupervisorPlaceholderScreen}
+      component={SupervisorHomeScreen}
     />
     <GerenteStack.Screen
       name="PreviewOperador"
       options={{ title: "Vista Operador" }}
-      component={OperadorPlaceholderScreen}
+      component={OperadorHomeScreen}
     />
   </GerenteStack.Navigator>
 );
 
 const SupervisorNavigator = () => (
-  <RolStack.Navigator>
-    <RolStack.Screen name="Home" options={{ title: "Supervisor" }} component={SupervisorPlaceholderScreen} />
-  </RolStack.Navigator>
+  <SupervisorStack.Navigator>
+    <SupervisorStack.Screen
+      name="Home"
+      options={{ title: "Supervisor" }}
+      component={SupervisorHomeScreen}
+    />
+    <SupervisorStack.Screen
+      name="GruposList"
+      options={{ title: "Grupos de rubro" }}
+      component={GruposListScreen}
+    />
+    <SupervisorStack.Screen
+      name="CalibracionEdit"
+      options={{ title: "Calibracion" }}
+      children={({ route, navigation }) => (
+        <CalibracionFormScreen
+          grupoId={route.params.grupoId}
+          onSuccess={() => navigation.goBack()}
+        />
+      )}
+    />
+    <SupervisorStack.Screen
+      name="HumedadEdit"
+      options={{ title: "Humedad global" }}
+      children={({ navigation }) => <HumedadFormScreen onSuccess={() => navigation.goBack()} />}
+    />
+  </SupervisorStack.Navigator>
 );
 
 const OperadorNavigator = () => (
-  <RolStack.Navigator>
-    <RolStack.Screen name="Home" options={{ title: "Operador" }} component={OperadorPlaceholderScreen} />
-  </RolStack.Navigator>
+  <OperadorStack.Navigator>
+    <OperadorStack.Screen
+      name="Home"
+      options={{ title: "Operador" }}
+      component={OperadorHomeScreen}
+    />
+    <OperadorStack.Screen
+      name="AlertsList"
+      options={{ title: "Alertas" }}
+      component={AlertsListScreen}
+    />
+  </OperadorStack.Navigator>
 );
 
 const resolveRol = (rol: Rol | undefined): Rol => {

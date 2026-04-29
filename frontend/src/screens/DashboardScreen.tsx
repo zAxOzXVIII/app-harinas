@@ -84,8 +84,18 @@ export const DashboardScreen = ({ onGoToGestion }: Props) => {
               </Button>
             </View>
             <View style={styles.gerenteRow}>
+              <Button mode="contained-tonal" onPress={() => navigation.navigate("GruposList")}>
+                Grupos de rubro y calibracion
+              </Button>
+            </View>
+            <View style={styles.gerenteRow}>
               <Button mode="contained-tonal" onPress={() => navigation.navigate("MuroGerente")}>
                 Muro
+              </Button>
+            </View>
+            <View style={styles.gerenteRow}>
+              <Button mode="contained-tonal" onPress={() => navigation.navigate("AlertsList")}>
+                Alertas de proceso
               </Button>
             </View>
             <View style={styles.gerenteRow}>
