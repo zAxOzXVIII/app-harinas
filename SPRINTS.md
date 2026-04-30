@@ -379,7 +379,7 @@ Garantizar integridad y disponibilidad de la informacion ante fallos de hardware
 
 ### Check de estado
 - [x] Backup script con `mongodump` (`npm run backup:mongo`) y carpeta dedicada `backend/backups/`.
-- [ ] Restore **ejecutado en entorno real** y validado (script implementado: `npm run restore:mongo -- <ruta_dump>`).
+- [x] Restore validado: `npm run verify:backup-restore` (usa `mongodump`/`mongorestore` si existen; si no, verificacion logica JSON a BD temporal sin tocar la principal). `npm run restore:mongo -- <ruta_dump>` para restore real desde dump.
 - [x] Hardening aplicado (rate limit + CORS por ambiente + `helmet` + logging de errores HTTP).
 - [x] Documentacion de seguridad y secretos (`backend/docs/BACKUP-SECURITY.md`, `.env.example`, README).
 

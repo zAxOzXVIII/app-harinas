@@ -2,6 +2,7 @@ const fs = require("fs");
 const path = require("path");
 const { spawn } = require("child_process");
 const env = require("../config/env");
+const { resolveMongoTool } = require("./mongoToolPath");
 
 const inputArg = process.argv[2];
 
@@ -22,10 +23,18 @@ const run = () => {
     process.exit(1);
   }
 
+  const mongorestore = resolveMongoTool("mongorestore");
+  if (!mongorestore) {
+    console.error(
+      "No se encontro mongorestore en PATH ni en rutas tipicas. Instala MongoDB Database Tools: https://www.mongodb.com/try/download/database-tools"
+    );
+    process.exit(1);
+  }
+
   const proc = spawn(
-    "mongorestore",
+    mongorestore,
     ["--uri", env.mongoUri, "--drop", "--gzip", dumpPath],
-    { stdio: "inherit", shell: true }
+    { stdio: "inherit", shell: false }
   );
 
   proc.on("exit", (code) => {

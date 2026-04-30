@@ -40,11 +40,21 @@ npm run restore:mongo -- "backups/dump-AAAA-MM-DDTHH-mm-ss-sssZ"
 - Requiere `mongorestore` en PATH.
 - Usa `--drop` para reemplazar colecciones existentes.
 
-## Prueba mínima recomendada
+## Verificación automática (recomendado)
 
-1. Crear backup con `backup:mongo`.
+```powershell
+cd backend
+npm run verify:backup-restore
+```
+
+- Si `mongodump` y `mongorestore` están en PATH (o en rutas típicas de Windows), prueba dump → restore a una **base temporal** → comparación de conteos por colección → borrado de la temporal.
+- Si no hay herramientas, ejecuta una **verificación lógica** (export JSON por colección → import en BD temporal `*_smoke_verify` → comparar conteos → limpiar).
+
+## Prueba manual completa (mongotools)
+
+1. Crear backup con `npm run backup:mongo`.
 2. Insertar o modificar un registro de prueba.
-3. Restaurar con `restore:mongo`.
+3. Restaurar con `npm run restore:mongo -- <ruta_dump>`.
 4. Verificar que los datos vuelven al estado del backup.
 
 ## Nota de producción

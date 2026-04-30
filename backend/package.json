@@ -10,7 +10,8 @@
     "seed:grupos": "node src/scripts/seedGrupos.js",
     "simulate:telemetry": "node src/scripts/simulateTelemetry.js",
     "backup:mongo": "node src/scripts/backupMongo.js",
-    "restore:mongo": "node src/scripts/restoreMongo.js"
+    "restore:mongo": "node src/scripts/restoreMongo.js",
+    "verify:backup-restore": "node src/scripts/verifyBackupRestore.js"
   },
   "keywords": [],
   "author": "",

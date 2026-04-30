@@ -2,6 +2,7 @@ const fs = require("fs");
 const path = require("path");
 const { spawn } = require("child_process");
 const env = require("../config/env");
+const { resolveMongoTool } = require("./mongoToolPath");
 
 const backupsDir = path.resolve(__dirname, "../../backups");
 const ts = new Date().toISOString().replace(/[:.]/g, "-");
@@ -15,10 +16,18 @@ const run = () => {
 
   fs.mkdirSync(outDir, { recursive: true });
 
+  const mongodump = resolveMongoTool("mongodump");
+  if (!mongodump) {
+    console.error(
+      "No se encontro mongodump en PATH ni en rutas tipicas de MongoDB. Instala MongoDB Database Tools: https://www.mongodb.com/try/download/database-tools"
+    );
+    process.exit(1);
+  }
+
   const proc = spawn(
-    "mongodump",
+    mongodump,
     ["--uri", env.mongoUri, "--out", outDir, "--gzip"],
-    { stdio: "inherit", shell: true }
+    { stdio: "inherit", shell: false }
   );
 
   proc.on("exit", (code) => {

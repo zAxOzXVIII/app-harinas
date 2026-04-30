@@ -135,6 +135,7 @@ Desde esa cuenta puedes registrar **Supervisores** y **Operadores** en la app (E
 | `npm run seed:admin` | Crea o migra la cuenta **Gerente** y roles en usuarios legacy |
 | `npm run backup:mongo` | Genera backup con `mongodump` en `backend/backups/` |
 | `npm run restore:mongo -- <ruta_dump>` | Restaura backup con `mongorestore --drop` |
+| `npm run verify:backup-restore` | Valida backup/restore sin tocar la BD principal (ver `BACKUP-SECURITY.md`) |
 
 ### Frontend (`frontend/`)
 
