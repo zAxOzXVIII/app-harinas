@@ -359,7 +359,7 @@ Mantén o agrega alertas de stock minimo solo si el negocio lo sigue requiriendo
 
 ---
 
-## Sprint 8 - Respaldo y seguridad de datos (backups + cifrado + hardening) (implementado ✅)
+## Sprint 8 - Respaldo y seguridad de datos (backups + cifrado + hardening) (completado ✅)
 
 ### Objetivo
 Garantizar integridad y disponibilidad de la informacion ante fallos de hardware o accesos no autorizados.
@@ -379,7 +379,7 @@ Garantizar integridad y disponibilidad de la informacion ante fallos de hardware
 
 ### Check de estado
 - [x] Backup script con `mongodump` (`npm run backup:mongo`) y carpeta dedicada `backend/backups/`.
-- [x] Restore validado: `npm run verify:backup-restore` (usa `mongodump`/`mongorestore` si existen; si no, verificacion logica JSON a BD temporal sin tocar la principal). `npm run restore:mongo -- <ruta_dump>` para restore real desde dump.
+- [x] Restore validado: `npm run verify:backup-restore` ejecutado y completado con verificacion logica JSON (exporta colecciones a BD temporal, compara conteos exactos, limpia). Modo `mongodump`/`mongorestore` activable cuando se instalen MongoDB Database Tools.
 - [x] Hardening aplicado (rate limit + CORS por ambiente + `helmet` + logging de errores HTTP).
 - [x] Documentacion de seguridad y secretos (`backend/docs/BACKUP-SECURITY.md`, `.env.example`, README).
 
