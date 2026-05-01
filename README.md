@@ -42,6 +42,8 @@ Copia desde `backend/.env.example`:
 | `CORS_ORIGINS` | Orígenes permitidos por CORS (csv) |
 | `RATE_LIMIT_WINDOW_MS` | Ventana de rate limit en ms |
 | `RATE_LIMIT_MAX` | Máximo de requests por IP en la ventana |
+| `AUTH_RATE_LIMIT_WINDOW_MS` | Ventana de rate limit específica para login |
+| `AUTH_RATE_LIMIT_MAX` | Máximo de intentos de login por IP en la ventana |
 
 Opcional para el script de usuario inicial:
 
@@ -145,6 +147,7 @@ Desde esa cuenta puedes registrar **Supervisores** y **Operadores** en la app (E
 | `npm run android` | Expo y abre Android |
 | `npm run ios` | Expo y abre iOS (macOS) |
 | `npm run web` | Versión web en el mismo puerto |
+| `npm run typecheck` | Validación TypeScript sin compilar |
 
 ---
 
@@ -251,6 +254,37 @@ npm run simulate:telemetry
 ```
 
 > Si la app crashea inmediatamente despues de un cambio fuerte de codigo, hace falta limpiar AsyncStorage o reinstalar el APK. En desarrollo: cierra Metro, ejecuta `npm run start -- --clear` (o `npx expo start -c`) y vuelve a probar.
+
+---
+
+## Seguridad y validacion final
+
+Antes de cerrar una entrega:
+
+```powershell
+cd backend
+npm audit --audit-level=moderate
+
+cd ../frontend
+npm run typecheck
+npm audit --audit-level=moderate
+```
+
+Estado esperado actual:
+
+- Backend: `0 vulnerabilities`.
+- Frontend: TypeScript sin errores.
+- Frontend audit: pueden quedar avisos moderados transitivos de Expo (`postcss` / `uuid`). No ejecutes `npm audit fix --force` salvo que estés haciendo una migración controlada de SDK Expo, porque npm puede bajar o mezclar versiones incompatibles.
+
+Medidas activas en backend:
+
+- `helmet` para cabeceras HTTP.
+- CORS configurable por `CORS_ORIGINS`.
+- Rate limit general por IP.
+- Rate limit específico para `/api/auth/login`.
+- Límite de body JSON de `1mb`.
+- `X-Powered-By` deshabilitado.
+- JWT obligatorio para rutas protegidas.
 
 ---
 

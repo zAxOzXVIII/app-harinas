@@ -12,4 +12,15 @@ const apiRateLimiter = rateLimit({
   },
 });
 
-module.exports = { apiRateLimiter };
+const authRateLimiter = rateLimit({
+  windowMs: env.authRateLimitWindowMs,
+  max: env.authRateLimitMax,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: {
+    success: false,
+    message: "Demasiados intentos de inicio de sesion. Intenta de nuevo en unos minutos.",
+  },
+});
+
+module.exports = { apiRateLimiter, authRateLimiter };

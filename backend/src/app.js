@@ -14,6 +14,7 @@ const { apiRateLimiter } = require("./middlewares/rateLimit.middleware");
 const { errorHandler } = require("./middlewares/error.middleware");
 
 const app = express();
+app.disable("x-powered-by");
 
 const allowedOrigins = env.corsOrigins
   .split(",")
@@ -38,7 +39,7 @@ app.use(
   })
 );
 app.use(apiRateLimiter);
-app.use(express.json());
+app.use(express.json({ limit: "1mb" }));
 
 app.get("/api/health", (_req, res) => {
   res.status(200).json({

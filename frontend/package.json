@@ -6,7 +6,8 @@
     "start": "expo start --port 8082",
     "android": "expo start --android --port 8082",
     "ios": "expo start --ios --port 8082",
-    "web": "expo start --web --port 8082"
+    "web": "expo start --web --port 8082",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@react-native-async-storage/async-storage": "2.2.0",

@@ -11,6 +11,8 @@ const env = {
   corsOrigins: process.env.CORS_ORIGINS || "",
   rateLimitWindowMs: Number(process.env.RATE_LIMIT_WINDOW_MS || 15 * 60 * 1000),
   rateLimitMax: Number(process.env.RATE_LIMIT_MAX || 300),
+  authRateLimitWindowMs: Number(process.env.AUTH_RATE_LIMIT_WINDOW_MS || 15 * 60 * 1000),
+  authRateLimitMax: Number(process.env.AUTH_RATE_LIMIT_MAX || 20),
 };
 
 module.exports = env;

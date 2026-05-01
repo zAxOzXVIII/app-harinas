@@ -59,6 +59,8 @@ NODE_ENV=production
 CORS_ORIGINS=https://tu-dominio-app-o-expo,https://expo.dev
 RATE_LIMIT_WINDOW_MS=900000
 RATE_LIMIT_MAX=300
+AUTH_RATE_LIMIT_WINDOW_MS=900000
+AUTH_RATE_LIMIT_MAX=20
 ```
 
 4. Deploy inicial.
@@ -108,6 +110,7 @@ EXPO_PUBLIC_API_URL=https://<tu-backend-publico>
 - No subir `.env` al repo.
 - Restringir `CORS_ORIGINS` a orígenes reales (no dejar abierto permanentemente).
 - Mantener `RATE_LIMIT_*` activo.
+- Mantener `AUTH_RATE_LIMIT_*` activo para reducir fuerza bruta en login.
 - Habilitar HTTPS siempre (Render/Atlas ya lo usan).
 - Rotar credenciales de BD si se exponen accidentalmente.
 
@@ -137,12 +140,32 @@ Recomendacion:
 - [ ] Modulo grupos/calibracion funciona.
 - [ ] Telemetria y alertas se guardan/consultan.
 - [ ] CORS restringido a orígenes validos.
+- [ ] Rate limit general y rate limit de login configurados.
 - [ ] Backup y restore verificados.
 - [ ] Variables sensibles fuera de Git.
+- [ ] Frontend validado con `npm run typecheck`.
+- [ ] Auditorías ejecutadas en `backend` y `frontend`.
 
 ---
 
-## 10) Plan de ejecucion sugerido (1-2 dias)
+## 10) Publicacion para Google / EE.UU.
+
+Si el objetivo es que usuarios de Estados Unidos encuentren la app:
+
+1. Crear una cuenta de Google Play Console.
+2. Generar un **AAB** con EAS Build para produccion:
+   - `eas build -p android --profile production`
+3. Crear la ficha de Play Store:
+   - Nombre comercial, descripcion corta/larga, capturas, icono, categoria y politica de privacidad.
+4. En **Countries / Regions**, habilitar **United States**.
+5. Completar cuestionarios de contenido, seguridad de datos y permisos.
+6. Subir el AAB y enviar a revision.
+
+Para que aparezca tambien en busquedas web de Google, conviene tener una landing publica con dominio propio, descripcion de la app, enlace a Play Store y politicas legales. La app movil por si sola se descubre principalmente desde Google Play.
+
+---
+
+## 11) Plan de ejecucion sugerido (1-2 dias)
 
 **Dia 1**
 - Atlas + deploy backend + variables.
@@ -155,7 +178,7 @@ Recomendacion:
 
 ---
 
-## 11) Comandos clave (resumen rapido)
+## 12) Comandos clave (resumen rapido)
 
 ```bash
 # Backend local
@@ -170,6 +193,7 @@ npm run verify:backup-restore
 
 # Frontend build
 cd ../frontend
+npm run typecheck
 eas build -p android --profile preview
 ```
 
