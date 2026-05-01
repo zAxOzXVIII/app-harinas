@@ -1,3 +1,4 @@
+import { useColorScheme } from "react-native";
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { LoginScreen } from "../screens/LoginScreen";
@@ -18,6 +19,7 @@ import { LoadingScreen } from "../components/LoadingScreen";
 import { useBootstrapSession } from "../hooks/useBootstrapSession";
 import type { Rol } from "../types/auth";
 import type { GerenteStackParamList, GruposStackParamList, OperadorStackParamList } from "./types";
+import { navDark, navLight } from "../theme";
 
 type AuthStackParamList = {
   Login: undefined;
@@ -28,14 +30,20 @@ const GerenteStack = createNativeStackNavigator<GerenteStackParamList>();
 const SupervisorStack = createNativeStackNavigator<GruposStackParamList>();
 const OperadorStack = createNativeStackNavigator<OperadorStackParamList>();
 
+const baseScreenOptions = {
+  animation: "slide_from_right" as const,
+  headerTitleAlign: "center" as const,
+  headerLargeTitle: false,
+};
+
 const AuthNavigator = () => (
-  <AuthStack.Navigator screenOptions={{ headerShown: false }}>
+  <AuthStack.Navigator screenOptions={{ headerShown: false, animation: "fade" }}>
     <AuthStack.Screen name="Login" component={LoginScreen} />
   </AuthStack.Navigator>
 );
 
 const GerenteNavigator = () => (
-  <GerenteStack.Navigator>
+  <GerenteStack.Navigator screenOptions={baseScreenOptions}>
     <GerenteStack.Screen
       name="Dashboard"
       options={{ title: "Inicio" }}
@@ -55,12 +63,12 @@ const GerenteNavigator = () => (
     />
     <GerenteStack.Screen
       name="HarinaCreate"
-      options={{ title: "Nueva Harina" }}
+      options={{ title: "Nueva Harina", presentation: "modal", animation: "slide_from_bottom" }}
       children={({ navigation }) => <HarinaFormScreen onSuccess={() => navigation.goBack()} />}
     />
     <GerenteStack.Screen
       name="HarinaEdit"
-      options={{ title: "Editar Harina" }}
+      options={{ title: "Editar Harina", presentation: "modal", animation: "slide_from_bottom" }}
       children={({ route, navigation }) => (
         <HarinaFormScreen harinaToEdit={route.params.harina} onSuccess={() => navigation.goBack()} />
       )}
@@ -68,7 +76,7 @@ const GerenteNavigator = () => (
     <GerenteStack.Screen name="EquipoList" options={{ title: "Equipo" }} component={EquipoListScreen} />
     <GerenteStack.Screen
       name="UsuarioForm"
-      options={{ title: "Usuario" }}
+      options={{ title: "Usuario", presentation: "modal", animation: "slide_from_bottom" }}
       children={({ route, navigation }) => (
         <UsuarioFormScreen userId={route.params?.userId} onSuccess={() => navigation.goBack()} />
       )}
@@ -86,7 +94,7 @@ const GerenteNavigator = () => (
     />
     <GerenteStack.Screen
       name="CalibracionEdit"
-      options={{ title: "Calibracion" }}
+      options={{ title: "Calibracion", presentation: "modal", animation: "slide_from_bottom" }}
       children={({ route, navigation }) => (
         <CalibracionFormScreen
           grupoId={route.params.grupoId}
@@ -96,7 +104,7 @@ const GerenteNavigator = () => (
     />
     <GerenteStack.Screen
       name="HumedadEdit"
-      options={{ title: "Humedad global" }}
+      options={{ title: "Humedad global", presentation: "modal", animation: "slide_from_bottom" }}
       children={({ navigation }) => <HumedadFormScreen onSuccess={() => navigation.goBack()} />}
     />
     <GerenteStack.Screen
@@ -113,7 +121,7 @@ const GerenteNavigator = () => (
 );
 
 const SupervisorNavigator = () => (
-  <SupervisorStack.Navigator>
+  <SupervisorStack.Navigator screenOptions={baseScreenOptions}>
     <SupervisorStack.Screen
       name="Home"
       options={{ title: "Supervisor" }}
@@ -126,7 +134,7 @@ const SupervisorNavigator = () => (
     />
     <SupervisorStack.Screen
       name="CalibracionEdit"
-      options={{ title: "Calibracion" }}
+      options={{ title: "Calibracion", presentation: "modal", animation: "slide_from_bottom" }}
       children={({ route, navigation }) => (
         <CalibracionFormScreen
           grupoId={route.params.grupoId}
@@ -136,14 +144,14 @@ const SupervisorNavigator = () => (
     />
     <SupervisorStack.Screen
       name="HumedadEdit"
-      options={{ title: "Humedad global" }}
+      options={{ title: "Humedad global", presentation: "modal", animation: "slide_from_bottom" }}
       children={({ navigation }) => <HumedadFormScreen onSuccess={() => navigation.goBack()} />}
     />
   </SupervisorStack.Navigator>
 );
 
 const OperadorNavigator = () => (
-  <OperadorStack.Navigator>
+  <OperadorStack.Navigator screenOptions={baseScreenOptions}>
     <OperadorStack.Screen
       name="Home"
       options={{ title: "Operador" }}
@@ -173,10 +181,15 @@ const AppNavigator = () => {
 export const RootNavigator = () => {
   const token = useAuthStore((state) => state.token);
   const { isHydrated } = useBootstrapSession();
+  const isDark = useColorScheme() === "dark";
 
   if (!isHydrated) {
     return <LoadingScreen />;
   }
 
-  return <NavigationContainer>{token ? <AppNavigator /> : <AuthNavigator />}</NavigationContainer>;
+  return (
+    <NavigationContainer theme={isDark ? navDark : navLight}>
+      {token ? <AppNavigator /> : <AuthNavigator />}
+    </NavigationContainer>
+  );
 };

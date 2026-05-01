@@ -234,6 +234,26 @@ Configura variables de entorno del build (por ejemplo `EXPO_PUBLIC_API_URL` apun
 
 ---
 
+## Tema y graficos
+
+- **Modo claro/oscuro automatico** (sigue el ajuste del sistema operativo).
+- Tema MD3 personalizado en `frontend/src/theme/`.
+- **Graficos sin dependencias nativas**:
+  - `Sparkline.tsx`: tendencia de temperatura/humedad por grupo.
+  - `MetricGauge.tsx`: barra con zonas (operativo/critico) y marcador del valor actual.
+- Pantallas Operador y Muro Gerente integran ambos componentes con polling cada 10–15 s.
+
+Para que los graficos muestren datos reales en local, ejecuta el simulador:
+
+```powershell
+cd backend
+npm run simulate:telemetry
+```
+
+> Si la app crashea inmediatamente despues de un cambio fuerte de codigo, hace falta limpiar AsyncStorage o reinstalar el APK. En desarrollo: cierra Metro, ejecuta `npm run start -- --clear` (o `npx expo start -c`) y vuelve a probar.
+
+---
+
 ## Solución de problemas
 
 | Síntoma | Acción |

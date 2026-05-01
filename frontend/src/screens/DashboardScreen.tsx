@@ -1,6 +1,6 @@
 import { useCallback, useMemo } from "react";
 import { RefreshControl, ScrollView, StyleSheet, View } from "react-native";
-import { Button, Card, Text } from "react-native-paper";
+import { Button, Card, Text, useTheme } from "react-native-paper";
 import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { useAuthStore } from "../store/auth.store";
@@ -15,6 +15,7 @@ interface Props {
 type Nav = NativeStackNavigationProp<GerenteStackParamList>;
 
 export const DashboardScreen = ({ onGoToGestion }: Props) => {
+  const theme = useTheme();
   const navigation = useNavigation<Nav>();
   const user = useAuthStore((state) => state.user);
   const logout = useAuthStore((state) => state.logout);
@@ -36,7 +37,7 @@ export const DashboardScreen = ({ onGoToGestion }: Props) => {
 
   return (
     <ScrollView
-      style={styles.container}
+      style={[styles.container, { backgroundColor: theme.colors.background }]}
       contentContainerStyle={styles.content}
       refreshControl={<RefreshControl refreshing={isLoading} onRefresh={fetchHarinas} />}
     >
@@ -124,7 +125,6 @@ export const DashboardScreen = ({ onGoToGestion }: Props) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#f4f6f8",
   },
   content: {
     padding: 16,
