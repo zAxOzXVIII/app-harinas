@@ -7,7 +7,6 @@ import {
   Card,
   Chip,
   Divider,
-  Surface,
   Text,
   useTheme,
 } from "react-native-paper";
@@ -20,7 +19,8 @@ import { useTelemetryStore } from "../store/telemetry.store";
 import { useAlertsStore } from "../store/alerts.store";
 import { Sparkline } from "../components/Sparkline";
 import { MetricGauge } from "../components/MetricGauge";
-import { statusColors } from "../theme";
+import { brand, statusColors } from "../theme";
+import { ScreenHero } from "../components/ScreenHero";
 
 type Nav = NativeStackNavigationProp<OperadorStackParamList>;
 
@@ -94,27 +94,25 @@ export const OperadorHomeScreen = () => {
       contentContainerStyle={styles.content}
       refreshControl={<RefreshControl refreshing={isLoading} onRefresh={onRefresh} />}
     >
-      <Surface elevation={1} style={[styles.hero, { backgroundColor: theme.colors.surface }]}>
-        <View style={{ flex: 1 }}>
-          <Text variant="labelLarge" style={styles.muted}>Operador</Text>
-          <Text variant="headlineSmall">Hola, {user?.nombre ?? "Operador"}</Text>
-          <Text variant="bodySmall" style={styles.muted}>
-            Monitoreo de proceso por grupo de rubro y alertas de calibracion.
-          </Text>
-        </View>
-        <View>
+      <ScreenHero
+        roleLabel="Operador"
+        title={`Hola, ${user?.nombre ?? "Operador"}`}
+        subtitle="Monitoreo de proceso por grupo y alertas de calibracion"
+      >
+        <View style={styles.alertBtnWrap}>
           <Button
             mode="contained-tonal"
             onPress={() => navigation.navigate("AlertsList")}
             icon="bell-outline"
+            style={styles.alertBtn}
           >
-            Alertas
+            Alertas{unreadCount > 0 ? ` (${unreadCount})` : ""}
           </Button>
           {unreadCount > 0 ? (
             <Badge style={styles.badge}>{unreadCount}</Badge>
           ) : null}
         </View>
-      </Surface>
+      </ScreenHero>
 
       {error ? <Text style={styles.error}>{error}</Text> : null}
       {telemetryError ? <Text style={styles.error}>{telemetryError}</Text> : null}
@@ -236,7 +234,7 @@ export const OperadorHomeScreen = () => {
                       data={tempSeries}
                       width={CHART_W}
                       height={56}
-                      color={statusColors.warning}
+                      color={brand.primaryBlue}
                     />
                   </View>
                 ) : null}
@@ -250,7 +248,7 @@ export const OperadorHomeScreen = () => {
                       data={humSeries}
                       width={CHART_W}
                       height={56}
-                      color={theme.colors.secondary}
+                      color={brand.skyAccent}
                     />
                   </View>
                 ) : null}
@@ -289,13 +287,8 @@ const styles = StyleSheet.create({
   container: { flex: 1 },
   content: { padding: 16, paddingBottom: 32, gap: 12 },
   centered: { flex: 1, justifyContent: "center", alignItems: "center" },
-  hero: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
-    padding: 16,
-    borderRadius: 16,
-  },
+  alertBtnWrap: { marginTop: 12, alignSelf: "flex-start", position: "relative" },
+  alertBtn: { borderRadius: 10 },
   badge: { position: "absolute", top: -6, right: -6 },
   card: { borderRadius: 14 },
   cardHeader: { flexDirection: "row", alignItems: "center", gap: 8 },

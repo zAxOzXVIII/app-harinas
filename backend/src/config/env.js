@@ -13,6 +13,10 @@ const env = {
   rateLimitMax: Number(process.env.RATE_LIMIT_MAX || 300),
   authRateLimitWindowMs: Number(process.env.AUTH_RATE_LIMIT_WINDOW_MS || 15 * 60 * 1000),
   authRateLimitMax: Number(process.env.AUTH_RATE_LIMIT_MAX || 20),
+  trustProxy:
+    process.env.TRUST_PROXY === "1" ||
+    process.env.TRUST_PROXY === "true" ||
+    process.env.NODE_ENV === "production",
 };
 
 module.exports = env;

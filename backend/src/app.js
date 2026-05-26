@@ -16,6 +16,10 @@ const { errorHandler } = require("./middlewares/error.middleware");
 const app = express();
 app.disable("x-powered-by");
 
+if (env.trustProxy) {
+  app.set("trust proxy", 1);
+}
+
 const allowedOrigins = env.corsOrigins
   .split(",")
   .map((o) => o.trim())

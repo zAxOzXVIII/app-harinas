@@ -19,7 +19,7 @@ import { LoadingScreen } from "../components/LoadingScreen";
 import { useBootstrapSession } from "../hooks/useBootstrapSession";
 import type { Rol } from "../types/auth";
 import type { GerenteStackParamList, GruposStackParamList, OperadorStackParamList } from "./types";
-import { navDark, navLight } from "../theme";
+import { brand, navDark, navLight } from "../theme";
 
 type AuthStackParamList = {
   Login: undefined;
@@ -34,6 +34,9 @@ const baseScreenOptions = {
   animation: "slide_from_right" as const,
   headerTitleAlign: "center" as const,
   headerLargeTitle: false,
+  headerStyle: { backgroundColor: brand.primaryBlue },
+  headerTintColor: "#FFFFFF",
+  headerTitleStyle: { fontWeight: "600" as const },
 };
 
 const AuthNavigator = () => (

@@ -302,9 +302,15 @@ Medidas activas en backend:
 
 ## Documentación adicional
 
-- Plan de trabajo y prompts por sprint: `SPRINTS.md`
+- Plan de trabajo por sprint: `SPRINTS.md`
+- **Prompts para Cursor (limpio, por sprint):** [`docs/prompts/README.md`](docs/prompts/README.md)
+- **Siguiente entrega (UI azul + PDF):** [`docs/prompts/SPRINT-10-VISUAL-PDF.md`](docs/prompts/SPRINT-10-VISUAL-PDF.md)
+- **PDF (columnas, orden BD, estilo):** [`docs/prompts/PDF-DATOS-Y-DISENO.md`](docs/prompts/PDF-DATOS-Y-DISENO.md)
+- Backlog de mejoras: [`docs/prompts/MEJORAS-SISTEMA.md`](docs/prompts/MEJORAS-SISTEMA.md)
 - Guía rápida Postman: `backend/docs/postman/USO-RAPIDO.md`
 - Seguridad y backups (Sprint 8): `backend/docs/BACKUP-SECURITY.md`
+- Informe de cierre: `SECURITY-AUDIT.md`
+- Deploy: `DEPLOY-PLAN.md`
 
 ---
 

@@ -2,6 +2,9 @@ import { useEffect, useCallback } from "react";
 import { Alert, FlatList, StyleSheet, View } from "react-native";
 import { ActivityIndicator, Button, Card, FAB, IconButton, Text } from "react-native-paper";
 import { useHarinasStore } from "../store/harinas.store";
+import { useAuthStore } from "../store/auth.store";
+import { usePdfExport } from "../hooks/usePdfExport";
+import { exportHarinasPdf } from "../pdf/reports";
 import type { Harina } from "../types/harina";
 
 interface Props {
@@ -16,6 +19,8 @@ export const HarinasListScreen = ({ onCreateNew, onEdit }: Props) => {
   const error = useHarinasStore((state) => state.error);
   const fetchHarinas = useHarinasStore((state) => state.fetchHarinas);
   const deleteHarina = useHarinasStore((state) => state.deleteHarina);
+  const user = useAuthStore((s) => s.user);
+  const { exporting, runExport } = usePdfExport();
 
   useEffect(() => {
     fetchHarinas();
@@ -63,8 +68,25 @@ export const HarinasListScreen = ({ onCreateNew, onEdit }: Props) => {
     );
   }
 
+  const onExportPdf = () =>
+    runExport(async () => {
+      if (harinas.length === 0) await fetchHarinas();
+      const list = useHarinasStore.getState().harinas;
+      await exportHarinasPdf(list, user);
+    });
+
   return (
     <View style={styles.container}>
+      <View style={styles.toolbar}>
+        <Button
+          mode="contained-tonal"
+          icon="file-pdf-box"
+          loading={exporting}
+          onPress={onExportPdf}
+        >
+          Exportar PDF
+        </Button>
+      </View>
       <FlatList
         data={harinas}
         keyExtractor={(item) => item._id}
@@ -113,7 +135,12 @@ export const HarinasListScreen = ({ onCreateNew, onEdit }: Props) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#f4f6f8",
+    backgroundColor: "#F5F9FC",
+  },
+  toolbar: {
+    paddingHorizontal: 16,
+    paddingTop: 12,
+    paddingBottom: 4,
   },
   list: {
     padding: 16,

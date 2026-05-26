@@ -10,6 +10,9 @@ import {
 } from "react-native-paper";
 import { useFocusEffect } from "@react-navigation/native";
 import { useAlertsStore } from "../store/alerts.store";
+import { useAuthStore } from "../store/auth.store";
+import { usePdfExport } from "../hooks/usePdfExport";
+import { exportAlertsPdf } from "../pdf/reports";
 import type { ProcessAlert } from "../types/alert";
 
 const grupoNombre = (a: ProcessAlert): string => {
@@ -26,6 +29,8 @@ export const AlertsListScreen = () => {
   const fetchUnreadCount = useAlertsStore((s) => s.fetchUnreadCount);
   const markRead = useAlertsStore((s) => s.markRead);
   const markAllRead = useAlertsStore((s) => s.markAllRead);
+  const user = useAuthStore((s) => s.user);
+  const { exporting, runExport } = usePdfExport();
 
   useFocusEffect(
     useCallback(() => {
@@ -82,6 +87,20 @@ export const AlertsListScreen = () => {
         <Button mode="outlined" onPress={() => fetchList()} compact>
           Actualizar
         </Button>
+        <Button
+          mode="contained-tonal"
+          icon="file-pdf-box"
+          loading={exporting}
+          compact
+          onPress={() =>
+            runExport(async () => {
+              if (items.length === 0) await fetchList();
+              await exportAlertsPdf(useAlertsStore.getState().items, user, false);
+            })
+          }
+        >
+          PDF
+        </Button>
       </View>
       <FlatList
         data={items}
@@ -107,7 +126,7 @@ export const AlertsListScreen = () => {
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#f4f6f8" },
+  container: { flex: 1, backgroundColor: "#F5F9FC" },
   list: { padding: 16, paddingBottom: 32 },
   card: { marginBottom: 10, borderRadius: 12 },
   read: { opacity: 0.65 },
@@ -119,5 +138,5 @@ const styles = StyleSheet.create({
   muted: { opacity: 0.7, marginTop: 4 },
   error: { color: "#c62828", paddingHorizontal: 16, paddingTop: 8 },
   centered: { flex: 1, justifyContent: "center", alignItems: "center", padding: 24 },
-  toolbar: { flexDirection: "row", gap: 8, paddingHorizontal: 16, paddingTop: 8 },
+  toolbar: { flexDirection: "row", flexWrap: "wrap", gap: 8, paddingHorizontal: 16, paddingTop: 8 },
 });

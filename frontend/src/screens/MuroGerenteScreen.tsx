@@ -2,18 +2,22 @@ import { useCallback, useEffect } from "react";
 import { Dimensions, RefreshControl, ScrollView, StyleSheet, View } from "react-native";
 import {
   ActivityIndicator,
+  Button,
   Card,
   Chip,
   Divider,
-  Surface,
   Text,
   useTheme,
 } from "react-native-paper";
+import { useAuthStore } from "../store/auth.store";
+import { usePdfExport } from "../hooks/usePdfExport";
+import { exportMuroPdf } from "../pdf/reports";
 import { useTelemetryStore } from "../store/telemetry.store";
 import { useAlertsStore } from "../store/alerts.store";
 import { useGruposStore } from "../store/grupos.store";
 import { Sparkline } from "../components/Sparkline";
-import { statusColors } from "../theme";
+import { ScreenHero } from "../components/ScreenHero";
+import { brand } from "../theme";
 import type { TelemetryLatestItem } from "../types/telemetry";
 import type { ProcessAlert } from "../types/alert";
 
@@ -30,6 +34,8 @@ const grupoNombreAlerta = (a: ProcessAlert): string => {
 
 export const MuroGerenteScreen = () => {
   const theme = useTheme();
+  const user = useAuthStore((s) => s.user);
+  const { exporting, runExport } = usePdfExport();
 
   const latest = useTelemetryStore((s) => s.latest);
   const history = useTelemetryStore((s) => s.history);
@@ -87,9 +93,11 @@ export const MuroGerenteScreen = () => {
         <RefreshControl refreshing={telemetryLoading || alertsLoading} onRefresh={load} />
       }
     >
-      <Surface elevation={1} style={[styles.hero, { backgroundColor: theme.colors.surface }]}>
-        <Text variant="labelLarge" style={styles.muted}>Gerente</Text>
-        <Text variant="headlineSmall">Muro de operaciones</Text>
+      <ScreenHero
+        roleLabel="Gerente"
+        title="Muro de operaciones"
+        subtitle="Vision en tiempo real de telemetria y alertas"
+      >
         <View style={styles.heroStats}>
           <Chip compact icon="chart-line">{latest.length} grupos con datos</Chip>
           <Chip compact icon="bell-alert" style={{ backgroundColor: theme.colors.errorContainer }}>
@@ -97,12 +105,31 @@ export const MuroGerenteScreen = () => {
           </Chip>
           <Chip compact icon="bell-outline">{totalAlertas} alertas</Chip>
         </View>
-      </Surface>
+        <Button
+          mode="contained-tonal"
+          icon="file-pdf-box"
+          loading={exporting}
+          onPress={() =>
+            runExport(async () => {
+              await fetchGrupos();
+              await fetchLatest();
+              const gs = useGruposStore.getState();
+              const ts = useTelemetryStore.getState();
+              await exportMuroPdf(ts.latest, gs.grupos, gs.humedad, ts.history, user);
+            })
+          }
+          style={styles.pdfBtn}
+        >
+          Exportar muro (PDF)
+        </Button>
+      </ScreenHero>
 
       {telemetryError ? <Text style={styles.error}>{telemetryError}</Text> : null}
       {alertsError ? <Text style={styles.error}>{alertsError}</Text> : null}
 
-      <Text variant="titleLarge" style={styles.section}>Ultimas lecturas</Text>
+      <Text variant="titleLarge" style={[styles.section, { color: brand.primaryBlueDark }]}>
+        Ultimas lecturas
+      </Text>
       {latest.length === 0 ? (
         <Card style={styles.card}>
           <Card.Content>
@@ -140,7 +167,7 @@ export const MuroGerenteScreen = () => {
                       data={tempSeries}
                       width={CHART_W}
                       height={50}
-                      color={statusColors.warning}
+                      color={brand.primaryBlue}
                     />
                   </View>
                 ) : null}
@@ -152,7 +179,7 @@ export const MuroGerenteScreen = () => {
                       data={humSeries}
                       width={CHART_W}
                       height={50}
-                      color={theme.colors.secondary}
+                      color={brand.skyAccent}
                     />
                   </View>
                 ) : null}
@@ -166,7 +193,9 @@ export const MuroGerenteScreen = () => {
         })
       )}
 
-      <Text variant="titleLarge" style={styles.section}>Alertas recientes</Text>
+      <Text variant="titleLarge" style={[styles.section, { color: brand.primaryBlueDark }]}>
+        Alertas recientes
+      </Text>
       {alerts.slice(0, 15).length === 0 ? (
         <Card style={styles.card}>
           <Card.Content>
@@ -213,8 +242,8 @@ const styles = StyleSheet.create({
   container: { flex: 1 },
   content: { padding: 16, paddingBottom: 32, gap: 12 },
   centered: { flex: 1, justifyContent: "center", alignItems: "center" },
-  hero: { padding: 16, borderRadius: 16 },
-  heroStats: { flexDirection: "row", flexWrap: "wrap", gap: 8, marginTop: 10 },
+  heroStats: { flexDirection: "row", flexWrap: "wrap", gap: 8, marginTop: 4 },
+  pdfBtn: { marginTop: 12, alignSelf: "flex-start" },
   muted: { opacity: 0.7 },
   section: { marginTop: 12 },
   card: { borderRadius: 14 },

@@ -3,6 +3,8 @@
 Proyecto: **Nativa Superalimentos C.A**  
 Stack: React Native (Expo) + TypeScript + Node.js + Express + MongoDB
 
+> **Prompts para Cursor:** centralizados en [`docs/prompts/`](docs/prompts/README.md). Este archivo conserva producto, estado y checks; los bloques largos de prompt ya no se duplican aquí.
+
 ---
 
 ## Especificaciones del producto (Arduino + app) — vigente
@@ -100,48 +102,9 @@ Inicializar app Android con Expo + TypeScript, implementar autenticacion y dashb
 - [x] Validacion de compilacion TypeScript (`npx tsc --noEmit`).
 - [x] Metro Bundler levantando correctamente (`expo start`, `Waiting on http://localhost:8081`).
 
-### Prompt listo para usar
+### Prompt
 
-```text
-Iniciar Sprint 2 frontend.
-
-Actúa como desarrollador senior React Native + Expo + TypeScript.
-Con base en el backend ya creado y funcional en http://localhost:4000, construye el frontend por fases, archivo por archivo, explicando cada archivo.
-
-Objetivo de esta fase:
-1) Inicializar app Expo con TypeScript.
-2) Configurar arquitectura escalable en `src/`:
-   - components/
-   - screens/
-   - navigation/
-   - services/
-   - store/
-   - hooks/
-3) Instalar y configurar:
-   - React Navigation
-   - Zustand (manejo de estado)
-   - AsyncStorage (persistencia de sesión)
-   - libreria UI recomendada (elige una y justifica brevemente)
-4) Implementar autenticacion completa:
-   - pantalla Login (email, contraseña, validaciones y errores)
-   - llamada a POST /api/auth/login
-   - guardar token y usuario en AsyncStorage + store
-   - restaurar sesion al abrir la app
-5) Configurar navegacion protegida:
-   - si hay token: Dashboard
-   - si no hay token: Login
-6) Crear Dashboard inicial mostrando:
-   - total de harinas
-   - ultimos registros (consumiendo GET /api/harinas)
-   - boton para ir al modulo de gestion
-
-Requisitos:
-- TypeScript obligatorio.
-- Codigo limpio, modular y escalable.
-- No generar todo de una vez: avanzar por fases y confirmar cada fase.
-- En cada fase: mostrar comandos, archivos creados y explicacion breve.
-- Usar `EXPO_PUBLIC_API_URL` para la URL del backend en variables de entorno.
-```
+Ver [`docs/prompts/completados/sprint-02-frontend-base.md`](docs/prompts/completados/sprint-02-frontend-base.md).
 
 ---
 
@@ -162,37 +125,9 @@ Implementar modulo completo de gestion de harinas desde el frontend.
 - [x] Validacion TypeScript (`npx tsc --noEmit`) sin errores.
 - [x] Sin errores de linter en `src/`.
 
-### Prompt listo para usar
+### Prompt
 
-```text
-Iniciar Sprint 3 frontend (CRUD de harinas).
-
-Con el login y dashboard ya implementados, desarrolla el modulo de gestion de harinas completo en React Native + Expo + TypeScript.
-
-Requerimientos funcionales:
-1) Pantalla de listado de harinas:
-   - consumir GET /api/harinas
-   - mostrar nombre, tipo, cantidad, unidad y fecha_registro
-   - mostrar estados de carga, error y lista vacia
-2) Crear harina:
-   - formulario con validaciones
-   - consumir POST /api/harinas
-3) Editar harina:
-   - formulario precargado
-   - consumir PUT /api/harinas/:id
-4) Eliminar harina:
-   - confirmacion previa
-   - consumir DELETE /api/harinas/:id
-5) Refrescar dashboard al crear/editar/eliminar.
-
-Requerimientos tecnicos:
-- Mantener arquitectura modular en `src/`.
-- Reutilizar componentes de formulario y tarjetas.
-- Centralizar llamadas API en `services/`.
-- Manejar estado global con Zustand.
-- Manejar token expirado (cerrar sesion y redirigir a Login).
-- Explicar archivo por archivo sin generar todo en un solo paso.
-```
+Ver [`docs/prompts/completados/sprint-03-crud-harinas.md`](docs/prompts/completados/sprint-03-crud-harinas.md).
 
 ---
 
@@ -200,6 +135,10 @@ Requerimientos tecnicos:
 
 ### Objetivo
 Dejar la app lista para pruebas internas y crecimiento, y preparar el salto al **modelo Arduino + roles Gerente/Supervisor/Operador** descrito en la seccion de especificaciones.
+
+### Prompt
+
+Ver [`docs/prompts/completados/sprint-04-hardening.md`](docs/prompts/completados/sprint-04-hardening.md).
 
 ### Alcance sugerido
 - Roles de usuario (`gerente`, `supervisor`, `operador`) alineados al producto: **Gerente** control total y equipo; **Supervisor** calibracion; **Operador** supervision.
@@ -260,15 +199,9 @@ Implementar el **modelo de datos y permisos** que refleja el negocio: parejas de
 - [x] Auditoria de cambios de calibracion (`actualizadoPor`/`actualizadoEn`).
 - [x] `npx tsc --noEmit` y `node --check` sin errores.
 
-### Prompt listo para usar
+### Prompt
 
-```text
-Iniciar Sprint 5 (roles + grupos de rubro + calibracion).
-Implementa Supervisor vs Operador vs Gerente segun especificacion: Supervisor calibra T y HR y crea grupos; Operador supervision y alarmas; Gerente control total.
-Modela tres grupos de rubro fijos (garbanzo/lenteja, platano/cambur, yuca/batata) con calibracion por grupo; humedad como configuracion global.
-Expone API REST y actualiza la app con pantallas por rol.
-Incluye auditoria de cambios de calibracion.
-```
+Ver [`docs/prompts/completados/sprint-05-grupos-calibracion.md`](docs/prompts/completados/sprint-05-grupos-calibracion.md).
 
 ---
 
@@ -304,15 +237,9 @@ Recibir **telemetria de proceso** desde Arduino alineada a las variables por gru
 - [x] UI Operador muestra las cuatro dimensiones y estado (`OK` / `ALERTA` / `CRITICO`) vs calibracion/humedad.
 - [x] Simulador de carga para pruebas: `npm run simulate:telemetry`.
 
-### Prompt listo para usar
+### Prompt
 
-```text
-Iniciar Sprint 6 (integracion Arduino + telemetria de proceso).
-Define contrato Arduino->Backend para telemetria: nivel de secado (ventilador), tiempo de secado, temperatura, humedad; asociacion a grupo de rubro.
-Implementa POST de ingestion con validacion, deduplicacion y rate limit.
-Persiste ultimo estado e historial para la app operador.
-Actualiza UI: vista por grupo y comparacion contra calibracion del Supervisor.
-```
+Ver [`docs/prompts/completados/sprint-06-telemetria.md`](docs/prompts/completados/sprint-06-telemetria.md).
 
 ---
 
@@ -348,14 +275,9 @@ Avisar al operador (y opcionalmente al Gerente) cuando las lecturas **salgan de 
 - [x] anti-spam implementado y persistido.
 - [x] UI de alertas para operador y resumen en Muro Gerente.
 
-### Prompt listo para usar
+### Prompt
 
-```text
-Iniciar Sprint 7 (alertas de proceso + push).
-Implementa evaluacion de telemetria vs calibracion (temp, nivel secado, tiempo; humedad global) con anti-spam.
-Integra Expo Push Notifications para operador.
-Mantén o agrega alertas de stock minimo solo si el negocio lo sigue requiriendo; documenta la prioridad.
-```
+Ver [`docs/prompts/completados/sprint-07-alertas.md`](docs/prompts/completados/sprint-07-alertas.md).
 
 ---
 
@@ -383,14 +305,9 @@ Garantizar integridad y disponibilidad de la informacion ante fallos de hardware
 - [x] Hardening aplicado (rate limit + CORS por ambiente + `helmet` + logging de errores HTTP).
 - [x] Documentacion de seguridad y secretos (`backend/docs/BACKUP-SECURITY.md`, `.env.example`, README).
 
-### Prompt listo para usar
+### Prompt
 
-```text
-Iniciar Sprint 8 (backups + cifrado + hardening).
-Implementa una estrategia de backup automatizado (Atlas o mongodump) con retencion y pruebas de restauracion.
-Asegura cifrado en transito y endurece la API (rate limit, CORS por ambiente, headers, logging seguro).
-Documenta el proceso completo de backup/restore y politicas de secretos.
-```
+Ver [`docs/prompts/completados/sprint-08-seguridad.md`](docs/prompts/completados/sprint-08-seguridad.md).
 
 ---
 
@@ -423,15 +340,36 @@ Publicar un entorno de pruebas accesible para demos y para usar la app desde mul
 - [ ] Variables por ambiente definidas y seguras.
 - [ ] Documentacion `DEPLOY-POC.md` lista.
 
-### Prompt listo para usar
+### Prompt
 
-```text
-Iniciar Sprint 9 (deploy POC sin costos / costo minimo).
-Despliega backend y conecta MongoDB Atlas free.
-Gestiona variables de entorno y secretos en plataforma.
-Documenta paso a paso el deploy y como configurar la app (EXPO_PUBLIC_API_URL) para pruebas.
-Incluye advertencias y limitaciones del free tier.
-```
+Ver [`docs/prompts/SPRINT-09-DEPLOY.md`](docs/prompts/SPRINT-09-DEPLOY.md) y [`DEPLOY-PLAN.md`](DEPLOY-PLAN.md).
+
+---
+
+## Sprint 10 - UI azul corporativa + PDF por modulos (siguiente)
+
+### Objetivo
+Alinear la app con identidad **NATIVA — Control de planta** (referencia visual: login con fondo navy y tarjeta clara), paleta **azul** corporativa, y exportar **PDF** en apartados clave: harinas, calibracion, alertas, muro/telemetria y equipo.
+
+### Sub-fases (ejecutar de a poco)
+- **10A** — Tema azul + rediseño Login
+- **10B0** — Servicio PDF (`expo-print` + `expo-sharing`)
+- **10B1–10B5** — PDF por modulo
+- **10C** — Pulido visual pantallas por rol
+- **10D** — `trust proxy` para ngrok/deploy
+
+### Prompt y backlog de mejoras
+- Prompt completo: [`docs/prompts/SPRINT-10-VISUAL-PDF.md`](docs/prompts/SPRINT-10-VISUAL-PDF.md)
+- **PDF (datos BD, orden, diseño):** [`docs/prompts/PDF-DATOS-Y-DISENO.md`](docs/prompts/PDF-DATOS-Y-DISENO.md)
+- Analisis del sistema: [`docs/prompts/MEJORAS-SISTEMA.md`](docs/prompts/MEJORAS-SISTEMA.md)
+- Indice general: [`docs/prompts/README.md`](docs/prompts/README.md)
+
+### Check de estado
+- [x] 10A tema + login azul
+- [x] 10B0 infra PDF (`expo-print`, `pdfTemplates`, `pdf/reports.ts`)
+- [x] 10B1–10B5 botones Exportar PDF (harinas, calibración, alertas, muro, equipo)
+- [x] 10C pulido UI (ScreenHero, headers azules, dashboard/supervisor/operador/muro)
+- [x] 10D trust proxy (`TRUST_PROXY=1` en `.env.example`)
 
 ---
 

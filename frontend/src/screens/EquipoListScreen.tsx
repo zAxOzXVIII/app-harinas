@@ -1,6 +1,9 @@
 import { useCallback, useState } from "react";
 import { Alert, FlatList, StyleSheet, View } from "react-native";
-import { ActivityIndicator, Card, FAB, IconButton, Text } from "react-native-paper";
+import { ActivityIndicator, Button, Card, FAB, IconButton, Text } from "react-native-paper";
+import { useAuthStore } from "../store/auth.store";
+import { usePdfExport } from "../hooks/usePdfExport";
+import { exportEquipoPdf } from "../pdf/reports";
 import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { usersService } from "../services/users.service";
@@ -14,6 +17,8 @@ export const EquipoListScreen = () => {
   const [users, setUsers] = useState<TeamUser[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const user = useAuthStore((s) => s.user);
+  const { exporting, runExport } = usePdfExport();
 
   const load = useCallback(async () => {
     try {
@@ -63,6 +68,16 @@ export const EquipoListScreen = () => {
   return (
     <View style={styles.container}>
       {error ? <Text style={styles.error}>{error}</Text> : null}
+      <View style={styles.toolbar}>
+        <Button
+          mode="contained-tonal"
+          icon="file-pdf-box"
+          loading={exporting}
+          onPress={() => runExport(async () => exportEquipoPdf(users, user))}
+        >
+          Exportar equipo (PDF)
+        </Button>
+      </View>
       <FlatList
         data={users}
         keyExtractor={(item) => item.id}
@@ -94,7 +109,8 @@ export const EquipoListScreen = () => {
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#f4f6f8" },
+  container: { flex: 1, backgroundColor: "#F5F9FC" },
+  toolbar: { paddingHorizontal: 16, paddingTop: 12, paddingBottom: 4 },
   list: { padding: 16, paddingBottom: 90 },
   card: { marginBottom: 10, borderRadius: 12 },
   centered: { flex: 1, justifyContent: "center", alignItems: "center", padding: 24 },

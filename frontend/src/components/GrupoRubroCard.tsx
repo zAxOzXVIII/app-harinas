@@ -1,6 +1,7 @@
 import { StyleSheet, View } from "react-native";
-import { Card, Chip, Text } from "react-native-paper";
+import { Card, Chip, Text, useTheme } from "react-native-paper";
 import type { GrupoRubro, HumedadConfig } from "../types/grupoRubro";
+import { brand } from "../theme";
 
 interface Props {
   grupo: GrupoRubro;
@@ -11,16 +12,19 @@ interface Props {
 }
 
 export const GrupoRubroCard = ({ grupo, humedad, onPress, rightSlot }: Props) => {
+  const theme = useTheme();
   const t = grupo.calibracion.temperatura;
   const ns = grupo.calibracion.nivelSecado;
   const ts = grupo.calibracion.tiempoSecado;
 
   return (
-    <Card style={styles.card} onPress={onPress}>
+    <Card mode="elevated" style={[styles.card, { backgroundColor: theme.colors.surface }]} onPress={onPress}>
       <Card.Content>
         <View style={styles.headerRow}>
           <View style={{ flex: 1 }}>
-            <Text variant="titleMedium">{grupo.nombre}</Text>
+            <Text variant="titleMedium" style={{ color: brand.primaryBlueDark }}>
+              {grupo.nombre}
+            </Text>
             <View style={styles.chipsRow}>
               {grupo.items.map((item) => (
                 <Chip key={item} compact style={styles.chip}>
@@ -70,8 +74,10 @@ export const GrupoRubroCard = ({ grupo, humedad, onPress, rightSlot }: Props) =>
 
 const styles = StyleSheet.create({
   card: {
-    borderRadius: 12,
+    borderRadius: 14,
     marginBottom: 12,
+    borderLeftWidth: 3,
+    borderLeftColor: brand.primaryBlue,
   },
   headerRow: {
     flexDirection: "row",
@@ -85,11 +91,11 @@ const styles = StyleSheet.create({
     marginTop: 6,
   },
   chip: {
-    backgroundColor: "#e3f2fd",
+    backgroundColor: brand.surfaceMuted,
   },
   divider: {
     height: 1,
-    backgroundColor: "#e0e0e0",
+    backgroundColor: "#E0E7EF",
     marginVertical: 10,
   },
   metricRow: {
