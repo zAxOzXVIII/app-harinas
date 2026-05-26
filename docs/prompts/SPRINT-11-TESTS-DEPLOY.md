@@ -5,6 +5,9 @@
 - [x] Jest + Supertest + MongoDB Memory Server en `backend/tests/`
 - [x] Scripts `npm test` / `npm test:watch`
 - [x] Rate limit desactivado en `NODE_ENV=test`
+- [x] Tests: health, auth, harinas, grupos, telemetria, alertas (18 tests)
+- [x] CI GitHub Actions: `.github/workflows/backend-tests.yml`
+- [x] Seed grupos + humedad en `setupAfterEnv.js`
 - [ ] Push notifications (7b) — pendiente
 - [ ] Deploy Render/Railway con Atlas — requiere credenciales del equipo
 

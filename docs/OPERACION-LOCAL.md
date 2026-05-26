@@ -109,6 +109,10 @@ npm test
 
 Usa MongoDB en memoria (no requiere MongoDB local instalado para tests).
 
+Cobertura actual: health, login, harinas CRUD, grupos/calibración, ingesta telemetría, alertas.
+
+En cada push a `main`, GitHub Actions ejecuta los tests automáticamente.
+
 ---
 
 ## 7) Exportar PDF desde la app
