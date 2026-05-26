@@ -26,6 +26,11 @@ const userSchema = new mongoose.Schema(
       required: true,
       default: "operador",
     },
+    expoPushToken: {
+      type: String,
+      default: null,
+      trim: true,
+    },
   },
   {
     versionKey: false,

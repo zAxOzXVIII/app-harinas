@@ -16,4 +16,10 @@ export const authService = {
 
     return data.data;
   },
+
+  async registerPushToken(expoPushToken: string | null): Promise<void> {
+    await api.put<ApiResponse<{ pushRegistered: boolean }>>("/api/auth/push-token", {
+      expoPushToken,
+    });
+  },
 };

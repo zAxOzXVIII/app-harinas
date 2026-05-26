@@ -47,4 +47,21 @@ const loginUser = async ({ email, password }) => {
   };
 };
 
-module.exports = { loginUser };
+const updatePushToken = async (userId, expoPushToken) => {
+  const User = require("../models/User");
+  const user = await User.findByIdAndUpdate(
+    userId,
+    { $set: { expoPushToken: expoPushToken || null } },
+    { new: true }
+  ).select("email nombre rol expoPushToken");
+
+  if (!user) {
+    const err = new Error("Usuario no encontrado");
+    err.status = 404;
+    throw err;
+  }
+
+  return user;
+};
+
+module.exports = { loginUser, updatePushToken };

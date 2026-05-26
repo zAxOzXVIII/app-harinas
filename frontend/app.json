@@ -24,6 +24,15 @@
       "predictiveBackGestureEnabled": false,
       "package": "com.zaxoz.frontend"
     },
+    "plugins": [
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/icon.png",
+          "color": "#1565C0"
+        }
+      ]
+    ],
     "web": {
       "favicon": "./assets/favicon.png"
     },

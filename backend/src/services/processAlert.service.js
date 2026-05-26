@@ -2,6 +2,7 @@ const mongoose = require("mongoose");
 const ProcessAlert = require("../models/ProcessAlert");
 const GrupoRubro = require("../models/GrupoRubro");
 const { getConfig } = require("./humedadConfig.service");
+const { notifyNewProcessAlert } = require("./pushNotification.service");
 
 const ANTI_SPAM_MS = 5 * 60 * 1000;
 
@@ -17,15 +18,30 @@ const shouldEmit = async (grupoRubroId, tipo) => {
   return !existing;
 };
 
-const emitAlert = async ({ tipo, severidad, grupoRubroId, telemetryEventId, mensaje }) => {
+const emitAlert = async ({ tipo, severidad, grupoRubroId, telemetryEventId, mensaje }, grupoNombre) => {
   if (!(await shouldEmit(grupoRubroId, tipo))) return null;
-  return ProcessAlert.create({
+  const alert = await ProcessAlert.create({
     tipo,
     severidad,
     grupoRubroId,
     telemetryEventId,
     mensaje,
   });
+
+  setImmediate(async () => {
+    try {
+      let nombre = grupoNombre;
+      if (!nombre) {
+        const g = await GrupoRubro.findById(grupoRubroId).select("nombre");
+        nombre = g?.nombre || "Grupo";
+      }
+      await notifyNewProcessAlert(alert, nombre);
+    } catch (err) {
+      console.error("notifyNewProcessAlert:", err.message);
+    }
+  });
+
+  return alert;
 };
 
 /**

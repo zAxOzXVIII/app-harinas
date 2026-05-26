@@ -17,6 +17,7 @@ import { AlertsListScreen } from "../screens/AlertsListScreen";
 import { useAuthStore } from "../store/auth.store";
 import { LoadingScreen } from "../components/LoadingScreen";
 import { useBootstrapSession } from "../hooks/useBootstrapSession";
+import { useRegisterPushToken } from "../hooks/useRegisterPushToken";
 import type { Rol } from "../types/auth";
 import type { GerenteStackParamList, GruposStackParamList, OperadorStackParamList } from "./types";
 import { brand, navDark, navLight } from "../theme";
@@ -185,6 +186,8 @@ export const RootNavigator = () => {
   const token = useAuthStore((state) => state.token);
   const { isHydrated } = useBootstrapSession();
   const isDark = useColorScheme() === "dark";
+
+  useRegisterPushToken(Boolean(token));
 
   if (!isHydrated) {
     return <LoadingScreen />;

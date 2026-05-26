@@ -109,19 +109,38 @@ npm test
 
 Usa MongoDB en memoria (no requiere MongoDB local instalado para tests).
 
-Cobertura actual: health, login, harinas CRUD, grupos/calibración, ingesta telemetría, alertas.
+Cobertura actual: health, login, push-token, harinas CRUD, grupos/calibración, ingesta telemetría, alertas.
 
 En cada push a `main`, GitHub Actions ejecuta los tests automáticamente.
 
 ---
 
-## 7) Exportar PDF desde la app
+## 7) Notificaciones push (alertas de proceso)
+
+Cuando el backend detecta una alerta nueva (telemetría fuera de rango), envía push a usuarios **operador** y **gerente** con token registrado.
+
+**Backend** (`backend/.env`):
+
+```env
+PUSH_NOTIFICATIONS_ENABLED=true
+```
+
+**App móvil:**
+
+1. Requiere **dispositivo físico** (no emulador) y build con EAS o `expo run:android` tras añadir `expo-notifications`.
+2. Tras iniciar sesión, la app pide permiso y registra el token en `PUT /api/auth/push-token`.
+3. En EAS, sube credenciales FCM (Android) según [documentación Expo Push](https://docs.expo.dev/push-notifications/push-notifications-setup/).
+4. Prueba: `npm run simulate:telemetry` en backend con valores fuera de umbral; el gerente/operador con la app abierta o en segundo plano debería recibir la notificación.
+
+---
+
+## 8) Exportar PDF desde la app
 
 En pantallas Harinas, Calibración, Alertas, Muro y Equipo → botón **Exportar PDF**.
 
 ---
 
-## 8) Solución de problemas
+## 9) Solución de problemas
 
 | Problema | Acción |
 |----------|--------|
