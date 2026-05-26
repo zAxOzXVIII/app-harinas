@@ -11,7 +11,9 @@
     "simulate:telemetry": "node src/scripts/simulateTelemetry.js",
     "backup:mongo": "node src/scripts/backupMongo.js",
     "restore:mongo": "node src/scripts/restoreMongo.js",
-    "verify:backup-restore": "node src/scripts/verifyBackupRestore.js"
+    "verify:backup-restore": "node src/scripts/verifyBackupRestore.js",
+    "test": "jest --runInBand",
+    "test:watch": "jest --watch --runInBand"
   },
   "keywords": [],
   "author": "",
@@ -30,6 +32,9 @@
     "morgan": "^1.10.1"
   },
   "devDependencies": {
-    "nodemon": "^3.1.14"
+    "jest": "^30.4.2",
+    "mongodb-memory-server": "^11.1.0",
+    "nodemon": "^3.1.14",
+    "supertest": "^7.2.2"
   }
 }

@@ -12,4 +12,5 @@
 | 8 | Backups + hardening API | Completado | [sprint-08-seguridad.md](./completados/sprint-08-seguridad.md) |
 | 9 | Deploy POC (Atlas + hosting) | En curso / doc lista | [SPRINT-09-DEPLOY.md](./SPRINT-09-DEPLOY.md) |
 | **10** | **UI azul + PDF + pulido** | **Siguiente** | **[SPRINT-10-VISUAL-PDF.md](./SPRINT-10-VISUAL-PDF.md)** + **[PDF-DATOS-Y-DISENO.md](./PDF-DATOS-Y-DISENO.md)** |
-| 11+ | Ver backlog | Planificado | [MEJORAS-SISTEMA.md](./MEJORAS-SISTEMA.md) |
+| 11 | Tests + deploy prep | En curso | [SPRINT-11-TESTS-DEPLOY.md](./SPRINT-11-TESTS-DEPLOY.md) |
+| 12+ | Ver backlog | Planificado | [MEJORAS-SISTEMA.md](./MEJORAS-SISTEMA.md) |

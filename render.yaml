@@ -1,0 +1,30 @@
+# Blueprint Render — App Harinas API
+# https://render.com/docs/blueprint-spec
+
+services:
+  - type: web
+    name: app-harinas-api
+    runtime: node
+    rootDir: backend
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 4000
+      - key: TRUST_PROXY
+        value: "1"
+      - key: JWT_EXPIRES_IN
+        value: 8h
+      - key: RATE_LIMIT_WINDOW_MS
+        value: 900000
+      - key: RATE_LIMIT_MAX
+        value: 300
+      - key: AUTH_RATE_LIMIT_WINDOW_MS
+        value: 900000
+      - key: AUTH_RATE_LIMIT_MAX
+        value: 20
+      # Configurar en el dashboard de Render (secretos):
+      # MONGODB_URI, JWT_SECRET, CORS_ORIGINS

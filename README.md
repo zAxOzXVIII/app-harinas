@@ -138,6 +138,7 @@ Desde esa cuenta puedes registrar **Supervisores** y **Operadores** en la app (E
 | `npm run backup:mongo` | Genera backup con `mongodump` en `backend/backups/` |
 | `npm run restore:mongo -- <ruta_dump>` | Restaura backup con `mongorestore --drop` |
 | `npm run verify:backup-restore` | Valida backup/restore sin tocar la BD principal (ver `BACKUP-SECURITY.md`) |
+| `npm test` | Tests API con Jest + Supertest (MongoDB en memoria) |
 
 ### Frontend (`frontend/`)
 
@@ -311,6 +312,8 @@ Medidas activas en backend:
 - Seguridad y backups (Sprint 8): `backend/docs/BACKUP-SECURITY.md`
 - Informe de cierre: `SECURITY-AUDIT.md`
 - Deploy: `DEPLOY-PLAN.md`
+- Operación local (ngrok, Atlas, APK, tests): `docs/OPERACION-LOCAL.md`
+- Deploy Render (blueprint): `render.yaml`
 
 ---
 
