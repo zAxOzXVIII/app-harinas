@@ -1,5 +1,6 @@
 import { StyleSheet, View } from "react-native";
 import { Text, useTheme } from "react-native-paper";
+import { useMutedTextStyle } from "../hooks/useMutedTextStyle";
 import { statusColors } from "../theme";
 
 interface Props {
@@ -32,6 +33,7 @@ export const MetricGauge = ({
   rangeMax,
 }: Props) => {
   const theme = useTheme();
+  const mutedText = useMutedTextStyle();
 
   const lo =
     rangeMin ?? Math.min(criticoMin ?? min, value, min) - Math.max(1, (max - min) * 0.1);
@@ -65,7 +67,9 @@ export const MetricGauge = ({
   return (
     <View style={styles.row}>
       <View style={styles.header}>
-        <Text variant="labelLarge">{label}</Text>
+        <Text variant="labelLarge" style={{ color: theme.colors.onSurface }}>
+          {label}
+        </Text>
         <Text variant="titleSmall" style={{ color: status }}>
           {Number.isFinite(value) ? value.toFixed(1) : "-"} {unit ?? ""}
         </Text>
@@ -99,11 +103,11 @@ export const MetricGauge = ({
       </View>
 
       <View style={styles.scaleRow}>
-        <Text variant="bodySmall" style={styles.muted}>{lo.toFixed(0)}</Text>
-        <Text variant="bodySmall" style={styles.muted}>
+        <Text variant="bodySmall" style={mutedText}>{lo.toFixed(0)}</Text>
+        <Text variant="bodySmall" style={mutedText}>
           op. {min}–{max}{unit ? ` ${unit}` : ""}
         </Text>
-        <Text variant="bodySmall" style={styles.muted}>{hi.toFixed(0)}</Text>
+        <Text variant="bodySmall" style={mutedText}>{hi.toFixed(0)}</Text>
       </View>
     </View>
   );
@@ -124,5 +128,4 @@ const styles = StyleSheet.create({
     transform: [{ translateX: -2 }],
   },
   scaleRow: { flexDirection: "row", justifyContent: "space-between" },
-  muted: { opacity: 0.7 },
 });

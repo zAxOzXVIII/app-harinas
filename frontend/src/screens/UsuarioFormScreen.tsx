@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Alert, StyleSheet, View } from "react-native";
-import { Button, SegmentedButtons, Text, TextInput } from "react-native-paper";
+import { Button, SegmentedButtons, Text, TextInput, useTheme } from "react-native-paper";
 import { usersService } from "../services/users.service";
 import type { TeamUser } from "../types/auth";
 
@@ -10,6 +10,7 @@ interface Props {
 }
 
 export const UsuarioFormScreen = ({ userId, onSuccess }: Props) => {
+  const theme = useTheme();
   const isEdit = Boolean(userId);
   const [nombre, setNombre] = useState("");
   const [email, setEmail] = useState("");
@@ -86,8 +87,8 @@ export const UsuarioFormScreen = ({ userId, onSuccess }: Props) => {
   }
 
   return (
-    <View style={styles.container}>
-      <Text variant="titleLarge" style={styles.title}>
+    <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
+      <Text variant="titleLarge" style={[styles.title, { color: theme.colors.onSurface }]}>
         {isEdit ? "Editar miembro del equipo" : "Nuevo supervisor u operador"}
       </Text>
       <TextInput mode="outlined" label="Nombre" value={nombre} onChangeText={setNombre} style={styles.input} />
@@ -125,11 +126,11 @@ export const UsuarioFormScreen = ({ userId, onSuccess }: Props) => {
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 16, backgroundColor: "#f4f6f8" },
+  container: { flex: 1, padding: 16 },
   title: { marginBottom: 16 },
   input: { marginBottom: 8 },
   label: { marginTop: 12, marginBottom: 8 },
   button: { marginTop: 24 },
-  hint: { opacity: 0.7, marginBottom: 8 },
+  hint: { marginBottom: 8 },
   centered: { flex: 1, justifyContent: "center", alignItems: "center" },
 });

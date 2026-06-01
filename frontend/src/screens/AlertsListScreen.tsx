@@ -7,7 +7,12 @@ import {
   Chip,
   IconButton,
   Text,
+  useTheme,
 } from "react-native-paper";
+import { AnimatedReveal } from "../components/AnimatedReveal";
+import { useContrastStyles } from "../hooks/useContrastStyles";
+import { useScreenLayout } from "../hooks/useScreenLayout";
+import { brand } from "../theme";
 import { useFocusEffect } from "@react-navigation/native";
 import { useAlertsStore } from "../store/alerts.store";
 import { useAuthStore } from "../store/auth.store";
@@ -22,6 +27,9 @@ const grupoNombre = (a: ProcessAlert): string => {
 };
 
 export const AlertsListScreen = () => {
+  const theme = useTheme();
+  const layout = useScreenLayout();
+  const { muted: mutedText, body: bodyStyle, chipLabel } = useContrastStyles();
   const items = useAlertsStore((s) => s.items);
   const isLoading = useAlertsStore((s) => s.isLoading);
   const error = useAlertsStore((s) => s.error);
@@ -39,25 +47,31 @@ export const AlertsListScreen = () => {
     }, [fetchList, fetchUnreadCount])
   );
 
-  const renderItem = ({ item }: { item: ProcessAlert }) => (
-    <Card style={[styles.card, item.leida ? styles.read : null]}>
+  const renderItem = ({ item, index }: { item: ProcessAlert; index: number }) => (
+    <AnimatedReveal delay={Math.min(index * 35, 210)}>
+    <Card
+      style={[
+        styles.card,
+        item.leida ? { backgroundColor: theme.colors.surfaceVariant } : null,
+      ]}
+    >
       <Card.Content>
         <View style={styles.row}>
           <Chip
             compact
             style={item.severidad === "critical" ? styles.chipCrit : styles.chipWarn}
-            textStyle={styles.chipText}
+            textStyle={chipLabel}
           >
             {item.severidad === "critical" ? "CRITICO" : "ALERTA"}
           </Chip>
-          <Text variant="labelSmall" style={styles.muted}>
+          <Text variant="labelSmall" style={mutedText}>
             {grupoNombre(item)}
           </Text>
         </View>
-        <Text variant="bodyMedium" style={styles.msg}>
+        <Text variant="bodyMedium" style={[styles.msg, { color: theme.colors.onSurface }]}>
           {item.mensaje}
         </Text>
-        <Text variant="bodySmall" style={styles.muted}>
+        <Text variant="bodySmall" style={mutedText}>
           {item.createdAt ? new Date(item.createdAt).toLocaleString() : ""} · {item.tipo}
         </Text>
       </Card.Content>
@@ -67,6 +81,7 @@ export const AlertsListScreen = () => {
         </Card.Actions>
       ) : null}
     </Card>
+    </AnimatedReveal>
   );
 
   if (isLoading && items.length === 0) {
@@ -78,9 +93,9 @@ export const AlertsListScreen = () => {
   }
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: layout.backgroundColor }]}>
       {error ? <Text style={styles.error}>{error}</Text> : null}
-      <View style={styles.toolbar}>
+      <View style={[styles.toolbar, layout.toolbarPadding]}>
         <Button mode="contained-tonal" onPress={() => markAllRead()} compact>
           Marcar todas leidas
         </Button>
@@ -110,11 +125,13 @@ export const AlertsListScreen = () => {
           fetchList();
           fetchUnreadCount();
         }}
-        contentContainerStyle={styles.list}
+        contentContainerStyle={layout.listContent}
         ListEmptyComponent={
           <View style={styles.centered}>
-            <Text variant="bodyLarge">No hay alertas registradas</Text>
-            <Text variant="bodySmall" style={styles.muted}>
+            <Text variant="bodyLarge" style={bodyStyle}>
+              No hay alertas registradas
+            </Text>
+            <Text variant="bodySmall" style={mutedText}>
               Las alertas se generan al recibir telemetria fuera de calibracion (simulador o Arduino).
             </Text>
           </View>
@@ -126,17 +143,13 @@ export const AlertsListScreen = () => {
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#F5F9FC" },
-  list: { padding: 16, paddingBottom: 32 },
+  container: { flex: 1 },
   card: { marginBottom: 10, borderRadius: 12 },
-  read: { opacity: 0.65 },
   row: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 8 },
   chipCrit: { backgroundColor: "#ffcdd2" },
   chipWarn: { backgroundColor: "#ffe0b2" },
-  chipText: { fontSize: 11 },
   msg: { marginTop: 8 },
-  muted: { opacity: 0.7, marginTop: 4 },
-  error: { color: "#c62828", paddingHorizontal: 16, paddingTop: 8 },
+  error: { color: brand.critical, paddingHorizontal: 16, paddingTop: 8 },
   centered: { flex: 1, justifyContent: "center", alignItems: "center", padding: 24 },
-  toolbar: { flexDirection: "row", flexWrap: "wrap", gap: 8, paddingHorizontal: 16, paddingTop: 8 },
+  toolbar: { flexDirection: "row", flexWrap: "wrap", gap: 8, paddingTop: 8 },
 });

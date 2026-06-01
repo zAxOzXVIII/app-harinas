@@ -1,5 +1,5 @@
 import { Alert, StyleSheet, View } from "react-native";
-import { Text } from "react-native-paper";
+import { Text, useTheme } from "react-native-paper";
 import { HarinaForm } from "../components/HarinaForm";
 import { useHarinasStore } from "../store/harinas.store";
 import type { Harina, HarinaPayload } from "../types/harina";
@@ -10,6 +10,7 @@ interface Props {
 }
 
 export const HarinaFormScreen = ({ harinaToEdit, onSuccess }: Props) => {
+  const theme = useTheme();
   const isMutating = useHarinasStore((state) => state.isMutating);
   const createHarina = useHarinasStore((state) => state.createHarina);
   const updateHarina = useHarinasStore((state) => state.updateHarina);
@@ -57,10 +58,7 @@ export const HarinaFormScreen = ({ harinaToEdit, onSuccess }: Props) => {
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#f4f6f8",
-  },
+  container: { flex: 1 },
   title: {
     padding: 16,
     paddingBottom: 0,

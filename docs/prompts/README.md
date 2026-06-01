@@ -14,18 +14,16 @@ Guía central para usar prompts con Cursor (o cualquier agente) sin duplicar tex
 | Carpeta / archivo | Contenido |
 |-------------------|-----------|
 | `00-CONTEXTO.md` | Contexto fijo del producto y del repo |
-| `INDICE-SPRINTS.md` | Tabla de sprints: estado + enlace |
-| `completados/` | Prompts históricos (sprints 2–8), resumidos |
-| `SPRINT-09-DEPLOY.md` | Deploy POC (Atlas + hosting) |
-| `SPRINT-10-VISUAL-PDF.md` | **Activo** — UI azul corporativa + export PDF por módulos |
-| `PDF-DATOS-Y-DISENO.md` | **PDF** — campos BD, orden de filas, KPIs y CSS para reportes bonitos |
-| `MEJORAS-SISTEMA.md` | Análisis de mejoras detectadas (backlog por sprint) |
+| `INDICE-SPRINTS.md` | Tabla de prompts activos |
+| `SPRINT-12-UX-RESPONSIVE.md` | Responsive + animaciones de tablero (implementado) |
+| `SPRINT-13-UX-CONTRASTE.md` | Contraste y legibilidad claro/oscuro (implementado) |
 
-## Limpieza respecto a `SPRINTS.md`
+## Alcance de esta carpeta
 
-- `SPRINTS.md` en la raíz conserva **plan de producto**, checks y estado.
-- Los prompts largos ya no viven ahí; solo enlaces a esta carpeta.
-- No borres historial de sprints completados: están en `completados/` como referencia corta.
+- Esta carpeta quedó enfocada en mejoras visuales y responsive.
+- `SPRINTS.md` en la raíz conserva el historial y estado de producto.
+- Sprints 12 y 13 están **completados** (código + checklists de desarrollo); queda solo QA manual en dispositivo.
+- Ver modelos de implementación en cada archivo sprint (sección «Modelo de ajustes»).
 
 ## Reglas para cualquier prompt
 

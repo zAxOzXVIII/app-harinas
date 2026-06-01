@@ -8,6 +8,9 @@ import type { GerenteStackParamList } from "../navigation/types";
 import { useHarinasStore } from "../store/harinas.store";
 import { HarinaListItem } from "../components/HarinaListItem";
 import { ScreenHero } from "../components/ScreenHero";
+import { AnimatedReveal } from "../components/AnimatedReveal";
+import { useScreenLayout } from "../hooks/useScreenLayout";
+import { useContrastStyles } from "../hooks/useContrastStyles";
 import { brand } from "../theme";
 
 interface Props {
@@ -18,6 +21,9 @@ type Nav = NativeStackNavigationProp<GerenteStackParamList>;
 
 export const DashboardScreen = ({ onGoToGestion }: Props) => {
   const theme = useTheme();
+  const layout = useScreenLayout();
+  const { muted: mutedText, title: titleStyle, body: bodyStyle, onPrimaryContainer } =
+    useContrastStyles();
   const navigation = useNavigation<Nav>();
   const user = useAuthStore((state) => state.user);
   const logout = useAuthStore((state) => state.logout);
@@ -39,7 +45,7 @@ export const DashboardScreen = ({ onGoToGestion }: Props) => {
   return (
     <ScrollView
       style={[styles.container, { backgroundColor: theme.colors.background }]}
-      contentContainerStyle={styles.content}
+      contentContainerStyle={layout.scrollContent}
       refreshControl={<RefreshControl refreshing={isLoading} onRefresh={fetchHarinas} />}
     >
       <ScreenHero
@@ -48,42 +54,51 @@ export const DashboardScreen = ({ onGoToGestion }: Props) => {
         subtitle="Panel de control — inventario, equipo y monitoreo de planta"
       />
 
-      <Card style={[styles.statCard, { backgroundColor: theme.colors.primaryContainer }]}>
-        <Card.Content>
-          <Text variant="labelLarge" style={{ color: brand.primaryBlueDark }}>
-            Inventario
-          </Text>
-          <Text variant="displaySmall" style={{ color: brand.primaryBlueDark, fontWeight: "700" }}>
-            {harinas.length}
-          </Text>
-          <Text variant="bodySmall" style={styles.muted}>
-            harinas registradas
-          </Text>
-        </Card.Content>
-      </Card>
+      <AnimatedReveal delay={40}>
+        <Card style={[styles.statCard, { backgroundColor: theme.colors.primaryContainer }]}>
+          <Card.Content>
+            <Text variant="labelLarge" style={onPrimaryContainer}>
+              Inventario
+            </Text>
+            <Text variant="displaySmall" style={[onPrimaryContainer, { fontWeight: "700" }]}>
+              {harinas.length}
+            </Text>
+            <Text variant="bodySmall" style={onPrimaryContainer}>
+              harinas registradas
+            </Text>
+          </Card.Content>
+        </Card>
+      </AnimatedReveal>
 
-      <Card mode="elevated" style={styles.card}>
-        <Card.Content>
-          <Text variant="titleMedium" style={styles.blockTitle}>
-            Ultimos registros
-          </Text>
-          {latestHarinas.length === 0 ? (
-            <Text variant="bodyMedium">No hay registros disponibles</Text>
-          ) : (
-            latestHarinas.map((item) => <HarinaListItem key={item._id} harina={item} />)
-          )}
-          {error ? <Text style={styles.errorText}>{error}</Text> : null}
-        </Card.Content>
-      </Card>
-
-      <Button mode="contained" onPress={onGoToGestion} icon="warehouse" style={styles.primaryBtn}>
-        Gestion de harinas
-      </Button>
-
-      {isGerente ? (
+      <AnimatedReveal delay={90}>
         <Card mode="elevated" style={styles.card}>
           <Card.Content>
-            <Text variant="titleMedium" style={styles.blockTitle}>
+            <Text variant="titleMedium" style={[styles.blockTitle, titleStyle]}>
+              Ultimos registros
+            </Text>
+            {latestHarinas.length === 0 ? (
+              <Text variant="bodyMedium" style={bodyStyle}>
+                No hay registros disponibles
+              </Text>
+            ) : (
+              latestHarinas.map((item) => <HarinaListItem key={item._id} harina={item} />)
+            )}
+            {error ? <Text style={styles.errorText}>{error}</Text> : null}
+          </Card.Content>
+        </Card>
+      </AnimatedReveal>
+
+      <AnimatedReveal delay={130}>
+        <Button mode="contained" onPress={onGoToGestion} icon="warehouse" style={styles.primaryBtn}>
+          Gestion de harinas
+        </Button>
+      </AnimatedReveal>
+
+      {isGerente ? (
+        <AnimatedReveal delay={170}>
+          <Card mode="elevated" style={styles.card}>
+          <Card.Content>
+            <Text variant="titleMedium" style={[styles.blockTitle, titleStyle]}>
               Accesos rapidos
             </Text>
             <View style={styles.gerenteGrid}>
@@ -91,7 +106,17 @@ export const DashboardScreen = ({ onGoToGestion }: Props) => {
                 mode="contained-tonal"
                 icon="account-group"
                 onPress={() => navigation.navigate("EquipoList")}
-                style={styles.gridBtn}
+                style={[
+                  styles.gridBtn,
+                  {
+                    minWidth:
+                      layout.dashboardColumns === 1
+                        ? "100%"
+                        : layout.dashboardColumns === 2
+                          ? "48%"
+                          : "31%",
+                  },
+                ]}
               >
                 Equipo
               </Button>
@@ -99,7 +124,17 @@ export const DashboardScreen = ({ onGoToGestion }: Props) => {
                 mode="contained-tonal"
                 icon="tune-vertical"
                 onPress={() => navigation.navigate("GruposList")}
-                style={styles.gridBtn}
+                style={[
+                  styles.gridBtn,
+                  {
+                    minWidth:
+                      layout.dashboardColumns === 1
+                        ? "100%"
+                        : layout.dashboardColumns === 2
+                          ? "48%"
+                          : "31%",
+                  },
+                ]}
               >
                 Calibracion
               </Button>
@@ -107,7 +142,17 @@ export const DashboardScreen = ({ onGoToGestion }: Props) => {
                 mode="contained-tonal"
                 icon="view-dashboard"
                 onPress={() => navigation.navigate("MuroGerente")}
-                style={styles.gridBtn}
+                style={[
+                  styles.gridBtn,
+                  {
+                    minWidth:
+                      layout.dashboardColumns === 1
+                        ? "100%"
+                        : layout.dashboardColumns === 2
+                          ? "48%"
+                          : "31%",
+                  },
+                ]}
               >
                 Muro
               </Button>
@@ -115,7 +160,17 @@ export const DashboardScreen = ({ onGoToGestion }: Props) => {
                 mode="contained-tonal"
                 icon="bell-alert"
                 onPress={() => navigation.navigate("AlertsList")}
-                style={styles.gridBtn}
+                style={[
+                  styles.gridBtn,
+                  {
+                    minWidth:
+                      layout.dashboardColumns === 1
+                        ? "100%"
+                        : layout.dashboardColumns === 2
+                          ? "48%"
+                          : "31%",
+                  },
+                ]}
               >
                 Alertas
               </Button>
@@ -129,22 +184,24 @@ export const DashboardScreen = ({ onGoToGestion }: Props) => {
               </Button>
             </View>
           </Card.Content>
-        </Card>
+          </Card>
+        </AnimatedReveal>
       ) : null}
 
-      <Button mode="outlined" onPress={logout} icon="logout" style={styles.logoutBtn}>
-        Cerrar sesion
-      </Button>
+      <AnimatedReveal delay={220}>
+        <Button mode="outlined" onPress={logout} icon="logout" style={styles.logoutBtn}>
+          Cerrar sesion
+        </Button>
+      </AnimatedReveal>
     </ScrollView>
   );
 };
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  content: { padding: 16, gap: 12, paddingBottom: 32 },
   statCard: { borderRadius: 14 },
   card: { borderRadius: 14 },
-  blockTitle: { marginBottom: 10, color: brand.primaryBlueDark },
+  blockTitle: { marginBottom: 10 },
   primaryBtn: { borderRadius: 10 },
   errorText: { marginTop: 8, color: brand.critical },
   gerenteGrid: {
@@ -156,5 +213,4 @@ const styles = StyleSheet.create({
   gridBtn: { flexGrow: 1, minWidth: "45%" },
   previewRow: { flexDirection: "row", flexWrap: "wrap", gap: 8, marginTop: 12 },
   logoutBtn: { marginTop: 8 },
-  muted: { opacity: 0.8 },
 });

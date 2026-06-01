@@ -27,7 +27,6 @@ const styles = StyleSheet.create({
     letterSpacing: 3,
   },
   text: {
-    color: brand.textOnDark,
-    opacity: 0.85,
+    color: brand.textMutedOnDark,
   },
 });

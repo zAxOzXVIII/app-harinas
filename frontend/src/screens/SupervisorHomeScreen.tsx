@@ -5,12 +5,17 @@ import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { useAuthStore } from "../store/auth.store";
 import type { GruposStackParamList } from "../navigation/types";
 import { ScreenHero } from "../components/ScreenHero";
+import { AnimatedReveal } from "../components/AnimatedReveal";
+import { useScreenLayout } from "../hooks/useScreenLayout";
+import { useContrastStyles } from "../hooks/useContrastStyles";
 import { brand } from "../theme";
 
 type Nav = NativeStackNavigationProp<GruposStackParamList>;
 
 export const SupervisorHomeScreen = () => {
   const theme = useTheme();
+  const layout = useScreenLayout();
+  const { muted: mutedText, title: titleStyle } = useContrastStyles();
   const navigation = useNavigation<Nav>();
   const user = useAuthStore((s) => s.user);
   const logout = useAuthStore((s) => s.logout);
@@ -18,7 +23,7 @@ export const SupervisorHomeScreen = () => {
   return (
     <ScrollView
       style={[styles.container, { backgroundColor: theme.colors.background }]}
-      contentContainerStyle={styles.content}
+      contentContainerStyle={layout.scrollContent}
     >
       <ScreenHero
         roleLabel="Supervisor"
@@ -26,58 +31,64 @@ export const SupervisorHomeScreen = () => {
         subtitle="Calibra temperatura, nivel de secado y tiempo por grupo de rubro"
       />
 
-      <Card mode="elevated" style={styles.card}>
-        <Card.Content>
-          <Text variant="titleMedium" style={styles.cardTitle}>
-            Grupos de rubro
-          </Text>
-          <Text variant="bodySmall" style={styles.muted}>
-            Garbanzo + Lenteja · Platano + Cambur · Yuca + Batata
-          </Text>
-          <Button
-            mode="contained"
-            icon="tune-vertical"
-            style={styles.btn}
-            onPress={() => navigation.navigate("GruposList")}
-          >
-            Ver y calibrar grupos
-          </Button>
-        </Card.Content>
-      </Card>
+      <AnimatedReveal delay={40}>
+        <Card mode="elevated" style={styles.card}>
+          <Card.Content>
+            <Text variant="titleMedium" style={[styles.cardTitle, titleStyle]}>
+              Grupos de rubro
+            </Text>
+            <Text variant="bodySmall" style={mutedText}>
+              Garbanzo + Lenteja · Platano + Cambur · Yuca + Batata
+            </Text>
+            <Button
+              mode="contained"
+              icon="tune-vertical"
+              style={styles.btn}
+              onPress={() => navigation.navigate("GruposList")}
+            >
+              Ver y calibrar grupos
+            </Button>
+          </Card.Content>
+        </Card>
+      </AnimatedReveal>
 
-      <Card mode="elevated" style={[styles.card, styles.humedadHighlight]}>
-        <Card.Content>
-          <Text variant="titleMedium" style={styles.cardTitle}>
-            Humedad global
-          </Text>
-          <Text variant="bodySmall" style={styles.muted}>
-            Politica unica %RH para todos los grupos.
-          </Text>
-          <Button
-            mode="contained-tonal"
-            icon="water-percent"
-            style={styles.btn}
-            onPress={() => navigation.navigate("HumedadEdit")}
-          >
-            Editar humedad global
-          </Button>
-        </Card.Content>
-      </Card>
+      <AnimatedReveal delay={90}>
+        <Card
+          mode="elevated"
+          style={[styles.card, { backgroundColor: theme.colors.primaryContainer }]}
+        >
+          <Card.Content>
+            <Text variant="titleMedium" style={[styles.cardTitle, titleStyle]}>
+              Humedad global
+            </Text>
+            <Text variant="bodySmall" style={mutedText}>
+              Politica unica %RH para todos los grupos.
+            </Text>
+            <Button
+              mode="contained-tonal"
+              icon="water-percent"
+              style={styles.btn}
+              onPress={() => navigation.navigate("HumedadEdit")}
+            >
+              Editar humedad global
+            </Button>
+          </Card.Content>
+        </Card>
+      </AnimatedReveal>
 
-      <Button mode="outlined" onPress={logout} icon="logout" style={styles.logoutBtn}>
-        Cerrar sesion
-      </Button>
+      <AnimatedReveal delay={130}>
+        <Button mode="outlined" onPress={logout} icon="logout" style={styles.logoutBtn}>
+          Cerrar sesion
+        </Button>
+      </AnimatedReveal>
     </ScrollView>
   );
 };
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  content: { padding: 16, gap: 12, paddingBottom: 32 },
   card: { borderRadius: 14 },
-  humedadHighlight: { backgroundColor: "#E3F2FD" },
-  cardTitle: { color: brand.primaryBlueDark },
+  cardTitle: {},
   btn: { marginTop: 12, borderRadius: 10 },
-  muted: { opacity: 0.75, marginTop: 4 },
   logoutBtn: { marginTop: 8 },
 });

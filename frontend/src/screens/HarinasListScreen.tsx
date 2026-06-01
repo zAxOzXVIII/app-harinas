@@ -1,10 +1,14 @@
 import { useEffect, useCallback } from "react";
 import { Alert, FlatList, StyleSheet, View } from "react-native";
-import { ActivityIndicator, Button, Card, FAB, IconButton, Text } from "react-native-paper";
+import { ActivityIndicator, Button, Card, FAB, IconButton, Text, useTheme } from "react-native-paper";
+import { AnimatedReveal } from "../components/AnimatedReveal";
+import { useMutedTextStyle } from "../hooks/useMutedTextStyle";
+import { useScreenLayout } from "../hooks/useScreenLayout";
 import { useHarinasStore } from "../store/harinas.store";
 import { useAuthStore } from "../store/auth.store";
 import { usePdfExport } from "../hooks/usePdfExport";
 import { exportHarinasPdf } from "../pdf/reports";
+import { brand } from "../theme";
 import type { Harina } from "../types/harina";
 
 interface Props {
@@ -13,6 +17,9 @@ interface Props {
 }
 
 export const HarinasListScreen = ({ onCreateNew, onEdit }: Props) => {
+  const theme = useTheme();
+  const layout = useScreenLayout();
+  const mutedText = useMutedTextStyle();
   const harinas = useHarinasStore((state) => state.harinas);
   const isLoading = useHarinasStore((state) => state.isLoading);
   const isMutating = useHarinasStore((state) => state.isMutating);
@@ -53,7 +60,7 @@ export const HarinasListScreen = ({ onCreateNew, onEdit }: Props) => {
 
   if (isLoading && harinas.length === 0) {
     return (
-      <View style={styles.centered}>
+      <View style={[styles.centered, { backgroundColor: layout.backgroundColor }]}>
         <ActivityIndicator size="large" />
       </View>
     );
@@ -61,7 +68,7 @@ export const HarinasListScreen = ({ onCreateNew, onEdit }: Props) => {
 
   if (error && harinas.length === 0) {
     return (
-      <View style={styles.centered}>
+      <View style={[styles.centered, { backgroundColor: layout.backgroundColor }]}>
         <Text style={styles.errorText}>{error}</Text>
         <Button onPress={fetchHarinas}>Reintentar</Button>
       </View>
@@ -76,8 +83,8 @@ export const HarinasListScreen = ({ onCreateNew, onEdit }: Props) => {
     });
 
   return (
-    <View style={styles.container}>
-      <View style={styles.toolbar}>
+    <View style={[styles.container, { backgroundColor: layout.backgroundColor }]}>
+      <View style={layout.toolbarPadding}>
         <Button
           mode="contained-tonal"
           icon="file-pdf-box"
@@ -92,64 +99,65 @@ export const HarinasListScreen = ({ onCreateNew, onEdit }: Props) => {
         keyExtractor={(item) => item._id}
         refreshing={isLoading}
         onRefresh={fetchHarinas}
-        contentContainerStyle={styles.list}
+        contentContainerStyle={layout.listContent}
         ListEmptyComponent={
           <View style={styles.centered}>
-            <Text>No hay harinas registradas</Text>
+            <Text variant="bodyLarge" style={{ color: theme.colors.onSurface }}>
+              No hay harinas registradas
+            </Text>
+            <Text variant="bodySmall" style={mutedText}>
+              Usa el boton + para agregar la primera.
+            </Text>
           </View>
         }
-        renderItem={({ item }) => (
-          <Card style={styles.card}>
-            <Card.Content>
-              <Text variant="titleMedium">{item.nombre}</Text>
-              <Text variant="bodyMedium">Tipo: {item.tipo}</Text>
-              <Text variant="bodyMedium">
-                Cantidad: {item.cantidad} {item.unidad}
-              </Text>
-              <Text variant="bodySmall">
-                Registro: {new Date(item.fecha_registro).toLocaleDateString()}
-              </Text>
-            </Card.Content>
-            <Card.Actions>
-              <IconButton
-                icon="pencil"
-                onPress={() => onEdit(item)}
-                disabled={isMutating}
-              />
-              <IconButton
-                icon="delete"
-                iconColor="#c62828"
-                onPress={() => handleDelete(item)}
-                disabled={isMutating}
-              />
-            </Card.Actions>
-          </Card>
+        renderItem={({ item, index }) => (
+          <AnimatedReveal delay={Math.min(index * 40, 200)}>
+            <Card style={[styles.card, { backgroundColor: theme.colors.surface }]}>
+              <Card.Content>
+                <Text variant="titleMedium" style={{ color: theme.colors.primary }}>
+                  {item.nombre}
+                </Text>
+                <Text variant="bodyMedium" style={{ color: theme.colors.onSurface }}>
+                  Tipo: {item.tipo}
+                </Text>
+                <Text variant="bodyMedium" style={{ color: theme.colors.onSurface }}>
+                  Cantidad: {item.cantidad} {item.unidad}
+                </Text>
+                <Text variant="bodySmall" style={mutedText}>
+                  Registro: {new Date(item.fecha_registro).toLocaleDateString()}
+                </Text>
+              </Card.Content>
+              <Card.Actions>
+                <IconButton
+                  icon="pencil"
+                  onPress={() => onEdit(item)}
+                  disabled={isMutating}
+                />
+                <IconButton
+                  icon="delete"
+                  iconColor={brand.critical}
+                  onPress={() => handleDelete(item)}
+                  disabled={isMutating}
+                />
+              </Card.Actions>
+            </Card>
+          </AnimatedReveal>
         )}
       />
 
-      <FAB icon="plus" style={styles.fab} onPress={onCreateNew} disabled={isMutating} />
+      <FAB
+        icon="plus"
+        style={[styles.fab, { right: layout.contentPadding }]}
+        onPress={onCreateNew}
+        disabled={isMutating}
+      />
     </View>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#F5F9FC",
-  },
-  toolbar: {
-    paddingHorizontal: 16,
-    paddingTop: 12,
-    paddingBottom: 4,
-  },
-  list: {
-    padding: 16,
-    paddingBottom: 90,
-  },
-  card: {
-    marginBottom: 10,
-    borderRadius: 12,
-  },
+  container: { flex: 1 },
+  card: { marginBottom: 10, borderRadius: 12 },
   centered: {
     flex: 1,
     justifyContent: "center",
@@ -157,13 +165,12 @@ const styles = StyleSheet.create({
     padding: 24,
   },
   errorText: {
-    color: "#c62828",
+    color: brand.critical,
     marginBottom: 12,
     textAlign: "center",
   },
   fab: {
     position: "absolute",
-    right: 16,
     bottom: 24,
   },
 });

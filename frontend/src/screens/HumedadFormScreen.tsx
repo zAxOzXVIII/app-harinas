@@ -1,6 +1,15 @@
 import { useEffect, useMemo, useState } from "react";
 import { Alert, ScrollView, StyleSheet, View } from "react-native";
-import { ActivityIndicator, Button, Card, HelperText, Text, TextInput } from "react-native-paper";
+import {
+  ActivityIndicator,
+  Button,
+  Card,
+  HelperText,
+  Text,
+  TextInput,
+  useTheme,
+} from "react-native-paper";
+import { useMutedTextStyle } from "../hooks/useMutedTextStyle";
 import { useGruposStore } from "../store/grupos.store";
 import type { HumedadPayload } from "../types/grupoRubro";
 
@@ -18,6 +27,8 @@ interface FormFields {
 const toStr = (n: number | undefined): string => (n === undefined || n === null ? "" : String(n));
 
 export const HumedadFormScreen = ({ onSuccess }: Props) => {
+  const theme = useTheme();
+  const mutedText = useMutedTextStyle();
   const humedad = useGruposStore((s) => s.humedad);
   const isMutating = useGruposStore((s) => s.isMutating);
   const updateHumedad = useGruposStore((s) => s.updateHumedad);
@@ -86,10 +97,12 @@ export const HumedadFormScreen = ({ onSuccess }: Props) => {
 
   return (
     <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
-      <Card style={styles.card}>
+      <Card style={[styles.card, { backgroundColor: theme.colors.primaryContainer }]}>
         <Card.Content>
-          <Text variant="titleLarge">Humedad global ({humedad.unidad ?? "%RH"})</Text>
-          <Text variant="bodyMedium" style={styles.muted}>
+          <Text variant="titleLarge" style={{ color: theme.colors.onPrimaryContainer }}>
+            Humedad global ({humedad.unidad ?? "%RH"})
+          </Text>
+          <Text variant="bodyMedium" style={mutedText}>
             Aplica para todos los grupos de rubro.
           </Text>
         </Card.Content>
@@ -158,8 +171,7 @@ export const HumedadFormScreen = ({ onSuccess }: Props) => {
 const styles = StyleSheet.create({
   container: { padding: 16, paddingBottom: 32 },
   centered: { flex: 1, justifyContent: "center", alignItems: "center" },
-  card: { borderRadius: 12, marginBottom: 12, backgroundColor: "#e8f5e9" },
-  muted: { opacity: 0.7 },
+  card: { borderRadius: 12, marginBottom: 12 },
   row: { flexDirection: "row", gap: 8 },
   col: { flex: 1 },
   submit: { marginTop: 16 },

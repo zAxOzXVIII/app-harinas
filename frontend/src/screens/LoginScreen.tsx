@@ -152,13 +152,13 @@ const styles = StyleSheet.create({
   },
   brandSub: {
     fontSize: 11,
-    color: "#546E7A",
+    color: brand.textMutedOnLight,
     letterSpacing: 3,
     marginTop: 4,
     marginBottom: 16,
   },
   hint: {
-    color: "#78909C",
+    color: brand.textMutedOnLight,
     textAlign: "center",
     marginBottom: 20,
   },
@@ -179,7 +179,7 @@ const styles = StyleSheet.create({
   devHint: {
     marginTop: 16,
     fontSize: 10,
-    color: "#90A4AE",
+    color: brand.textMutedOnLight,
     textAlign: "center",
   },
 });

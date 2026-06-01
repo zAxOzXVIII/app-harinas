@@ -1,6 +1,10 @@
 import { useCallback } from "react";
 import { RefreshControl, ScrollView, StyleSheet, View } from "react-native";
-import { ActivityIndicator, Button, Card, Text } from "react-native-paper";
+import { ActivityIndicator, Button, Card, Text, useTheme } from "react-native-paper";
+import { AnimatedReveal } from "../components/AnimatedReveal";
+import { useMutedTextStyle } from "../hooks/useMutedTextStyle";
+import { useScreenLayout } from "../hooks/useScreenLayout";
+import { brand } from "../theme";
 import { usePdfExport } from "../hooks/usePdfExport";
 import { exportCalibracionPdf } from "../pdf/reports";
 import { useFocusEffect, useNavigation } from "@react-navigation/native";
@@ -13,6 +17,9 @@ import type { GruposStackParamList } from "../navigation/types";
 type Nav = NativeStackNavigationProp<GruposStackParamList>;
 
 export const GruposListScreen = () => {
+  const theme = useTheme();
+  const layout = useScreenLayout();
+  const mutedText = useMutedTextStyle();
   const navigation = useNavigation<Nav>();
   const grupos = useGruposStore((s) => s.grupos);
   const humedad = useGruposStore((s) => s.humedad);
@@ -48,8 +55,8 @@ export const GruposListScreen = () => {
 
   return (
     <ScrollView
-      style={styles.container}
-      contentContainerStyle={styles.content}
+      style={[styles.container, { backgroundColor: layout.backgroundColor }]}
+      contentContainerStyle={layout.scrollContent}
       refreshControl={<RefreshControl refreshing={isLoading} onRefresh={fetchAll} />}
     >
       {error ? <Text style={styles.error}>{error}</Text> : null}
@@ -65,17 +72,25 @@ export const GruposListScreen = () => {
       </Button>
 
       {humedad ? (
-        <Card style={styles.humedadCard}>
+        <Card style={[styles.humedadCard, { backgroundColor: theme.colors.primaryContainer }]}>
           <Card.Content>
-            <Text variant="titleMedium">Humedad global</Text>
-            <Text variant="bodyMedium" style={styles.muted}>
+            <Text variant="titleMedium" style={{ color: theme.colors.onPrimaryContainer }}>
+              Humedad global
+            </Text>
+            <Text variant="bodyMedium" style={{ color: theme.colors.onPrimaryContainer, opacity: 0.85 }}>
               Politica unica para todos los grupos de rubro.
             </Text>
-            <Text variant="displaySmall" style={styles.humedadValue}>
+            <Text
+              variant="displaySmall"
+              style={[styles.humedadValue, { color: theme.colors.onPrimaryContainer }]}
+            >
               {humedad.min}–{humedad.max} {humedad.unidad ?? "%RH"}
             </Text>
             {humedad.criticoMin !== undefined || humedad.criticoMax !== undefined ? (
-              <Text variant="bodySmall" style={styles.muted}>
+              <Text
+                variant="bodySmall"
+                style={{ color: theme.colors.onPrimaryContainer, opacity: 0.85 }}
+              >
                 Critico: {humedad.criticoMin ?? "-"} / {humedad.criticoMax ?? "-"}
               </Text>
             ) : null}
@@ -92,7 +107,7 @@ export const GruposListScreen = () => {
         </Card>
       ) : null}
 
-      <Text variant="titleLarge" style={styles.sectionTitle}>
+      <Text variant="titleLarge" style={[styles.sectionTitle, { color: theme.colors.primary }]}>
         Grupos de rubro
       </Text>
 
@@ -105,17 +120,18 @@ export const GruposListScreen = () => {
           </Card.Content>
         </Card>
       ) : (
-        grupos.map((grupo) => (
-          <GrupoRubroCard
-            key={grupo._id}
-            grupo={grupo}
-            humedad={humedad}
-            onPress={
-              canEdit
-                ? () => navigation.navigate("CalibracionEdit", { grupoId: grupo._id })
-                : undefined
-            }
-          />
+        grupos.map((grupo, idx) => (
+          <AnimatedReveal key={grupo._id} delay={50 + idx * 40}>
+            <GrupoRubroCard
+              grupo={grupo}
+              humedad={humedad}
+              onPress={
+                canEdit
+                  ? () => navigation.navigate("CalibracionEdit", { grupoId: grupo._id })
+                  : undefined
+              }
+            />
+          </AnimatedReveal>
         ))
       )}
     </ScrollView>
@@ -123,14 +139,12 @@ export const GruposListScreen = () => {
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#F5F9FC" },
+  container: { flex: 1 },
   pdfBtn: { marginBottom: 12 },
-  content: { padding: 16, paddingBottom: 32, gap: 4 },
   centered: { flex: 1, justifyContent: "center", alignItems: "center" },
-  error: { color: "#c62828", marginBottom: 8 },
-  humedadCard: { borderRadius: 12, marginBottom: 16, backgroundColor: "#E3F2FD" },
-  humedadValue: { marginTop: 8, color: "#1565C0" },
+  error: { color: brand.critical, marginBottom: 8 },
+  humedadCard: { borderRadius: 12, marginBottom: 16 },
+  humedadValue: { marginTop: 8, fontWeight: "700" },
   humedadBtn: { marginTop: 12 },
   sectionTitle: { marginTop: 8, marginBottom: 8 },
-  muted: { opacity: 0.75 },
 });

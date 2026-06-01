@@ -1,6 +1,9 @@
 import { useCallback, useState } from "react";
 import { Alert, FlatList, StyleSheet, View } from "react-native";
-import { ActivityIndicator, Button, Card, FAB, IconButton, Text } from "react-native-paper";
+import { ActivityIndicator, Button, Card, FAB, IconButton, Text, useTheme } from "react-native-paper";
+import { AnimatedReveal } from "../components/AnimatedReveal";
+import { useMutedTextStyle } from "../hooks/useMutedTextStyle";
+import { useScreenLayout } from "../hooks/useScreenLayout";
 import { useAuthStore } from "../store/auth.store";
 import { usePdfExport } from "../hooks/usePdfExport";
 import { exportEquipoPdf } from "../pdf/reports";
@@ -9,10 +12,14 @@ import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { usersService } from "../services/users.service";
 import type { TeamUser } from "../types/auth";
 import type { GerenteStackParamList } from "../navigation/types";
+import { brand } from "../theme";
 
 type Nav = NativeStackNavigationProp<GerenteStackParamList>;
 
 export const EquipoListScreen = () => {
+  const theme = useTheme();
+  const layout = useScreenLayout();
+  const mutedText = useMutedTextStyle();
   const navigation = useNavigation<Nav>();
   const [users, setUsers] = useState<TeamUser[]>([]);
   const [loading, setLoading] = useState(true);
@@ -59,16 +66,16 @@ export const EquipoListScreen = () => {
 
   if (loading && users.length === 0) {
     return (
-      <View style={styles.centered}>
+      <View style={[styles.centered, { backgroundColor: layout.backgroundColor }]}>
         <ActivityIndicator size="large" />
       </View>
     );
   }
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: layout.backgroundColor }]}>
       {error ? <Text style={styles.error}>{error}</Text> : null}
-      <View style={styles.toolbar}>
+      <View style={layout.toolbarPadding}>
         <Button
           mode="contained-tonal"
           icon="file-pdf-box"
@@ -83,37 +90,59 @@ export const EquipoListScreen = () => {
         keyExtractor={(item) => item.id}
         refreshing={loading}
         onRefresh={load}
-        contentContainerStyle={styles.list}
+        contentContainerStyle={layout.listContent}
         ListEmptyComponent={
           <View style={styles.centered}>
-            <Text>No hay supervisores ni operadores registrados</Text>
+            <Text variant="bodyLarge" style={{ color: theme.colors.onSurface }}>
+              No hay supervisores ni operadores registrados
+            </Text>
+            <Text variant="bodySmall" style={mutedText}>
+              Agrega miembros del equipo con el boton +.
+            </Text>
           </View>
         }
-        renderItem={({ item }) => (
-          <Card style={styles.card}>
-            <Card.Content>
-              <Text variant="titleMedium">{item.nombre}</Text>
-              <Text variant="bodyMedium">{item.email}</Text>
-              <Text variant="labelLarge">Rol: {item.rol}</Text>
-            </Card.Content>
-            <Card.Actions>
-              <IconButton icon="pencil" onPress={() => navigation.navigate("UsuarioForm", { userId: item.id })} />
-              <IconButton icon="delete" iconColor="#c62828" onPress={() => onDelete(item)} />
-            </Card.Actions>
-          </Card>
+        renderItem={({ item, index }) => (
+          <AnimatedReveal delay={Math.min(index * 40, 200)}>
+            <Card style={[styles.card, { backgroundColor: theme.colors.surface }]}>
+              <Card.Content>
+                <Text variant="titleMedium" style={{ color: theme.colors.primary }}>
+                  {item.nombre}
+                </Text>
+                <Text variant="bodyMedium" style={{ color: theme.colors.onSurface }}>
+                  {item.email}
+                </Text>
+                <Text variant="labelLarge" style={{ color: theme.colors.onSurfaceVariant }}>
+                  Rol: {item.rol}
+                </Text>
+              </Card.Content>
+              <Card.Actions>
+                <IconButton
+                  icon="pencil"
+                  onPress={() => navigation.navigate("UsuarioForm", { userId: item.id })}
+                />
+                <IconButton
+                  icon="delete"
+                  iconColor={brand.critical}
+                  onPress={() => onDelete(item)}
+                />
+              </Card.Actions>
+            </Card>
+          </AnimatedReveal>
         )}
       />
-      <FAB icon="plus" style={styles.fab} onPress={() => navigation.navigate("UsuarioForm", {})} />
+      <FAB
+        icon="plus"
+        style={[styles.fab, { right: layout.contentPadding }]}
+        onPress={() => navigation.navigate("UsuarioForm", {})}
+      />
     </View>
   );
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#F5F9FC" },
-  toolbar: { paddingHorizontal: 16, paddingTop: 12, paddingBottom: 4 },
-  list: { padding: 16, paddingBottom: 90 },
+  container: { flex: 1 },
   card: { marginBottom: 10, borderRadius: 12 },
   centered: { flex: 1, justifyContent: "center", alignItems: "center", padding: 24 },
-  error: { color: "#c62828", padding: 16 },
-  fab: { position: "absolute", right: 16, bottom: 24 },
+  error: { color: brand.critical, paddingHorizontal: 16, paddingTop: 8 },
+  fab: { position: "absolute", bottom: 24 },
 });

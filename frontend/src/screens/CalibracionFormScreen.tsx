@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Alert, ScrollView, StyleSheet, View } from "react-native";
 import { ActivityIndicator, Button, Card, HelperText, Text, TextInput } from "react-native-paper";
+import { useMutedTextStyle } from "../hooks/useMutedTextStyle";
 import { useGruposStore } from "../store/grupos.store";
 import type { CalibracionPayload } from "../types/grupoRubro";
 
@@ -22,6 +23,7 @@ interface FormFields {
 const toStr = (n: number | undefined): string => (n === undefined || n === null ? "" : String(n));
 
 export const CalibracionFormScreen = ({ grupoId, onSuccess }: Props) => {
+  const mutedText = useMutedTextStyle();
   const grupos = useGruposStore((s) => s.grupos);
   const isMutating = useGruposStore((s) => s.isMutating);
   const updateCalibracion = useGruposStore((s) => s.updateCalibracion);
@@ -109,7 +111,7 @@ export const CalibracionFormScreen = ({ grupoId, onSuccess }: Props) => {
       <Card style={styles.headerCard}>
         <Card.Content>
           <Text variant="titleLarge">{grupo.nombre}</Text>
-          <Text variant="bodyMedium" style={styles.muted}>
+          <Text variant="bodyMedium" style={mutedText}>
             {grupo.items.join(" + ")}
           </Text>
         </Card.Content>
@@ -226,7 +228,6 @@ const styles = StyleSheet.create({
   container: { padding: 16, paddingBottom: 32 },
   centered: { flex: 1, justifyContent: "center", alignItems: "center" },
   headerCard: { borderRadius: 12, marginBottom: 12 },
-  muted: { opacity: 0.7 },
   section: { marginTop: 12, marginBottom: 4 },
   row: { flexDirection: "row", gap: 8 },
   col: { flex: 1 },

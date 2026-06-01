@@ -1,5 +1,5 @@
 import { useCallback, useEffect } from "react";
-import { Dimensions, RefreshControl, ScrollView, StyleSheet, View } from "react-native";
+import { RefreshControl, ScrollView, StyleSheet, View } from "react-native";
 import {
   ActivityIndicator,
   Button,
@@ -16,13 +16,13 @@ import { useTelemetryStore } from "../store/telemetry.store";
 import { useAlertsStore } from "../store/alerts.store";
 import { useGruposStore } from "../store/grupos.store";
 import { Sparkline } from "../components/Sparkline";
+import { AnimatedReveal } from "../components/AnimatedReveal";
 import { ScreenHero } from "../components/ScreenHero";
+import { useMutedTextStyle } from "../hooks/useMutedTextStyle";
+import { useScreenLayout } from "../hooks/useScreenLayout";
 import { brand } from "../theme";
 import type { TelemetryLatestItem } from "../types/telemetry";
 import type { ProcessAlert } from "../types/alert";
-
-const { width: SCREEN_W } = Dimensions.get("window");
-const CHART_W = Math.min(SCREEN_W - 80, 360);
 
 const grupoNombreTelemetry = (item: TelemetryLatestItem) => item.grupo?.nombre ?? "Grupo";
 
@@ -34,6 +34,8 @@ const grupoNombreAlerta = (a: ProcessAlert): string => {
 
 export const MuroGerenteScreen = () => {
   const theme = useTheme();
+  const layout = useScreenLayout();
+  const mutedText = useMutedTextStyle();
   const user = useAuthStore((s) => s.user);
   const { exporting, runExport } = usePdfExport();
 
@@ -88,7 +90,7 @@ export const MuroGerenteScreen = () => {
   return (
     <ScrollView
       style={[styles.container, { backgroundColor: theme.colors.background }]}
-      contentContainerStyle={styles.content}
+      contentContainerStyle={layout.scrollContent}
       refreshControl={
         <RefreshControl refreshing={telemetryLoading || alertsLoading} onRefresh={load} />
       }
@@ -127,7 +129,7 @@ export const MuroGerenteScreen = () => {
       {telemetryError ? <Text style={styles.error}>{telemetryError}</Text> : null}
       {alertsError ? <Text style={styles.error}>{alertsError}</Text> : null}
 
-      <Text variant="titleLarge" style={[styles.section, { color: brand.primaryBlueDark }]}>
+      <Text variant="titleLarge" style={[styles.section, { color: theme.colors.primary }]}>
         Ultimas lecturas
       </Text>
       {latest.length === 0 ? (
@@ -139,16 +141,17 @@ export const MuroGerenteScreen = () => {
           </Card.Content>
         </Card>
       ) : (
-        latest.map((item) => {
+        latest.map((item, idx) => {
           const hist = history[item.grupoRubroId] ?? [];
           const tempSeries = hist.map((h) => h.lecturas.temperatura).reverse();
           const humSeries = hist.map((h) => h.lecturas.humedad).reverse();
           return (
-            <Card key={item._id} mode="elevated" style={styles.card}>
+            <AnimatedReveal key={item._id} delay={60 + idx * 40}>
+            <Card mode="elevated" style={styles.card}>
               <Card.Content>
                 <View style={styles.row}>
                   <Text variant="titleMedium">{grupoNombreTelemetry(item)}</Text>
-                  <Text variant="labelSmall" style={styles.muted}>
+                  <Text variant="labelSmall" style={mutedText}>
                     {new Date(item.timestamp).toLocaleString()}
                   </Text>
                 </View>
@@ -162,10 +165,10 @@ export const MuroGerenteScreen = () => {
 
                 {tempSeries.length >= 2 ? (
                   <View style={styles.chartBlock}>
-                    <Text variant="labelSmall" style={styles.muted}>Temperatura</Text>
+                    <Text variant="labelSmall" style={mutedText}>Temperatura</Text>
                     <Sparkline
                       data={tempSeries}
-                      width={CHART_W}
+                      width={layout.chartWidth}
                       height={50}
                       color={brand.primaryBlue}
                     />
@@ -174,26 +177,27 @@ export const MuroGerenteScreen = () => {
 
                 {humSeries.length >= 2 ? (
                   <View style={styles.chartBlock}>
-                    <Text variant="labelSmall" style={styles.muted}>Humedad</Text>
+                    <Text variant="labelSmall" style={mutedText}>Humedad</Text>
                     <Sparkline
                       data={humSeries}
-                      width={CHART_W}
+                      width={layout.chartWidth}
                       height={50}
                       color={brand.skyAccent}
                     />
                   </View>
                 ) : null}
 
-                <Text variant="bodySmall" style={styles.muted}>
+                <Text variant="bodySmall" style={mutedText}>
                   Device: {item.deviceId}
                 </Text>
               </Card.Content>
             </Card>
+            </AnimatedReveal>
           );
         })
       )}
 
-      <Text variant="titleLarge" style={[styles.section, { color: brand.primaryBlueDark }]}>
+      <Text variant="titleLarge" style={[styles.section, { color: theme.colors.primary }]}>
         Alertas recientes
       </Text>
       {alerts.slice(0, 15).length === 0 ? (
@@ -205,8 +209,9 @@ export const MuroGerenteScreen = () => {
           </Card.Content>
         </Card>
       ) : (
-        alerts.slice(0, 15).map((a) => (
-          <Card key={a._id} mode="elevated" style={styles.card}>
+        alerts.slice(0, 15).map((a, idx) => (
+          <AnimatedReveal key={a._id} delay={80 + idx * 35}>
+          <Card mode="elevated" style={styles.card}>
             <Card.Content>
               <View style={styles.row}>
                 <Chip
@@ -220,18 +225,19 @@ export const MuroGerenteScreen = () => {
                 >
                   {a.severidad === "critical" ? "CRITICO" : "ALERTA"}
                 </Chip>
-                <Text variant="labelSmall" style={styles.muted}>
+                <Text variant="labelSmall" style={mutedText}>
                   {grupoNombreAlerta(a)}
                 </Text>
               </View>
               <Divider style={styles.divider} />
               <Text variant="bodyMedium">{a.mensaje}</Text>
-              <Text variant="bodySmall" style={styles.muted}>
+              <Text variant="bodySmall" style={mutedText}>
                 {a.createdAt ? new Date(a.createdAt).toLocaleString() : ""}
                 {a.leida ? "  ·  leida" : ""}
               </Text>
             </Card.Content>
           </Card>
+          </AnimatedReveal>
         ))
       )}
     </ScrollView>
@@ -240,16 +246,14 @@ export const MuroGerenteScreen = () => {
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  content: { padding: 16, paddingBottom: 32, gap: 12 },
   centered: { flex: 1, justifyContent: "center", alignItems: "center" },
   heroStats: { flexDirection: "row", flexWrap: "wrap", gap: 8, marginTop: 4 },
   pdfBtn: { marginTop: 12, alignSelf: "flex-start" },
-  muted: { opacity: 0.7 },
   section: { marginTop: 12 },
   card: { borderRadius: 14 },
   row: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 8 },
   metricsRow: { flexDirection: "row", flexWrap: "wrap", gap: 8, marginTop: 10 },
   chartBlock: { marginTop: 12, gap: 4 },
   divider: { marginVertical: 8 },
-  error: { color: "#c62828" },
+  error: { color: brand.critical },
 });

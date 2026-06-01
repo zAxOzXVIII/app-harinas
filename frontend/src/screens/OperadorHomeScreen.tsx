@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo } from "react";
-import { Dimensions, RefreshControl, ScrollView, StyleSheet, View } from "react-native";
+import { RefreshControl, ScrollView, StyleSheet, View } from "react-native";
 import {
   ActivityIndicator,
   Badge,
@@ -19,16 +19,18 @@ import { useTelemetryStore } from "../store/telemetry.store";
 import { useAlertsStore } from "../store/alerts.store";
 import { Sparkline } from "../components/Sparkline";
 import { MetricGauge } from "../components/MetricGauge";
+import { AnimatedReveal } from "../components/AnimatedReveal";
+import { useScreenLayout } from "../hooks/useScreenLayout";
+import { useContrastStyles } from "../hooks/useContrastStyles";
 import { brand, statusColors } from "../theme";
 import { ScreenHero } from "../components/ScreenHero";
 
 type Nav = NativeStackNavigationProp<OperadorStackParamList>;
 
-const { width: SCREEN_W } = Dimensions.get("window");
-const CHART_W = Math.min(SCREEN_W - 64, 360);
-
 export const OperadorHomeScreen = () => {
   const theme = useTheme();
+  const layout = useScreenLayout();
+  const { muted: mutedText, title: titleStyle } = useContrastStyles();
   const navigation = useNavigation<Nav>();
   const user = useAuthStore((s) => s.user);
   const logout = useAuthStore((s) => s.logout);
@@ -91,7 +93,7 @@ export const OperadorHomeScreen = () => {
   return (
     <ScrollView
       style={[styles.container, { backgroundColor: theme.colors.background }]}
-      contentContainerStyle={styles.content}
+      contentContainerStyle={layout.scrollContent}
       refreshControl={<RefreshControl refreshing={isLoading} onRefresh={onRefresh} />}
     >
       <ScreenHero
@@ -118,36 +120,40 @@ export const OperadorHomeScreen = () => {
       {telemetryError ? <Text style={styles.error}>{telemetryError}</Text> : null}
 
       {humedad ? (
-        <Card mode="elevated" style={styles.card}>
-          <Card.Content>
-            <View style={styles.cardHeader}>
-              <Text variant="titleMedium">Humedad global</Text>
-              <Chip compact icon="water-percent">
-                {humedad.unidad ?? "%RH"}
-              </Chip>
-            </View>
-            <View style={styles.gaugeBlock}>
-              <MetricGauge
-                label="Lectura promedio"
-                value={
-                  latest.length > 0
-                    ? latest.reduce((a, b) => a + b.lecturas.humedad, 0) / latest.length
-                    : (humedad.min + humedad.max) / 2
-                }
-                unit="%"
-                min={humedad.min}
-                max={humedad.max}
-                criticoMin={humedad.criticoMin}
-                criticoMax={humedad.criticoMax}
-                rangeMin={0}
-                rangeMax={100}
-              />
-            </View>
-          </Card.Content>
-        </Card>
+        <AnimatedReveal delay={50}>
+          <Card mode="elevated" style={styles.card}>
+            <Card.Content>
+              <View style={styles.cardHeader}>
+                <Text variant="titleMedium" style={{ color: theme.colors.onSurface }}>
+                  Humedad global
+                </Text>
+                <Chip compact icon="water-percent">
+                  {humedad.unidad ?? "%RH"}
+                </Chip>
+              </View>
+              <View style={styles.gaugeBlock}>
+                <MetricGauge
+                  label="Lectura promedio"
+                  value={
+                    latest.length > 0
+                      ? latest.reduce((a, b) => a + b.lecturas.humedad, 0) / latest.length
+                      : (humedad.min + humedad.max) / 2
+                  }
+                  unit="%"
+                  min={humedad.min}
+                  max={humedad.max}
+                  criticoMin={humedad.criticoMin}
+                  criticoMax={humedad.criticoMax}
+                  rangeMin={0}
+                  rangeMax={100}
+                />
+              </View>
+            </Card.Content>
+          </Card>
+        </AnimatedReveal>
       ) : null}
 
-      <Text variant="titleLarge" style={styles.sectionTitle}>
+      <Text variant="titleLarge" style={[styles.sectionTitle, titleStyle]}>
         Grupos calibrados
       </Text>
 
@@ -158,7 +164,7 @@ export const OperadorHomeScreen = () => {
           </Card.Content>
         </Card>
       ) : (
-        grupos.map((grupo) => {
+        grupos.map((grupo, idx) => {
           const last = latestByGroup.get(grupo._id);
           const hist = history[grupo._id] ?? [];
           const tempSeries = hist.map((h) => h.lecturas.temperatura).reverse();
@@ -183,31 +189,36 @@ export const OperadorHomeScreen = () => {
           }
 
           return (
-            <Card key={grupo._id} mode="elevated" style={styles.card}>
-              <Card.Content>
-                <View style={styles.cardHeader}>
-                  <View style={{ flex: 1 }}>
-                    <Text variant="titleMedium">{grupo.nombre}</Text>
-                    <View style={styles.chipsRow}>
-                      {grupo.items.map((it) => (
-                        <Chip key={it} compact style={styles.chipItem}>{it}</Chip>
-                      ))}
+            <AnimatedReveal key={grupo._id} delay={90 + idx * 35}>
+              <Card mode="elevated" style={styles.card}>
+                <Card.Content>
+                  <View style={styles.cardHeader}>
+                    <View style={{ flex: 1 }}>
+                      <Text variant="titleMedium" style={{ color: theme.colors.onSurface }}>
+                  {grupo.nombre}
+                </Text>
+                      <View style={styles.chipsRow}>
+                        {grupo.items.map((it) => (
+                          <Chip key={it} compact style={styles.chipItem}>
+                            {it}
+                          </Chip>
+                        ))}
+                      </View>
                     </View>
+                    <View style={[styles.statusDot, { backgroundColor: statusColor }]} />
                   </View>
-                  <View style={[styles.statusDot, { backgroundColor: statusColor }]} />
-                </View>
 
-                <Divider style={styles.divider} />
+                  <Divider style={styles.divider} />
 
-                <MetricGauge
-                  label={`Temperatura (${t.unidad ?? "C"})`}
-                  value={tValue}
-                  unit={t.unidad ?? "C"}
-                  min={t.min}
-                  max={t.max}
-                  criticoMin={t.criticoMin}
-                  criticoMax={t.criticoMax}
-                />
+                  <MetricGauge
+                    label={`Temperatura (${t.unidad ?? "C"})`}
+                    value={tValue}
+                    unit={t.unidad ?? "C"}
+                    min={t.min}
+                    max={t.max}
+                    criticoMin={t.criticoMin}
+                    criticoMax={t.criticoMax}
+                  />
 
                 {humedad && last ? (
                   <View style={{ marginTop: 12 }}>
@@ -227,29 +238,19 @@ export const OperadorHomeScreen = () => {
 
                 {tempSeries.length >= 2 ? (
                   <View style={styles.chartBlock}>
-                    <Text variant="labelSmall" style={styles.muted}>
+                    <Text variant="labelSmall" style={mutedText}>
                       Tendencia temperatura ({tempSeries.length} lecturas)
                     </Text>
-                    <Sparkline
-                      data={tempSeries}
-                      width={CHART_W}
-                      height={56}
-                      color={brand.primaryBlue}
-                    />
+                    <Sparkline data={tempSeries} width={layout.chartWidth} height={56} color={brand.primaryBlue} />
                   </View>
                 ) : null}
 
                 {humSeries.length >= 2 ? (
                   <View style={styles.chartBlock}>
-                    <Text variant="labelSmall" style={styles.muted}>
+                    <Text variant="labelSmall" style={mutedText}>
                       Tendencia humedad ({humSeries.length} lecturas)
                     </Text>
-                    <Sparkline
-                      data={humSeries}
-                      width={CHART_W}
-                      height={56}
-                      color={brand.skyAccent}
-                    />
+                    <Sparkline data={humSeries} width={layout.chartWidth} height={56} color={brand.skyAccent} />
                   </View>
                 ) : null}
 
@@ -266,12 +267,13 @@ export const OperadorHomeScreen = () => {
                     </Chip>
                   </View>
                 ) : (
-                  <Text variant="bodySmall" style={styles.muted}>
+                  <Text variant="bodySmall" style={mutedText}>
                     Sin telemetria todavia para este grupo.
                   </Text>
                 )}
-              </Card.Content>
-            </Card>
+                </Card.Content>
+              </Card>
+            </AnimatedReveal>
           );
         })
       )}
@@ -285,7 +287,6 @@ export const OperadorHomeScreen = () => {
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  content: { padding: 16, paddingBottom: 32, gap: 12 },
   centered: { flex: 1, justifyContent: "center", alignItems: "center" },
   alertBtnWrap: { marginTop: 12, alignSelf: "flex-start", position: "relative" },
   alertBtn: { borderRadius: 10 },
@@ -300,7 +301,6 @@ const styles = StyleSheet.create({
   chartBlock: { marginTop: 12, gap: 4 },
   lastRow: { flexDirection: "row", flexWrap: "wrap", gap: 8, marginTop: 12 },
   sectionTitle: { marginTop: 6 },
-  muted: { opacity: 0.7 },
-  error: { color: "#c62828" },
+  error: { color: brand.critical },
   logoutBtn: { marginTop: 16 },
 });
