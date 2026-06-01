@@ -28,6 +28,28 @@ describe("API telemetria", () => {
     expect(res.body.data.lecturas.temperatura).toBe(38);
   });
 
+  it("ingesta solo temperatura y humedad (AHT10 / fase climatica)", async () => {
+    const res = await request(getApp())
+      .post("/api/arduino/telemetry")
+      .send({
+        eventId: `test-clima-${Date.now()}`,
+        deviceId: "esp32-aht10-01",
+        codigoGrupo: "garbanzo-lenteja",
+        timestamp: new Date().toISOString(),
+        lecturas: {
+          temperatura: 28.5,
+          humedad: 62.3,
+        },
+      });
+
+    expect([200, 201]).toContain(res.status);
+    expect(res.body.success).toBe(true);
+    expect(res.body.data.lecturas.temperatura).toBe(28.5);
+    expect(res.body.data.lecturas.humedad).toBe(62.3);
+    expect(res.body.data.lecturas.nivelSecado).toBeUndefined();
+    expect(res.body.data.lecturas.tiempoSecado).toBeUndefined();
+  });
+
   it("rechaza payload sin deviceId", async () => {
     const res = await request(getApp())
       .post("/api/arduino/telemetry")

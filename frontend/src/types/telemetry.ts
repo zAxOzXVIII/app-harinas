@@ -1,8 +1,10 @@
 export interface TelemetryLecturas {
-  nivelSecado: number;
-  tiempoSecado: number;
   temperatura: number;
   humedad: number;
+  /** Presente si el dispositivo envía nivel de secado (fase 2). */
+  nivelSecado?: number;
+  /** Presente si el dispositivo envía tiempo de secado en minutos. */
+  tiempoSecado?: number;
 }
 
 export interface TelemetryLatestItem {

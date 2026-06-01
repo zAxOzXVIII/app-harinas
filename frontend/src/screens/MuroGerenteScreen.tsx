@@ -159,8 +159,12 @@ export const MuroGerenteScreen = () => {
                 <View style={styles.metricsRow}>
                   <Chip compact icon="thermometer">{item.lecturas.temperatura} C</Chip>
                   <Chip compact icon="water-percent">{item.lecturas.humedad}%</Chip>
-                  <Chip compact icon="speedometer">{item.lecturas.nivelSecado}%</Chip>
-                  <Chip compact icon="timer-outline">{item.lecturas.tiempoSecado} min</Chip>
+                  {item.lecturas.nivelSecado != null ? (
+                    <Chip compact icon="speedometer">{item.lecturas.nivelSecado}%</Chip>
+                  ) : null}
+                  {item.lecturas.tiempoSecado != null ? (
+                    <Chip compact icon="timer-outline">{item.lecturas.tiempoSecado} min</Chip>
+                  ) : null}
                 </View>
 
                 {tempSeries.length >= 2 ? (

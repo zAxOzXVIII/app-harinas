@@ -49,9 +49,8 @@ export const computeTelemetryStatus = (
     l.temperatura < t.min ||
     l.temperatura > t.max ||
     (humedad && (l.humedad < humedad.min || l.humedad > humedad.max)) ||
-    l.nivelSecado < ns.min ||
-    l.nivelSecado > ns.max ||
-    l.tiempoSecado > tsMin;
+    (l.nivelSecado != null && (l.nivelSecado < ns.min || l.nivelSecado > ns.max)) ||
+    (l.tiempoSecado != null && tsMin > 0 && l.tiempoSecado > tsMin);
 
   return out ? "ALERTA" : "OK";
 };

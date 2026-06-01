@@ -256,12 +256,16 @@ export const OperadorHomeScreen = () => {
 
                 {last ? (
                   <View style={styles.lastRow}>
-                    <Chip compact icon="speedometer">
-                      Secado {last.lecturas.nivelSecado}%
-                    </Chip>
-                    <Chip compact icon="timer-outline">
-                      {last.lecturas.tiempoSecado} min
-                    </Chip>
+                    {last.lecturas.nivelSecado != null ? (
+                      <Chip compact icon="speedometer">
+                        Secado {last.lecturas.nivelSecado}%
+                      </Chip>
+                    ) : null}
+                    {last.lecturas.tiempoSecado != null ? (
+                      <Chip compact icon="timer-outline">
+                        {last.lecturas.tiempoSecado} min
+                      </Chip>
+                    ) : null}
                     <Chip compact icon="clock-outline">
                       {new Date(last.timestamp).toLocaleTimeString()}
                     </Chip>

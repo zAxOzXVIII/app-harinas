@@ -16,10 +16,10 @@ const ingestValidations = [
   body("grupoRubroId").optional().isMongoId().withMessage("grupoRubroId invalido"),
   body("codigoGrupo").optional().isString().trim().notEmpty(),
   body("timestamp").optional().isISO8601().withMessage("timestamp invalido"),
-  body("lecturas.nivelSecado").isFloat({ min: 0, max: 100 }),
-  body("lecturas.tiempoSecado").isFloat({ min: 0 }),
-  body("lecturas.temperatura").isFloat(),
-  body("lecturas.humedad").isFloat({ min: 0, max: 100 }),
+  body("lecturas.temperatura").isFloat().withMessage("lecturas.temperatura es obligatoria"),
+  body("lecturas.humedad").isFloat({ min: 0, max: 100 }).withMessage("lecturas.humedad es obligatoria (0-100)"),
+  body("lecturas.nivelSecado").optional().isFloat({ min: 0, max: 100 }),
+  body("lecturas.tiempoSecado").optional().isFloat({ min: 0 }),
   validateRequest,
 ];
 

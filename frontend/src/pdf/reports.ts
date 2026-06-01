@@ -262,8 +262,12 @@ export const exportMuroPdf = async (
             formatDate(last.timestamp),
             `${formatNumber(last.lecturas.temperatura)} °C`,
             `${formatNumber(last.lecturas.humedad)} %`,
-            `${formatNumber(last.lecturas.nivelSecado, 0)} %`,
-            `${formatNumber(last.lecturas.tiempoSecado, 0)} min`,
+            last.lecturas.nivelSecado != null
+              ? `${formatNumber(last.lecturas.nivelSecado, 0)} %`
+              : "—",
+            last.lecturas.tiempoSecado != null
+              ? `${formatNumber(last.lecturas.tiempoSecado, 0)} min`
+              : "—",
             statusBadgeHtml(String(status)),
             last.deviceId,
           ],

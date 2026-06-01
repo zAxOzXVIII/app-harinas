@@ -25,10 +25,12 @@ const telemetryEventSchema = new mongoose.Schema(
       index: true,
     },
     lecturas: {
-      nivelSecado: { type: Number, required: true, min: 0, max: 100 },
-      tiempoSecado: { type: Number, required: true, min: 0 },
       temperatura: { type: Number, required: true },
       humedad: { type: Number, required: true, min: 0, max: 100 },
+      /** Opcional: sensor de nivel / ventilador (fase 2). */
+      nivelSecado: { type: Number, min: 0, max: 100 },
+      /** Opcional: minutos de secado (RTC u otro sensor). */
+      tiempoSecado: { type: Number, min: 0 },
     },
   },
   {

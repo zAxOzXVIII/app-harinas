@@ -105,7 +105,7 @@ const evaluateTelemetryEvent = async (telemetryDoc) => {
     });
   }
 
-  if (l.nivelSecado < ns.min || l.nivelSecado > ns.max) {
+  if (l.nivelSecado != null && (l.nivelSecado < ns.min || l.nivelSecado > ns.max)) {
     await emitAlert({
       tipo: "nivel_secado_fuera",
       severidad: "warning",
@@ -115,7 +115,7 @@ const evaluateTelemetryEvent = async (telemetryDoc) => {
     });
   }
 
-  if (l.tiempoSecado > tsMin) {
+  if (l.tiempoSecado != null && tsMin > 0 && l.tiempoSecado > tsMin) {
     await emitAlert({
       tipo: "tiempo_secado_exceso",
       severidad: "warning",
