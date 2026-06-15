@@ -71,6 +71,7 @@ Tras cada ingesta nueva, el backend evalúa la lectura frente a la calibración 
 - `GET /api/alerts` (auth): listado de alertas.
 - `GET /api/alerts/count` (auth): `{ unread }` alertas no leídas.
 - `PATCH /api/alerts/:id/read` (auth): marcar una alerta como leída.
+- `DELETE /api/alerts/:id` (auth): borrado lógico (`eliminada: true`); no aparece en listados.
 - `POST /api/alerts/mark-all-read` (auth): marcar todas como leídas.
 
 ## Códigos de grupo válidos (seed)

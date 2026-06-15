@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Alert, StyleSheet, View } from "react-native";
 import { Button, SegmentedButtons, Text, TextInput, useTheme } from "react-native-paper";
+import { KeyboardAwareScreen } from "../components/KeyboardAwareScreen";
 import { usersService } from "../services/users.service";
 import type { TeamUser } from "../types/auth";
 
@@ -87,7 +88,7 @@ export const UsuarioFormScreen = ({ userId, onSuccess }: Props) => {
   }
 
   return (
-    <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
+    <KeyboardAwareScreen backgroundColor={theme.colors.background}>
       <Text variant="titleLarge" style={[styles.title, { color: theme.colors.onSurface }]}>
         {isEdit ? "Editar miembro del equipo" : "Nuevo supervisor u operador"}
       </Text>
@@ -109,7 +110,7 @@ export const UsuarioFormScreen = ({ userId, onSuccess }: Props) => {
         onChangeText={setPassword}
         style={styles.input}
       />
-      <Text style={styles.label}>Rol</Text>
+      <Text style={[styles.label, { color: theme.colors.onSurfaceVariant }]}>Rol</Text>
       <SegmentedButtons
         value={rol}
         onValueChange={(v) => setRol(v as "supervisor" | "operador")}
@@ -121,12 +122,12 @@ export const UsuarioFormScreen = ({ userId, onSuccess }: Props) => {
       <Button mode="contained" loading={loading} onPress={submit} style={styles.button}>
         {isEdit ? "Guardar" : "Registrar"}
       </Button>
-    </View>
+    </KeyboardAwareScreen>
   );
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 16 },
+  container: { flex: 1 },
   title: { marginBottom: 16 },
   input: { marginBottom: 8 },
   label: { marginTop: 12, marginBottom: 8 },

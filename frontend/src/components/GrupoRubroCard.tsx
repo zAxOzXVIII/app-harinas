@@ -29,7 +29,12 @@ export const GrupoRubroCard = ({ grupo, humedad, onPress, rightSlot }: Props) =>
             </Text>
             <View style={styles.chipsRow}>
               {grupo.items.map((item) => (
-                <Chip key={item} compact style={styles.chip}>
+                <Chip
+                  key={item}
+                  compact
+                  style={{ backgroundColor: theme.colors.secondaryContainer }}
+                  textStyle={{ color: theme.colors.onSecondaryContainer, fontSize: 12 }}
+                >
                   {item}
                 </Chip>
               ))}
@@ -91,9 +96,6 @@ const styles = StyleSheet.create({
     flexWrap: "wrap",
     gap: 6,
     marginTop: 6,
-  },
-  chip: {
-    backgroundColor: brand.surfaceMuted,
   },
   divider: {
     height: 1,

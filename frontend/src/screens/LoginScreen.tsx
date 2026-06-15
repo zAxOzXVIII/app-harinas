@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
-import { KeyboardAvoidingView, Platform, StyleSheet, View } from "react-native";
+import { StyleSheet, View } from "react-native";
 import { Button, Card, HelperText, Text, TextInput } from "react-native-paper";
+import { KeyboardAwareScreen } from "../components/KeyboardAwareScreen";
 import { useAuthStore } from "../store/auth.store";
 import { brand } from "../theme";
 
@@ -12,6 +13,7 @@ export const LoginScreen = () => {
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [touched, setTouched] = useState(false);
 
   const emailError = useMemo(() => {
@@ -38,9 +40,10 @@ export const LoginScreen = () => {
   };
 
   return (
-    <KeyboardAvoidingView
-      style={styles.container}
-      behavior={Platform.OS === "ios" ? "padding" : undefined}
+    <KeyboardAwareScreen
+      centerContent
+      backgroundColor={brand.navyDeep}
+      horizontalPadding={20}
     >
       <Card mode="elevated" style={styles.card}>
         <Card.Content style={styles.cardInner}>
@@ -75,7 +78,7 @@ export const LoginScreen = () => {
           <TextInput
             mode="outlined"
             label="Contraseña"
-            secureTextEntry
+            secureTextEntry={!showPassword}
             value={password}
             onChangeText={setPassword}
             onBlur={() => setTouched(true)}
@@ -83,6 +86,14 @@ export const LoginScreen = () => {
             outlineColor={brand.surfaceMuted}
             activeOutlineColor={brand.primaryBlue}
             left={<TextInput.Icon icon="lock-outline" color={brand.primaryBlue} />}
+            right={
+              <TextInput.Icon
+                icon={showPassword ? "eye-off" : "eye"}
+                color={brand.primaryBlue}
+                onPress={() => setShowPassword((prev) => !prev)}
+                accessibilityLabel={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
+              />
+            }
           />
           <HelperText type="error" visible={Boolean(passwordError)}>
             {passwordError}
@@ -111,17 +122,11 @@ export const LoginScreen = () => {
           ) : null}
         </Card.Content>
       </Card>
-    </KeyboardAvoidingView>
+    </KeyboardAwareScreen>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: "center",
-    padding: 20,
-    backgroundColor: brand.navyDeep,
-  },
   card: {
     borderRadius: 24,
     backgroundColor: brand.surfaceCard,

@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { ScrollView, StyleSheet } from "react-native";
+import { StyleSheet, View } from "react-native";
 import { Button, HelperText, TextInput } from "react-native-paper";
 import type { HarinaPayload } from "../types/harina";
 
@@ -72,7 +72,7 @@ export const HarinaForm = ({ initialValues, isLoading, submitLabel, onSubmit }: 
   };
 
   return (
-    <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
+    <View style={styles.container}>
       <TextInput
         mode="outlined"
         label="Nombre"
@@ -138,7 +138,7 @@ export const HarinaForm = ({ initialValues, isLoading, submitLabel, onSubmit }: 
       <Button mode="contained" loading={isLoading} onPress={handleSubmit} style={styles.button}>
         {submitLabel}
       </Button>
-    </ScrollView>
+    </View>
   );
 };
 

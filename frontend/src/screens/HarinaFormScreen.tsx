@@ -1,6 +1,7 @@
-import { Alert, StyleSheet, View } from "react-native";
+import { Alert, StyleSheet } from "react-native";
 import { Text, useTheme } from "react-native-paper";
 import { HarinaForm } from "../components/HarinaForm";
+import { KeyboardAwareScreen } from "../components/KeyboardAwareScreen";
 import { useHarinasStore } from "../store/harinas.store";
 import type { Harina, HarinaPayload } from "../types/harina";
 
@@ -43,8 +44,8 @@ export const HarinaFormScreen = ({ harinaToEdit, onSuccess }: Props) => {
     : undefined;
 
   return (
-    <View style={styles.container}>
-      <Text variant="titleLarge" style={styles.title}>
+    <KeyboardAwareScreen backgroundColor={theme.colors.background} horizontalPadding={0}>
+      <Text variant="titleLarge" style={[styles.title, { color: theme.colors.onSurface }]}>
         {isEditing ? "Editar harina" : "Nueva harina"}
       </Text>
       <HarinaForm
@@ -53,14 +54,14 @@ export const HarinaFormScreen = ({ harinaToEdit, onSuccess }: Props) => {
         submitLabel={isEditing ? "Guardar cambios" : "Crear harina"}
         onSubmit={handleSubmit}
       />
-    </View>
+    </KeyboardAwareScreen>
   );
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1 },
   title: {
-    padding: 16,
+    paddingHorizontal: 16,
+    paddingTop: 8,
     paddingBottom: 0,
   },
 });

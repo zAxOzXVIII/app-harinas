@@ -11,6 +11,8 @@ interface AlertsState {
   fetchUnreadCount: () => Promise<void>;
   markRead: (id: string) => Promise<void>;
   markAllRead: () => Promise<void>;
+  removeAlert: (id: string) => Promise<void>;
+  removeAllAlerts: () => Promise<void>;
   clearError: () => void;
 }
 
@@ -60,6 +62,29 @@ export const useAlertsStore = create<AlertsState>((set, get) => ({
       });
     } catch (_e) {
       set({ error: "No fue posible marcar todas como leidas" });
+    }
+  },
+
+  removeAlert: async (id) => {
+    const prev = get().items.find((a) => a._id === id);
+    try {
+      await alertsService.remove(id);
+      set({
+        items: get().items.filter((a) => a._id !== id),
+        unreadCount:
+          prev && !prev.leida ? Math.max(0, get().unreadCount - 1) : get().unreadCount,
+      });
+    } catch (_e) {
+      set({ error: "No fue posible eliminar la alerta" });
+    }
+  },
+
+  removeAllAlerts: async () => {
+    try {
+      await alertsService.removeAll();
+      set({ items: [], unreadCount: 0 });
+    } catch (_e) {
+      set({ error: "No fue posible eliminar las alertas" });
     }
   },
 

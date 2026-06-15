@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
-import { Alert, ScrollView, StyleSheet, View } from "react-native";
+import { Alert, StyleSheet, View } from "react-native";
 import { ActivityIndicator, Button, Card, HelperText, Text, TextInput } from "react-native-paper";
-import { useMutedTextStyle } from "../hooks/useMutedTextStyle";
+import { KeyboardAwareScreen } from "../components/KeyboardAwareScreen";
+import { useContrastStyles } from "../hooks/useContrastStyles";
 import { useGruposStore } from "../store/grupos.store";
 import type { CalibracionPayload } from "../types/grupoRubro";
 
@@ -23,7 +24,7 @@ interface FormFields {
 const toStr = (n: number | undefined): string => (n === undefined || n === null ? "" : String(n));
 
 export const CalibracionFormScreen = ({ grupoId, onSuccess }: Props) => {
-  const mutedText = useMutedTextStyle();
+  const { muted: mutedText, title: titleStyle, body: bodyStyle } = useContrastStyles();
   const grupos = useGruposStore((s) => s.grupos);
   const isMutating = useGruposStore((s) => s.isMutating);
   const updateCalibracion = useGruposStore((s) => s.updateCalibracion);
@@ -107,17 +108,17 @@ export const CalibracionFormScreen = ({ grupoId, onSuccess }: Props) => {
   };
 
   return (
-    <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
+    <KeyboardAwareScreen>
       <Card style={styles.headerCard}>
         <Card.Content>
-          <Text variant="titleLarge">{grupo.nombre}</Text>
+          <Text variant="titleLarge" style={bodyStyle}>{grupo.nombre}</Text>
           <Text variant="bodyMedium" style={mutedText}>
             {grupo.items.join(" + ")}
           </Text>
         </Card.Content>
       </Card>
 
-      <Text variant="titleMedium" style={styles.section}>
+      <Text variant="titleMedium" style={[styles.section, titleStyle]}>
         Temperatura ({grupo.calibracion.temperatura.unidad ?? "C"})
       </Text>
       <View style={styles.row}>
@@ -173,7 +174,7 @@ export const CalibracionFormScreen = ({ grupoId, onSuccess }: Props) => {
         </View>
       </View>
 
-      <Text variant="titleMedium" style={styles.section}>
+      <Text variant="titleMedium" style={[styles.section, titleStyle]}>
         Nivel de secado (% ventilador)
       </Text>
       <View style={styles.row}>
@@ -203,7 +204,7 @@ export const CalibracionFormScreen = ({ grupoId, onSuccess }: Props) => {
         </View>
       </View>
 
-      <Text variant="titleMedium" style={styles.section}>
+      <Text variant="titleMedium" style={[styles.section, titleStyle]}>
         Tiempo de secado estimado (min)
       </Text>
       <TextInput
@@ -220,12 +221,11 @@ export const CalibracionFormScreen = ({ grupoId, onSuccess }: Props) => {
       <Button mode="contained" loading={isMutating} onPress={handleSubmit} style={styles.submit}>
         Guardar calibracion
       </Button>
-    </ScrollView>
+    </KeyboardAwareScreen>
   );
 };
 
 const styles = StyleSheet.create({
-  container: { padding: 16, paddingBottom: 32 },
   centered: { flex: 1, justifyContent: "center", alignItems: "center" },
   headerCard: { borderRadius: 12, marginBottom: 12 },
   section: { marginTop: 12, marginBottom: 4 },

@@ -1,7 +1,8 @@
 const { Router } = require("express");
 const { query } = require("express-validator");
-const { list, count, markOneRead, markAll } = require("../controllers/processAlert.controller");
+const { list, count, markOneRead, markAll, remove, removeAll } = require("../controllers/processAlert.controller");
 const { requireAuth } = require("../middlewares/auth.middleware");
+const { requireRoles } = require("../middlewares/role.middleware");
 const { validateRequest } = require("../middlewares/validate.middleware");
 
 const router = Router();
@@ -20,6 +21,8 @@ router.get(
 
 router.get("/count", count);
 router.patch("/:id/read", markOneRead);
+router.delete("/:id", requireRoles("gerente"), remove);
+router.post("/soft-delete-all", requireRoles("gerente"), removeAll);
 router.post("/mark-all-read", markAll);
 
 module.exports = router;

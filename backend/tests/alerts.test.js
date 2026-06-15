@@ -72,4 +72,41 @@ describe("API /api/alerts", () => {
 
     expect(countRes.body.data.unread).toBe(0);
   });
+
+  it("elimina alerta con borrado logico", async () => {
+    const listRes = await request(getApp())
+      .get("/api/alerts?limit=5")
+      .set("Authorization", `Bearer ${token}`);
+
+    const alert = listRes.body.data[0];
+    if (!alert) return;
+
+    const delRes = await request(getApp())
+      .delete(`/api/alerts/${alert._id}`)
+      .set("Authorization", `Bearer ${token}`);
+
+    expect(delRes.status).toBe(200);
+    expect(delRes.body.data.eliminada).toBe(true);
+
+    const afterList = await request(getApp())
+      .get("/api/alerts?limit=50")
+      .set("Authorization", `Bearer ${token}`);
+
+    expect(afterList.body.data.find((a) => a._id === alert._id)).toBeUndefined();
+  });
+
+  it("gerente puede limpiar todas las alertas (borrado logico)", async () => {
+    const res = await request(getApp())
+      .post("/api/alerts/soft-delete-all")
+      .set("Authorization", `Bearer ${token}`);
+
+    expect(res.status).toBe(200);
+    expect(res.body.success).toBe(true);
+
+    const listRes = await request(getApp())
+      .get("/api/alerts")
+      .set("Authorization", `Bearer ${token}`);
+
+    expect(listRes.body.data.length).toBe(0);
+  });
 });

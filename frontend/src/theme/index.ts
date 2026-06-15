@@ -21,7 +21,7 @@ export const brand = {
   /** Texto secundario legible sobre fondos claros (≈ AA). */
   textMutedOnLight: "#475569",
   /** Texto secundario legible sobre fondos oscuros. */
-  textMutedOnDark: "#CBD5E1",
+  textMutedOnDark: "#E2E8F0",
   warning: "#EF6C00",
   critical: "#C62828",
   ok: "#2E7D32",
@@ -41,6 +41,7 @@ export const lightTheme: MD3Theme = {
     secondary: brand.skyAccent,
     onSecondary: "#FFFFFF",
     secondaryContainer: "#E1F5FE",
+    onSecondaryContainer: "#0D3B66",
     background: brand.surfaceLight,
     surface: brand.surfaceCard,
     surfaceVariant: brand.surfaceMuted,
@@ -58,18 +59,31 @@ export const darkTheme: MD3Theme = {
   colors: {
     ...MD3DarkTheme.colors,
     primary: brand.skyAccent,
-    onPrimary: brand.navyDeep,
+    onPrimary: "#0B1320",
     primaryContainer: "#1E3A5F",
-    onPrimaryContainer: "#E3F2FD",
+    onPrimaryContainer: "#F1F5F9",
     secondary: "#64B5F6",
+    onSecondary: "#0B1320",
+    secondaryContainer: "#243B55",
+    onSecondaryContainer: "#E3F2FD",
     background: brand.surfaceDark,
     surface: "#161C22",
-    surfaceVariant: "#1F262D",
-    onSurface: "#F1F5F9",
-    onSurfaceVariant: brand.textMutedOnDark,
-    onBackground: "#F1F5F9",
+    surfaceVariant: "#24303D",
+    onSurface: "#F8FAFC",
+    onSurfaceVariant: "#E2E8F0",
+    onBackground: "#F8FAFC",
     outline: "#94A3B8",
-    error: "#EF5350",
+    outlineVariant: "#64748B",
+    error: "#F87171",
+    onError: "#0B1320",
+    errorContainer: "#5C1A1A",
+    onErrorContainer: "#FECACA",
+    elevation: {
+      ...MD3DarkTheme.colors.elevation,
+      level1: "#1A2229",
+      level2: "#1E2730",
+      level3: "#24303D",
+    },
   },
 };
 
@@ -101,4 +115,11 @@ export const statusColors = {
   ok: brand.ok,
   warning: brand.warning,
   critical: brand.critical,
+};
+
+/** Colores de estado legibles sobre fondos oscuros. */
+export const statusColorsDark = {
+  ok: "#4ADE80",
+  warning: "#FBBF24",
+  critical: "#F87171",
 };

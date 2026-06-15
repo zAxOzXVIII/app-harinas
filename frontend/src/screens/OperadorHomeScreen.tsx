@@ -17,7 +17,7 @@ import { useGruposStore } from "../store/grupos.store";
 import { useAuthStore } from "../store/auth.store";
 import { useTelemetryStore } from "../store/telemetry.store";
 import { useAlertsStore } from "../store/alerts.store";
-import { Sparkline } from "../components/Sparkline";
+import { ChartTrendBlock } from "../components/ChartTrendBlock";
 import { MetricGauge } from "../components/MetricGauge";
 import { AnimatedReveal } from "../components/AnimatedReveal";
 import { useScreenLayout } from "../hooks/useScreenLayout";
@@ -30,7 +30,8 @@ type Nav = NativeStackNavigationProp<OperadorStackParamList>;
 export const OperadorHomeScreen = () => {
   const theme = useTheme();
   const layout = useScreenLayout();
-  const { muted: mutedText, title: titleStyle } = useContrastStyles();
+  const { muted: mutedText, title: titleStyle, body: bodyStyle } = useContrastStyles();
+  const chipText = { color: theme.colors.onSurfaceVariant, fontSize: 12 };
   const navigation = useNavigation<Nav>();
   const user = useAuthStore((s) => s.user);
   const logout = useAuthStore((s) => s.logout);
@@ -121,13 +122,13 @@ export const OperadorHomeScreen = () => {
 
       {humedad ? (
         <AnimatedReveal delay={50}>
-          <Card mode="elevated" style={styles.card}>
+          <Card mode="elevated" style={[styles.card, { backgroundColor: theme.colors.surface }]}>
             <Card.Content>
               <View style={styles.cardHeader}>
                 <Text variant="titleMedium" style={{ color: theme.colors.onSurface }}>
                   Humedad global
                 </Text>
-                <Chip compact icon="water-percent">
+                <Chip compact icon="water-percent" textStyle={chipText}>
                   {humedad.unidad ?? "%RH"}
                 </Chip>
               </View>
@@ -137,7 +138,7 @@ export const OperadorHomeScreen = () => {
                   value={
                     latest.length > 0
                       ? latest.reduce((a, b) => a + b.lecturas.humedad, 0) / latest.length
-                      : (humedad.min + humedad.max) / 2
+                      : null
                   }
                   unit="%"
                   min={humedad.min}
@@ -158,9 +159,9 @@ export const OperadorHomeScreen = () => {
       </Text>
 
       {grupos.length === 0 ? (
-        <Card>
+        <Card style={{ backgroundColor: theme.colors.surface }}>
           <Card.Content>
-            <Text variant="bodyMedium">No hay grupos disponibles.</Text>
+            <Text variant="bodyMedium" style={bodyStyle}>No hay grupos disponibles.</Text>
           </Card.Content>
         </Card>
       ) : (
@@ -171,7 +172,7 @@ export const OperadorHomeScreen = () => {
           const humSeries = hist.map((h) => h.lecturas.humedad).reverse();
 
           const t = grupo.calibracion.temperatura;
-          const tValue = last?.lecturas.temperatura ?? (t.min + t.max) / 2;
+          const tValue = last?.lecturas.temperatura ?? null;
 
           let statusColor = statusColors.ok;
           if (last && humedad) {
@@ -190,7 +191,7 @@ export const OperadorHomeScreen = () => {
 
           return (
             <AnimatedReveal key={grupo._id} delay={90 + idx * 35}>
-              <Card mode="elevated" style={styles.card}>
+              <Card mode="elevated" style={[styles.card, { backgroundColor: theme.colors.surface }]}>
                 <Card.Content>
                   <View style={styles.cardHeader}>
                     <View style={{ flex: 1 }}>
@@ -199,7 +200,12 @@ export const OperadorHomeScreen = () => {
                 </Text>
                       <View style={styles.chipsRow}>
                         {grupo.items.map((it) => (
-                          <Chip key={it} compact style={styles.chipItem}>
+                          <Chip
+                            key={it}
+                            compact
+                            style={[styles.chipItem, { backgroundColor: theme.colors.secondaryContainer }]}
+                            textStyle={{ color: theme.colors.onSecondaryContainer, fontSize: 12 }}
+                          >
                             {it}
                           </Chip>
                         ))}
@@ -220,11 +226,11 @@ export const OperadorHomeScreen = () => {
                     criticoMax={t.criticoMax}
                   />
 
-                {humedad && last ? (
+                {humedad ? (
                   <View style={{ marginTop: 12 }}>
                     <MetricGauge
                       label="Humedad (%)"
-                      value={last.lecturas.humedad}
+                      value={last?.lecturas.humedad ?? null}
                       unit="%"
                       min={humedad.min}
                       max={humedad.max}
@@ -236,37 +242,32 @@ export const OperadorHomeScreen = () => {
                   </View>
                 ) : null}
 
-                {tempSeries.length >= 2 ? (
-                  <View style={styles.chartBlock}>
-                    <Text variant="labelSmall" style={mutedText}>
-                      Tendencia temperatura ({tempSeries.length} lecturas)
-                    </Text>
-                    <Sparkline data={tempSeries} width={layout.chartWidth} height={56} color={brand.primaryBlue} />
-                  </View>
-                ) : null}
-
-                {humSeries.length >= 2 ? (
-                  <View style={styles.chartBlock}>
-                    <Text variant="labelSmall" style={mutedText}>
-                      Tendencia humedad ({humSeries.length} lecturas)
-                    </Text>
-                    <Sparkline data={humSeries} width={layout.chartWidth} height={56} color={brand.skyAccent} />
-                  </View>
-                ) : null}
+                <ChartTrendBlock
+                  label="Tendencia temperatura"
+                  data={tempSeries}
+                  width={layout.chartWidth}
+                  color={theme.colors.primary}
+                />
+                <ChartTrendBlock
+                  label="Tendencia humedad"
+                  data={humSeries}
+                  width={layout.chartWidth}
+                  color={theme.colors.secondary}
+                />
 
                 {last ? (
                   <View style={styles.lastRow}>
                     {last.lecturas.nivelSecado != null ? (
-                      <Chip compact icon="speedometer">
+                      <Chip compact icon="speedometer" textStyle={chipText}>
                         Secado {last.lecturas.nivelSecado}%
                       </Chip>
                     ) : null}
                     {last.lecturas.tiempoSecado != null ? (
-                      <Chip compact icon="timer-outline">
+                      <Chip compact icon="timer-outline" textStyle={chipText}>
                         {last.lecturas.tiempoSecado} min
                       </Chip>
                     ) : null}
-                    <Chip compact icon="clock-outline">
+                    <Chip compact icon="clock-outline" textStyle={chipText}>
                       {new Date(last.timestamp).toLocaleTimeString()}
                     </Chip>
                   </View>

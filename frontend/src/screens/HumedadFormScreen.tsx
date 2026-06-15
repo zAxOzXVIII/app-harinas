@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Alert, ScrollView, StyleSheet, View } from "react-native";
+import { Alert, StyleSheet, View } from "react-native";
 import {
   ActivityIndicator,
   Button,
@@ -9,6 +9,7 @@ import {
   TextInput,
   useTheme,
 } from "react-native-paper";
+import { KeyboardAwareScreen } from "../components/KeyboardAwareScreen";
 import { useMutedTextStyle } from "../hooks/useMutedTextStyle";
 import { useGruposStore } from "../store/grupos.store";
 import type { HumedadPayload } from "../types/grupoRubro";
@@ -96,7 +97,7 @@ export const HumedadFormScreen = ({ onSuccess }: Props) => {
   };
 
   return (
-    <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
+    <KeyboardAwareScreen backgroundColor={theme.colors.background}>
       <Card style={[styles.card, { backgroundColor: theme.colors.primaryContainer }]}>
         <Card.Content>
           <Text variant="titleLarge" style={{ color: theme.colors.onPrimaryContainer }}>
@@ -164,12 +165,11 @@ export const HumedadFormScreen = ({ onSuccess }: Props) => {
       <Button mode="contained" loading={isMutating} onPress={handleSubmit} style={styles.submit}>
         Guardar humedad global
       </Button>
-    </ScrollView>
+    </KeyboardAwareScreen>
   );
 };
 
 const styles = StyleSheet.create({
-  container: { padding: 16, paddingBottom: 32 },
   centered: { flex: 1, justifyContent: "center", alignItems: "center" },
   card: { borderRadius: 12, marginBottom: 12 },
   row: { flexDirection: "row", gap: 8 },

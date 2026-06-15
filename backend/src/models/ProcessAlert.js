@@ -44,6 +44,12 @@ const processAlertSchema = new mongoose.Schema(
       default: false,
       index: true,
     },
+    /** Borrado logico: oculta en listados sin borrar el registro. */
+    eliminada: {
+      type: Boolean,
+      default: false,
+      index: true,
+    },
   },
   {
     versionKey: false,

@@ -3,6 +3,8 @@ const {
   countUnread,
   markRead,
   markAllRead,
+  softDeleteAlert,
+  softDeleteAllAlerts,
 } = require("../services/processAlert.service");
 
 const list = async (req, res, next) => {
@@ -43,4 +45,26 @@ const markAll = async (_req, res, next) => {
   }
 };
 
-module.exports = { list, count, markOneRead, markAll };
+const remove = async (req, res, next) => {
+  try {
+    const doc = await softDeleteAlert(req.params.id);
+    res.status(200).json({ success: true, message: "Alerta eliminada", data: doc });
+  } catch (error) {
+    next(error);
+  }
+};
+
+const removeAll = async (_req, res, next) => {
+  try {
+    const result = await softDeleteAllAlerts();
+    res.status(200).json({
+      success: true,
+      message: "Alertas eliminadas (borrado logico)",
+      data: result,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+module.exports = { list, count, markOneRead, markAll, remove, removeAll };

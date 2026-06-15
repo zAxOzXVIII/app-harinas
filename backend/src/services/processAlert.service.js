@@ -6,11 +6,14 @@ const { notifyNewProcessAlert } = require("./pushNotification.service");
 
 const ANTI_SPAM_MS = 5 * 60 * 1000;
 
+const activeFilter = { eliminada: { $ne: true } };
+
 const shouldEmit = async (grupoRubroId, tipo) => {
   const since = new Date(Date.now() - ANTI_SPAM_MS);
   const existing = await ProcessAlert.findOne({
     grupoRubroId,
     tipo,
+    ...activeFilter,
     createdAt: { $gte: since },
   })
     .select("_id")
@@ -127,7 +130,7 @@ const evaluateTelemetryEvent = async (telemetryDoc) => {
 };
 
 const listAlerts = async ({ limit = 50, unreadOnly = false }) => {
-  const q = {};
+  const q = { ...activeFilter };
   if (unreadOnly) q.leida = false;
   return ProcessAlert.find(q)
     .sort({ createdAt: -1 })
@@ -136,7 +139,8 @@ const listAlerts = async ({ limit = 50, unreadOnly = false }) => {
     .lean();
 };
 
-const countUnread = async () => ProcessAlert.countDocuments({ leida: false });
+const countUnread = async () =>
+  ProcessAlert.countDocuments({ leida: false, ...activeFilter });
 
 const markRead = async (id) => {
   if (!mongoose.Types.ObjectId.isValid(id)) {
@@ -144,7 +148,11 @@ const markRead = async (id) => {
     err.status = 400;
     throw err;
   }
-  const doc = await ProcessAlert.findByIdAndUpdate(id, { $set: { leida: true } }, { new: true });
+  const doc = await ProcessAlert.findOneAndUpdate(
+    { _id: id, ...activeFilter },
+    { $set: { leida: true } },
+    { new: true }
+  );
   if (!doc) {
     const err = new Error("Alerta no encontrada");
     err.status = 404;
@@ -154,8 +162,35 @@ const markRead = async (id) => {
 };
 
 const markAllRead = async () => {
-  await ProcessAlert.updateMany({ leida: false }, { $set: { leida: true } });
+  await ProcessAlert.updateMany({ leida: false, ...activeFilter }, { $set: { leida: true } });
   return { updated: true };
+};
+
+const softDeleteAlert = async (id) => {
+  if (!mongoose.Types.ObjectId.isValid(id)) {
+    const err = new Error("ID de alerta invalido");
+    err.status = 400;
+    throw err;
+  }
+  const doc = await ProcessAlert.findOneAndUpdate(
+    { _id: id, ...activeFilter },
+    { $set: { eliminada: true, leida: true } },
+    { new: true }
+  );
+  if (!doc) {
+    const err = new Error("Alerta no encontrada");
+    err.status = 404;
+    throw err;
+  }
+  return doc;
+};
+
+const softDeleteAllAlerts = async () => {
+  const result = await ProcessAlert.updateMany(
+    { ...activeFilter },
+    { $set: { eliminada: true, leida: true } }
+  );
+  return { deleted: result.modifiedCount ?? 0 };
 };
 
 module.exports = {
@@ -164,4 +199,6 @@ module.exports = {
   countUnread,
   markRead,
   markAllRead,
+  softDeleteAlert,
+  softDeleteAllAlerts,
 };

@@ -2,7 +2,7 @@ import { useCallback } from "react";
 import { RefreshControl, ScrollView, StyleSheet, View } from "react-native";
 import { ActivityIndicator, Button, Card, Text, useTheme } from "react-native-paper";
 import { AnimatedReveal } from "../components/AnimatedReveal";
-import { useMutedTextStyle } from "../hooks/useMutedTextStyle";
+import { useContrastStyles } from "../hooks/useContrastStyles";
 import { useScreenLayout } from "../hooks/useScreenLayout";
 import { brand } from "../theme";
 import { usePdfExport } from "../hooks/usePdfExport";
@@ -19,7 +19,7 @@ type Nav = NativeStackNavigationProp<GruposStackParamList>;
 export const GruposListScreen = () => {
   const theme = useTheme();
   const layout = useScreenLayout();
-  const mutedText = useMutedTextStyle();
+  const { muted: mutedText, body: bodyStyle } = useContrastStyles();
   const navigation = useNavigation<Nav>();
   const grupos = useGruposStore((s) => s.grupos);
   const humedad = useGruposStore((s) => s.humedad);
@@ -114,7 +114,7 @@ export const GruposListScreen = () => {
       {grupos.length === 0 ? (
         <Card>
           <Card.Content>
-            <Text variant="bodyMedium">
+            <Text variant="bodyMedium" style={bodyStyle}>
               No hay grupos sembrados. Ejecuta `npm run seed:grupos` en el backend.
             </Text>
           </Card.Content>

@@ -32,4 +32,13 @@ export const alertsService = {
   async markAllRead(): Promise<void> {
     await api.post("/api/alerts/mark-all-read");
   },
+
+  async remove(id: string): Promise<void> {
+    await api.delete(`/api/alerts/${id}`);
+  },
+
+  async removeAll(): Promise<number> {
+    const { data } = await api.post<ApiResponse<{ deleted: number }>>("/api/alerts/soft-delete-all");
+    return data.data.deleted;
+  },
 };

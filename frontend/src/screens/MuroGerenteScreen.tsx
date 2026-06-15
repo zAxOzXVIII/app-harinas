@@ -15,10 +15,10 @@ import { exportMuroPdf } from "../pdf/reports";
 import { useTelemetryStore } from "../store/telemetry.store";
 import { useAlertsStore } from "../store/alerts.store";
 import { useGruposStore } from "../store/grupos.store";
-import { Sparkline } from "../components/Sparkline";
+import { ChartTrendBlock } from "../components/ChartTrendBlock";
 import { AnimatedReveal } from "../components/AnimatedReveal";
 import { ScreenHero } from "../components/ScreenHero";
-import { useMutedTextStyle } from "../hooks/useMutedTextStyle";
+import { useContrastStyles } from "../hooks/useContrastStyles";
 import { useScreenLayout } from "../hooks/useScreenLayout";
 import { brand } from "../theme";
 import type { TelemetryLatestItem } from "../types/telemetry";
@@ -35,7 +35,8 @@ const grupoNombreAlerta = (a: ProcessAlert): string => {
 export const MuroGerenteScreen = () => {
   const theme = useTheme();
   const layout = useScreenLayout();
-  const mutedText = useMutedTextStyle();
+  const { muted: mutedText, body: bodyStyle, chipLabel, chipWarnLabel, chipWarnBg, chipCritBg } =
+    useContrastStyles();
   const user = useAuthStore((s) => s.user);
   const { exporting, runExport } = usePdfExport();
 
@@ -135,7 +136,7 @@ export const MuroGerenteScreen = () => {
       {latest.length === 0 ? (
         <Card style={styles.card}>
           <Card.Content>
-            <Text variant="bodyMedium">
+            <Text variant="bodyMedium" style={bodyStyle}>
               Sin telemetria aun. Ejecuta `npm run simulate:telemetry` en el backend.
             </Text>
           </Card.Content>
@@ -150,46 +151,45 @@ export const MuroGerenteScreen = () => {
             <Card mode="elevated" style={styles.card}>
               <Card.Content>
                 <View style={styles.row}>
-                  <Text variant="titleMedium">{grupoNombreTelemetry(item)}</Text>
+                  <Text variant="titleMedium" style={{ color: theme.colors.onSurface }}>
+                    {grupoNombreTelemetry(item)}
+                  </Text>
                   <Text variant="labelSmall" style={mutedText}>
                     {new Date(item.timestamp).toLocaleString()}
                   </Text>
                 </View>
 
                 <View style={styles.metricsRow}>
-                  <Chip compact icon="thermometer">{item.lecturas.temperatura} C</Chip>
-                  <Chip compact icon="water-percent">{item.lecturas.humedad}%</Chip>
+                  <Chip compact icon="thermometer" textStyle={{ color: theme.colors.onSurfaceVariant }}>
+                    {item.lecturas.temperatura} C
+                  </Chip>
+                  <Chip compact icon="water-percent" textStyle={{ color: theme.colors.onSurfaceVariant }}>
+                    {item.lecturas.humedad}%
+                  </Chip>
                   {item.lecturas.nivelSecado != null ? (
-                    <Chip compact icon="speedometer">{item.lecturas.nivelSecado}%</Chip>
+                    <Chip compact icon="speedometer" textStyle={{ color: theme.colors.onSurfaceVariant }}>
+                      {item.lecturas.nivelSecado}%
+                    </Chip>
                   ) : null}
                   {item.lecturas.tiempoSecado != null ? (
-                    <Chip compact icon="timer-outline">{item.lecturas.tiempoSecado} min</Chip>
+                    <Chip compact icon="timer-outline" textStyle={{ color: theme.colors.onSurfaceVariant }}>
+                      {item.lecturas.tiempoSecado} min
+                    </Chip>
                   ) : null}
                 </View>
 
-                {tempSeries.length >= 2 ? (
-                  <View style={styles.chartBlock}>
-                    <Text variant="labelSmall" style={mutedText}>Temperatura</Text>
-                    <Sparkline
-                      data={tempSeries}
-                      width={layout.chartWidth}
-                      height={50}
-                      color={brand.primaryBlue}
-                    />
-                  </View>
-                ) : null}
-
-                {humSeries.length >= 2 ? (
-                  <View style={styles.chartBlock}>
-                    <Text variant="labelSmall" style={mutedText}>Humedad</Text>
-                    <Sparkline
-                      data={humSeries}
-                      width={layout.chartWidth}
-                      height={50}
-                      color={brand.skyAccent}
-                    />
-                  </View>
-                ) : null}
+                <ChartTrendBlock
+                  label="Temperatura"
+                  data={tempSeries}
+                  width={layout.chartWidth}
+                  color={theme.colors.primary}
+                />
+                <ChartTrendBlock
+                  label="Humedad"
+                  data={humSeries}
+                  width={layout.chartWidth}
+                  color={theme.colors.secondary}
+                />
 
                 <Text variant="bodySmall" style={mutedText}>
                   Device: {item.deviceId}
@@ -207,7 +207,7 @@ export const MuroGerenteScreen = () => {
       {alerts.slice(0, 15).length === 0 ? (
         <Card style={styles.card}>
           <Card.Content>
-            <Text variant="bodyMedium">
+            <Text variant="bodyMedium" style={bodyStyle}>
               Sin alertas. Las alertas aparecen cuando la telemetria sale de rango.
             </Text>
           </Card.Content>
@@ -221,11 +221,9 @@ export const MuroGerenteScreen = () => {
                 <Chip
                   compact
                   style={{
-                    backgroundColor:
-                      a.severidad === "critical"
-                        ? theme.colors.errorContainer
-                        : "rgba(239,108,0,0.15)",
+                    backgroundColor: a.severidad === "critical" ? chipCritBg : chipWarnBg,
                   }}
+                  textStyle={a.severidad === "critical" ? chipLabel : chipWarnLabel}
                 >
                   {a.severidad === "critical" ? "CRITICO" : "ALERTA"}
                 </Chip>
@@ -234,7 +232,9 @@ export const MuroGerenteScreen = () => {
                 </Text>
               </View>
               <Divider style={styles.divider} />
-              <Text variant="bodyMedium">{a.mensaje}</Text>
+              <Text variant="bodyMedium" style={{ color: theme.colors.onSurface }}>
+                {a.mensaje}
+              </Text>
               <Text variant="bodySmall" style={mutedText}>
                 {a.createdAt ? new Date(a.createdAt).toLocaleString() : ""}
                 {a.leida ? "  ·  leida" : ""}
