@@ -4,9 +4,13 @@ const {
   updateCalibracion,
 } = require("../services/grupoRubro.service");
 
-const list = async (_req, res, next) => {
+const list = async (req, res, next) => {
   try {
-    const grupos = await listGrupos();
+    const activos =
+      req.query.activos === "1" ||
+      req.query.activos === "true" ||
+      req.query.activos === true;
+    const grupos = await listGrupos({ activos });
     res.status(200).json({ success: true, data: grupos });
   } catch (error) {
     next(error);

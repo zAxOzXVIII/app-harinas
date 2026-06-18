@@ -14,6 +14,8 @@ router.get(
   [
     query("limit").optional().isInt({ min: 1, max: 200 }),
     query("unreadOnly").optional().isIn(["true", "false", "1", "0"]),
+    query("grupoRubroId").optional().isMongoId(),
+    query("procesoSecadoId").optional().isMongoId(),
     validateRequest,
   ],
   list

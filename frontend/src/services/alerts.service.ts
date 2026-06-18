@@ -8,10 +8,17 @@ interface ApiResponse<T> {
 }
 
 export const alertsService = {
-  async list(params?: { limit?: number; unreadOnly?: boolean }): Promise<ProcessAlert[]> {
+  async list(params?: {
+    limit?: number;
+    unreadOnly?: boolean;
+    grupoRubroId?: string;
+    procesoSecadoId?: string;
+  }): Promise<ProcessAlert[]> {
     const search = new URLSearchParams();
     if (params?.limit) search.set("limit", String(params.limit));
     if (params?.unreadOnly) search.set("unreadOnly", "true");
+    if (params?.grupoRubroId) search.set("grupoRubroId", params.grupoRubroId);
+    if (params?.procesoSecadoId) search.set("procesoSecadoId", params.procesoSecadoId);
     const q = search.toString();
     const { data } = await api.get<ApiResponse<ProcessAlert[]>>(
       `/api/alerts${q ? `?${q}` : ""}`

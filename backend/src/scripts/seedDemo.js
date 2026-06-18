@@ -10,6 +10,7 @@ const User = require("../models/User");
 const Harina = require("../models/Harina");
 const GrupoRubro = require("../models/GrupoRubro");
 const HumedadConfig = require("../models/HumedadConfig");
+const ProcesoSecado = require("../models/ProcesoSecado");
 const { ingestTelemetry } = require("../services/telemetry.service");
 
 const GRUPOS = [
@@ -205,6 +206,48 @@ const seedTelemetry = async () => {
   console.log(`Telemetria: ${ingested} eventos nuevos ingestados (con evaluacion de alertas)`);
 };
 
+const seedProcesosSecado = async () => {
+  const operador = await User.findOne({ email: "operador@nativa.com" });
+  const grupos = await GrupoRubro.find().sort({ codigo: 1 });
+  if (!grupos.length) return;
+
+  const yuca = grupos.find((g) => g.codigo === "yuca-batata") || grupos[2];
+  const platano = grupos.find((g) => g.codigo === "platano-cambur") || grupos[1];
+
+  const existingYuca = await ProcesoSecado.findOne({ grupoRubroId: yuca._id });
+  if (!existingYuca) {
+    const hace2h = new Date(Date.now() - 2 * 60 * 60 * 1000);
+    await ProcesoSecado.create({
+      grupoRubroId: yuca._id,
+      estado: "revisado_empaquetado",
+      iniciadoPor: operador?._id || null,
+      iniciadoEn: hace2h,
+      duracionMin: yuca.calibracion.tiempoSecado.estimadoMin,
+      finalizaEn: new Date(hace2h.getTime() + 60 * 60 * 1000),
+      completadoEn: new Date(hace2h.getTime() + 60 * 60 * 1000),
+    });
+    console.log("ProcesoSecado demo: yuca-batata empaquetado");
+  }
+
+  const existingPlatano = await ProcesoSecado.findOne({
+    grupoRubroId: platano._id,
+    estado: "en_secado",
+  });
+  if (!existingPlatano) {
+    const hace30m = new Date(Date.now() - 30 * 60 * 1000);
+    const dur = platano.calibracion.tiempoSecado.estimadoMin;
+    await ProcesoSecado.create({
+      grupoRubroId: platano._id,
+      estado: "en_secado",
+      iniciadoPor: operador?._id || null,
+      iniciadoEn: hace30m,
+      duracionMin: dur,
+      finalizaEn: new Date(hace30m.getTime() + dur * 60 * 1000),
+    });
+    console.log("ProcesoSecado demo: platano-cambur en secado (mitad de ciclo)");
+  }
+};
+
 const seedDemo = async () => {
   try {
     await connectDb();
@@ -221,6 +264,9 @@ const seedDemo = async () => {
 
     console.log("--- Telemetria y alertas ---");
     await seedTelemetry();
+
+    console.log("--- Procesos de secado ---");
+    await seedProcesosSecado();
 
     console.log("\nSeed demo completado.");
     console.log("Credenciales:");

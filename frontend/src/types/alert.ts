@@ -4,9 +4,10 @@ export type AlertTipo =
   | "humedad_critico"
   | "humedad_fuera"
   | "nivel_secado_fuera"
-  | "tiempo_secado_exceso";
+  | "tiempo_secado_exceso"
+  | "secado_completado";
 
-export type AlertSeveridad = "critical" | "warning";
+export type AlertSeveridad = "critical" | "warning" | "info";
 
 export interface GrupoAlertaRef {
   _id: string;
@@ -19,7 +20,8 @@ export interface ProcessAlert {
   tipo: AlertTipo;
   severidad: AlertSeveridad;
   grupoRubroId: string | GrupoAlertaRef;
-  telemetryEventId: string;
+  telemetryEventId?: string | null;
+  procesoSecadoId?: string | null;
   mensaje: string;
   leida: boolean;
   createdAt?: string;

@@ -75,6 +75,7 @@ export const labelAlertTipo = (tipo: AlertTipo): string => {
     humedad_fuera: "Humedad fuera de rango",
     nivel_secado_fuera: "Nivel de secado fuera",
     tiempo_secado_exceso: "Tiempo de secado excedido",
+    secado_completado: "Secado completado",
   };
   return map[tipo] ?? tipo;
 };

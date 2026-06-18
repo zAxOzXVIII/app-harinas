@@ -1,12 +1,24 @@
 # Contrato Telemetria Arduino -> Backend (Sprint 6)
 
+## Arquitectura
+
+```
+ESP32 + AHT10 + DS3231  ──Wi‑Fi──►  POST /api/arduino/telemetry  ──►  MongoDB
+                                              │
+                                              └──► App móvil (REST, no Bluetooth)
+```
+
+- **Producción:** [`firmware/esp32-aht10-ds3231/`](../../firmware/esp32-aht10-ds3231/README.md) — ESP32 envía JSON por HTTP.
+- **Solo desarrollo:** [`firmware/arduino-uno-aht10-ds3231-hc05/`](../../firmware/arduino-uno-aht10-ds3231-hc05/README.md) — Uno + gateway PC (sin Wi‑Fi en placa).
+- Índice hardware: [`firmware/README.md`](../../firmware/README.md).
+
 Endpoint de ingesta:
 
 - `POST /api/arduino/telemetry`
 
 ## Payload JSON v1.1 (recomendado — AHT10 + DS3231)
 
-Solo **temperatura** y **humedad** son obligatorias. Ideal para ESP32 con sensor **AHT10** y reloj **DS3231**.
+Solo **temperatura** y **humedad** son obligatorias. Firmware de referencia: **ESP32** con **AHT10** y **DS3231**.
 
 ```json
 {
@@ -20,8 +32,6 @@ Solo **temperatura** y **humedad** son obligatorias. Ideal para ESP32 con sensor
   }
 }
 ```
-
-Firmware de referencia: [`firmware/esp32-aht10-ds3231/`](../../firmware/esp32-aht10-ds3231/README.md).
 
 ## Payload JSON v1 (completo — cuatro lecturas)
 

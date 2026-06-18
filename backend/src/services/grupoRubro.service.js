@@ -1,7 +1,14 @@
 const mongoose = require("mongoose");
 const GrupoRubro = require("../models/GrupoRubro");
+const { getEmpaquetadoGrupoIds, isGrupoLoteCerrado } = require("./procesoSecado.service");
 
-const listGrupos = async () => GrupoRubro.find().sort({ nombre: 1 });
+const listGrupos = async ({ activos = false } = {}) => {
+  const grupos = await GrupoRubro.find().sort({ nombre: 1 }).lean();
+  if (!activos) return grupos;
+
+  const ocultos = await getEmpaquetadoGrupoIds();
+  return grupos.filter((g) => !ocultos.has(g._id.toString()));
+};
 
 const getGrupoById = async (id) => {
   if (!mongoose.Types.ObjectId.isValid(id)) {
@@ -29,6 +36,12 @@ const updateCalibracion = async (id, payload, userId) => {
   if (!grupo) {
     const err = new Error("Grupo de rubro no encontrado");
     err.status = 404;
+    throw err;
+  }
+
+  if (await isGrupoLoteCerrado(id)) {
+    const err = new Error("Lote cerrado (revisado/empaquetado). No se puede recalibrar");
+    err.status = 409;
     throw err;
   }
 

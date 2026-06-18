@@ -11,7 +11,9 @@ const list = async (req, res, next) => {
   try {
     const limit = req.query.limit ? Number(req.query.limit) : 50;
     const unreadOnly = req.query.unreadOnly === "1" || req.query.unreadOnly === "true";
-    const data = await listAlerts({ limit, unreadOnly });
+    const grupoRubroId = req.query.grupoRubroId || null;
+    const procesoSecadoId = req.query.procesoSecadoId || null;
+    const data = await listAlerts({ limit, unreadOnly, grupoRubroId, procesoSecadoId });
     res.status(200).json({ success: true, data });
   } catch (error) {
     next(error);

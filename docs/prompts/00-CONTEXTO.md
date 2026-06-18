@@ -31,6 +31,7 @@ Variables:
 Documentación técnica:
 - SPRINTS.md (plan y estado)
 - DEPLOY-PLAN.md, SECURITY-AUDIT.md
+- firmware/README.md (ESP32 Wi‑Fi → servidor → app)
 - backend/docs/arduino-telemetry-contract.md
 - backend/docs/BACKUP-SECURITY.md
 ```

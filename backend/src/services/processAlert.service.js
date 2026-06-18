@@ -1,5 +1,6 @@
 const mongoose = require("mongoose");
 const ProcessAlert = require("../models/ProcessAlert");
+const ProcesoSecado = require("../models/ProcesoSecado");
 const GrupoRubro = require("../models/GrupoRubro");
 const { getConfig } = require("./humedadConfig.service");
 const { notifyNewProcessAlert } = require("./pushNotification.service");
@@ -21,13 +22,29 @@ const shouldEmit = async (grupoRubroId, tipo) => {
   return !existing;
 };
 
-const emitAlert = async ({ tipo, severidad, grupoRubroId, telemetryEventId, mensaje }, grupoNombre) => {
+const emitAlert = async (
+  { tipo, severidad, grupoRubroId, telemetryEventId, mensaje, procesoSecadoId },
+  grupoNombre
+) => {
   if (!(await shouldEmit(grupoRubroId, tipo))) return null;
+
+  let procesoId = procesoSecadoId || null;
+  if (!procesoId) {
+    const activo = await ProcesoSecado.findOne({
+      grupoRubroId,
+      estado: "en_secado",
+    })
+      .select("_id")
+      .lean();
+    procesoId = activo?._id || null;
+  }
+
   const alert = await ProcessAlert.create({
     tipo,
     severidad,
     grupoRubroId,
     telemetryEventId,
+    procesoSecadoId: procesoId,
     mensaje,
   });
 
@@ -47,11 +64,49 @@ const emitAlert = async ({ tipo, severidad, grupoRubroId, telemetryEventId, mens
   return alert;
 };
 
+const emitSecadoCompletadoAlert = async ({
+  grupoRubroId,
+  procesoSecadoId,
+  mensaje,
+  severidad = "info",
+}) => {
+  const grupo = await GrupoRubro.findById(grupoRubroId).select("nombre");
+  const nombreGrupo = grupo?.nombre || "Grupo";
+  const text =
+    mensaje || `${nombreGrupo}: secado finalizado — listo para revision/empaquetado`;
+
+  const alert = await ProcessAlert.create({
+    tipo: "secado_completado",
+    severidad,
+    grupoRubroId,
+    procesoSecadoId: procesoSecadoId || null,
+    mensaje: text,
+  });
+
+  setImmediate(async () => {
+    try {
+      await notifyNewProcessAlert(alert, nombreGrupo);
+    } catch (err) {
+      console.error("notifyNewProcessAlert:", err.message);
+    }
+  });
+
+  return alert;
+};
+
 /**
  * Evalua una lectura recien guardada contra calibracion del grupo y humedad global.
- * Emite alertas granulares con anti-spam por (grupo, tipo).
+ * Solo emite alertas de anomalia si el grupo tiene un secado activo (en_secado).
  */
 const evaluateTelemetryEvent = async (telemetryDoc) => {
+  const enSecado = await ProcesoSecado.findOne({
+    grupoRubroId: telemetryDoc.grupoRubroId,
+    estado: "en_secado",
+  })
+    .select("_id")
+    .lean();
+  if (!enSecado) return;
+
   const grupo = await GrupoRubro.findById(telemetryDoc.grupoRubroId);
   if (!grupo) return;
 
@@ -129,9 +184,15 @@ const evaluateTelemetryEvent = async (telemetryDoc) => {
   }
 };
 
-const listAlerts = async ({ limit = 50, unreadOnly = false }) => {
+const listAlerts = async ({ limit = 50, unreadOnly = false, grupoRubroId = null, procesoSecadoId = null }) => {
   const q = { ...activeFilter };
   if (unreadOnly) q.leida = false;
+  if (grupoRubroId && mongoose.Types.ObjectId.isValid(grupoRubroId)) {
+    q.grupoRubroId = grupoRubroId;
+  }
+  if (procesoSecadoId && mongoose.Types.ObjectId.isValid(procesoSecadoId)) {
+    q.procesoSecadoId = procesoSecadoId;
+  }
   return ProcessAlert.find(q)
     .sort({ createdAt: -1 })
     .limit(Math.min(Math.max(Number(limit) || 50, 1), 200))
@@ -195,6 +256,7 @@ const softDeleteAllAlerts = async () => {
 
 module.exports = {
   evaluateTelemetryEvent,
+  emitSecadoCompletadoAlert,
   listAlerts,
   countUnread,
   markRead,

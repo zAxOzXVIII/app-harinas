@@ -14,6 +14,7 @@
     "backup:mongo": "node src/scripts/backupMongo.js",
     "restore:mongo": "node src/scripts/restoreMongo.js",
     "verify:backup-restore": "node src/scripts/verifyBackupRestore.js",
+    "verify:atlas": "node src/scripts/verifyAtlas.js",
     "test": "jest --runInBand",
     "test:watch": "jest --watch --runInBand"
   },

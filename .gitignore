@@ -1,5 +1,6 @@
 node_modules/
 .env
+docs/atlas-credentials.env
 .expo/
 *.log
 apk/

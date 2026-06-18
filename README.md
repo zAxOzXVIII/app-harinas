@@ -258,6 +258,25 @@ npm run simulate:telemetry
 
 ---
 
+## Telemetria de planta (ESP32 + Wi‑Fi)
+
+La app **no** se conecta al Arduino por Bluetooth. El flujo oficial es:
+
+```
+AHT10 + DS3231 ──I2C──► ESP32 ──Wi‑Fi──► POST /api/arduino/telemetry ──► Backend ──► App
+```
+
+| Recurso | Descripcion |
+|---------|-------------|
+| [`firmware/README.md`](firmware/README.md) | Arquitectura y guia rapida |
+| [`firmware/esp32-aht10-ds3231/`](firmware/esp32-aht10-ds3231/README.md) | Firmware de produccion (Wi‑Fi directo) |
+| [`backend/docs/arduino-telemetry-contract.md`](backend/docs/arduino-telemetry-contract.md) | Contrato JSON del API |
+| [`firmware/arduino-uno-aht10-ds3231-hc05/`](firmware/arduino-uno-aht10-ds3231-hc05/README.md) | Solo desarrollo con Uno + gateway PC |
+
+Configura en el ESP32 `WIFI_SSID`, `WIFI_PASSWORD` y `API_URL` (LAN, ngrok o Render). Tras `npm run seed:grupos`, asigna `CODIGO_GRUPO` al secador fisico.
+
+---
+
 ## Seguridad y validacion final
 
 Antes de cerrar una entrega:
@@ -313,6 +332,7 @@ Medidas activas en backend:
 - Informe de cierre: `SECURITY-AUDIT.md`
 - Deploy: `DEPLOY-PLAN.md`
 - Operación local (ngrok, Atlas, APK, tests): `docs/OPERACION-LOCAL.md`
+- Telemetría hardware (ESP32 Wi‑Fi): `firmware/README.md`
 - Deploy Render (blueprint): `render.yaml`
 
 ---

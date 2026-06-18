@@ -20,7 +20,11 @@ const notifyNewProcessAlert = async (alert, grupoNombre = "Grupo") => {
   if (!users.length) return { sent: 0 };
 
   const title =
-    alert.severidad === "critical" ? "Alerta crítica de proceso" : "Alerta de proceso";
+    alert.severidad === "critical"
+      ? "Alerta crítica de proceso"
+      : alert.severidad === "info"
+        ? "Tarea completada"
+        : "Alerta de proceso";
 
   const messages = users.map((u) => ({
     to: u.expoPushToken,

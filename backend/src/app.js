@@ -10,6 +10,7 @@ const grupoRubroRoutes = require("./routes/grupoRubro.routes");
 const humedadConfigRoutes = require("./routes/humedadConfig.routes");
 const telemetryRoutes = require("./routes/telemetry.routes");
 const processAlertRoutes = require("./routes/processAlert.routes");
+const procesoSecadoRoutes = require("./routes/procesoSecado.routes");
 const { apiRateLimiter } = require("./middlewares/rateLimit.middleware");
 const { errorHandler } = require("./middlewares/error.middleware");
 
@@ -59,6 +60,7 @@ app.use("/api/grupos-rubro", grupoRubroRoutes);
 app.use("/api/config/humedad", humedadConfigRoutes);
 app.use("/api", telemetryRoutes);
 app.use("/api/alerts", processAlertRoutes);
+app.use("/api/procesos-secado", procesoSecadoRoutes);
 
 app.use((_req, _res, next) => {
   const err = new Error("Ruta no encontrada");

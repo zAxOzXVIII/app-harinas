@@ -1,6 +1,8 @@
 /**
- * Nativa — telemetria ESP32 + AHT10 + DS3231
- * POST /api/arduino/telemetry (solo temperatura y humedad + timestamp RTC)
+ * Nativa — telemetria ESP32 + AHT10 + DS3231 (produccion)
+ * Wi‑Fi → POST /api/arduino/telemetry → backend → app movil
+ *
+ * Guia: ../README.md  |  Config: config.example.h → config.h
  *
  * Librerias (Arduino Library Manager):
  *   - Adafruit AHTX0

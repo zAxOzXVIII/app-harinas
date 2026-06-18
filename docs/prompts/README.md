@@ -17,13 +17,15 @@ Guía central para usar prompts con Cursor (o cualquier agente) sin duplicar tex
 | `INDICE-SPRINTS.md` | Tabla de prompts activos |
 | `SPRINT-12-UX-RESPONSIVE.md` | Responsive + animaciones de tablero (implementado) |
 | `SPRINT-13-UX-CONTRASTE.md` | Contraste y legibilidad claro/oscuro (implementado) |
+| `SPRINT-14-OPERADOR-TEMPORIZADOR.md` | Temporizador secado operador + ciclo grupo (implementado) |
+| `SPRINT-15-OPERADOR-CALIFICACION.md` | Control timer, alertas en secado, calificación cierre (implementado) |
 
 ## Alcance de esta carpeta
 
-- Esta carpeta quedó enfocada en mejoras visuales y responsive.
+- Prompts de UX (12–13) y flujo operador (14–15).
 - `SPRINTS.md` en la raíz conserva el historial y estado de producto.
-- Sprints 12 y 13 están **completados** (código + checklists de desarrollo); queda solo QA manual en dispositivo.
-- Ver modelos de implementación en cada archivo sprint (sección «Modelo de ajustes»).
+- Sprints 12–15 están **completados** en código; queda QA manual en APK/dispositivo.
+- Ver modelos de implementación en cada archivo sprint.
 
 ## Reglas para cualquier prompt
 

@@ -13,8 +13,12 @@ interface ApiResponse<T> {
 }
 
 export const gruposService = {
-  async list(): Promise<GrupoRubro[]> {
-    const { data } = await api.get<ApiResponse<GrupoRubro[]>>("/api/grupos-rubro");
+  async list(opts?: { activos?: boolean }): Promise<GrupoRubro[]> {
+    const params =
+      opts?.activos === true ? { activos: "true" } : undefined;
+    const { data } = await api.get<ApiResponse<GrupoRubro[]>>("/api/grupos-rubro", {
+      params,
+    });
     return data.data;
   },
 

@@ -221,11 +221,20 @@ export const MuroGerenteScreen = () => {
                 <Chip
                   compact
                   style={{
-                    backgroundColor: a.severidad === "critical" ? chipCritBg : chipWarnBg,
+                    backgroundColor:
+                      a.severidad === "critical"
+                        ? chipCritBg
+                        : a.severidad === "info"
+                          ? theme.colors.primaryContainer
+                          : chipWarnBg,
                   }}
                   textStyle={a.severidad === "critical" ? chipLabel : chipWarnLabel}
                 >
-                  {a.severidad === "critical" ? "CRITICO" : "ALERTA"}
+                  {a.severidad === "critical"
+                    ? "CRITICO"
+                    : a.severidad === "info"
+                      ? "TAREA OK"
+                      : "ALERTA"}
                 </Chip>
                 <Text variant="labelSmall" style={mutedText}>
                   {grupoNombreAlerta(a)}

@@ -87,6 +87,31 @@ La **APK** solo necesita `EXPO_PUBLIC_API_URL` apuntando al backend HTTPS (no a 
 
 ---
 
+## 4b) Telemetría ESP32 (Wi‑Fi → servidor → app)
+
+Arquitectura oficial: el **ESP32** lee AHT10 + DS3231 y hace `POST` al backend; los teléfonos solo consultan el API.
+
+```
+ESP32 ──Wi‑Fi──► Backend (Atlas) ──REST──► APK
+```
+
+1. Backend en marcha (local, ngrok o Render) con `MONGODB_URI` de Atlas.
+2. Firmware: [`firmware/esp32-aht10-ds3231/`](../firmware/esp32-aht10-ds3231/README.md) — copia `config.example.h` → `config.h`, configura `WIFI_*` y `API_URL`.
+3. Sube el sketch al ESP32; en monitor serie debe aparecer `POST 201`.
+4. En la app: operador **inicia secado** → gráficos T/HR y alertas.
+
+| `API_URL` del ESP32 | Cuándo |
+|---------------------|--------|
+| `http://IP_PC:4000/api/arduino/telemetry` | Misma red LAN |
+| `https://tu-dominio.ngrok-free.app/api/arduino/telemetry` | Demo con APK |
+| `https://tu-app.onrender.com/api/arduino/telemetry` | Producción estable |
+
+Guía completa: [`firmware/README.md`](../firmware/README.md).
+
+> El kit **Arduino Uno + HC-05** sin ESP32 requiere un PC con gateway; no es la ruta de planta.
+
+---
+
 ## 5) Generar APK (EAS)
 
 ```powershell
@@ -147,4 +172,4 @@ En pantallas Harinas, Calibración, Alertas, Muro y Equipo → botón **Exportar
 | Login 401 con ngrok | `TRUST_PROXY=1`, reiniciar backend |
 | Expo `fetch failed` al iniciar | `EXPO_NO_DOCTOR=1` o `EXPO_OFFLINE=1` |
 | Rate limit ngrok | Reiniciar backend tras activar trust proxy |
-| Telemetría vacía | `npm run simulate:telemetry` en backend |
+| Telemetría vacía | `npm run simulate:telemetry` o firmware ESP32 (`firmware/README.md`) |

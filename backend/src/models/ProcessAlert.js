@@ -7,6 +7,7 @@ const TIPOS = [
   "humedad_fuera",
   "nivel_secado_fuera",
   "tiempo_secado_exceso",
+  "secado_completado",
 ];
 
 const processAlertSchema = new mongoose.Schema(
@@ -20,7 +21,7 @@ const processAlertSchema = new mongoose.Schema(
     severidad: {
       type: String,
       required: true,
-      enum: ["critical", "warning"],
+      enum: ["critical", "warning", "info"],
       index: true,
     },
     grupoRubroId: {
@@ -32,7 +33,12 @@ const processAlertSchema = new mongoose.Schema(
     telemetryEventId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "TelemetryEvent",
-      required: true,
+      default: null,
+    },
+    procesoSecadoId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "ProcesoSecado",
+      default: null,
     },
     mensaje: {
       type: String,

@@ -90,11 +90,20 @@ export const AlertsListScreen = () => {
             <Chip
               compact
               style={{
-                backgroundColor: item.severidad === "critical" ? chipCritBg : chipWarnBg,
+                backgroundColor:
+                  item.severidad === "critical"
+                    ? chipCritBg
+                    : item.severidad === "info"
+                      ? theme.colors.primaryContainer
+                      : chipWarnBg,
               }}
               textStyle={item.severidad === "critical" ? chipLabel : chipWarnLabel}
             >
-              {item.severidad === "critical" ? "CRITICO" : "ALERTA"}
+              {item.severidad === "critical"
+                ? "CRITICO"
+                : item.severidad === "info"
+                  ? "COMPLETADO"
+                  : "ALERTA"}
             </Chip>
             <Text variant="labelSmall" style={mutedText}>
               {grupoNombre(item)}

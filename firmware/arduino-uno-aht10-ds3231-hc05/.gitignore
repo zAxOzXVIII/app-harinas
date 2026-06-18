@@ -1,0 +1,4 @@
+# No subir config local del sketch
+nativa_uno_telemetry/config.h
+gateway/.env
+gateway/node_modules/

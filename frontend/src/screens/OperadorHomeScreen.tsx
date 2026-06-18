@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo } from "react";
-import { RefreshControl, ScrollView, StyleSheet, View } from "react-native";
+import { Alert, RefreshControl, ScrollView, StyleSheet, View } from "react-native";
 import {
   ActivityIndicator,
   Badge,
@@ -17,15 +17,25 @@ import { useGruposStore } from "../store/grupos.store";
 import { useAuthStore } from "../store/auth.store";
 import { useTelemetryStore } from "../store/telemetry.store";
 import { useAlertsStore } from "../store/alerts.store";
+import { useProcesoSecadoStore } from "../store/procesoSecado.store";
 import { ChartTrendBlock } from "../components/ChartTrendBlock";
 import { MetricGauge } from "../components/MetricGauge";
 import { AnimatedReveal } from "../components/AnimatedReveal";
+import { IniciarSecadoButton, SecadoTimer } from "../components/SecadoTimer";
+import { GrupoSecadoAlerts } from "../components/GrupoSecadoAlerts";
 import { useScreenLayout } from "../hooks/useScreenLayout";
 import { useContrastStyles } from "../hooks/useContrastStyles";
 import { brand, statusColors } from "../theme";
 import { ScreenHero } from "../components/ScreenHero";
+import type { GrupoRubro } from "../types/grupoRubro";
+import type { ProcesoSecado } from "../types/procesoSecado";
 
 type Nav = NativeStackNavigationProp<OperadorStackParamList>;
+
+const getProcesoForGrupo = (
+  grupoId: string,
+  byGrupoId: Record<string, ProcesoSecado | null>
+): ProcesoSecado | null | undefined => byGrupoId[grupoId];
 
 export const OperadorHomeScreen = () => {
   const theme = useTheme();
@@ -51,24 +61,42 @@ export const OperadorHomeScreen = () => {
   const unreadCount = useAlertsStore((s) => s.unreadCount);
   const fetchUnreadCount = useAlertsStore((s) => s.fetchUnreadCount);
 
+  const byGrupoId = useProcesoSecadoStore((s) => s.byGrupoId);
+  const isMutatingSecado = useProcesoSecadoStore((s) => s.isMutating);
+  const secadoError = useProcesoSecadoStore((s) => s.error);
+  const fetchActivos = useProcesoSecadoStore((s) => s.fetchActivos);
+  const fetchByGrupo = useProcesoSecadoStore((s) => s.fetchByGrupo);
+  const iniciarSecado = useProcesoSecadoStore((s) => s.iniciarSecado);
+  const completarSecado = useProcesoSecadoStore((s) => s.completarSecado);
+  const clearSecadoError = useProcesoSecadoStore((s) => s.clearError);
+  const activosSecado = useProcesoSecadoStore((s) => s.activos);
+
+  const refreshOperador = useCallback(() => {
+    fetchAll({ activosOnly: true });
+    fetchLatest();
+    fetchUnreadCount();
+    fetchActivos();
+  }, [fetchAll, fetchLatest, fetchUnreadCount, fetchActivos]);
+
   useFocusEffect(
     useCallback(() => {
-      fetchAll();
-      fetchLatest();
-      fetchUnreadCount();
+      refreshOperador();
+      const pollMs = activosSecado.length > 0 ? 10000 : 30000;
       const id = setInterval(() => {
         fetchLatest();
         fetchUnreadCount();
-      }, 10000);
+        fetchActivos();
+      }, pollMs);
       return () => clearInterval(id);
-    }, [fetchAll, fetchLatest, fetchUnreadCount])
+    }, [refreshOperador, fetchLatest, fetchUnreadCount, fetchActivos, activosSecado.length])
   );
 
   useEffect(() => {
     grupos.forEach((g) => {
       if (!history[g._id]) fetchHistory(g._id, 30);
+      if (byGrupoId[g._id] === undefined) fetchByGrupo(g._id);
     });
-  }, [grupos, history, fetchHistory]);
+  }, [grupos, history, fetchHistory, byGrupoId, fetchByGrupo]);
 
   const latestByGroup = useMemo(() => {
     const map = new Map<string, (typeof latest)[number]>();
@@ -77,10 +105,64 @@ export const OperadorHomeScreen = () => {
   }, [latest]);
 
   const onRefresh = () => {
-    fetchAll();
-    fetchLatest();
-    fetchUnreadCount();
+    refreshOperador();
     grupos.forEach((g) => fetchHistory(g._id, 30));
+  };
+
+  const handleIniciarSecado = async (grupo: GrupoRubro) => {
+    clearSecadoError();
+    try {
+      await iniciarSecado(grupo._id);
+    } catch {
+      Alert.alert("No se pudo iniciar", "Verifica que el lote no este cerrado o en secado.");
+    }
+  };
+
+  const showCierreDialog = (proceso: ProcesoSecado | null) => {
+    if (!proceso?.resultado) return;
+    if (proceso.resultado === "listo") {
+      Alert.alert(
+        "Producto listo",
+        proceso.descripcionCierre ?? "Secado completado sin alertas pendientes."
+      );
+    } else {
+      Alert.alert(
+        "Producto poco óptimo",
+        proceso.descripcionCierre ?? "Revisar incidencias del proceso."
+      );
+    }
+  };
+
+  const handleCierreGrupo = useCallback(
+    async (grupoId: string) => {
+      const p = await fetchByGrupo(grupoId);
+      await fetchActivos();
+      await fetchAll({ activosOnly: true });
+      await fetchUnreadCount();
+      if (p?.estado === "revisado_empaquetado") {
+        showCierreDialog(p);
+      }
+    },
+    [fetchByGrupo, fetchActivos, fetchAll, fetchUnreadCount]
+  );
+
+  const handleFinalizarSecado = (grupo: GrupoRubro, procesoId: string) => {
+    Alert.alert("Finalizar secado", "¿Confirmas cierre del tiempo de secado?", [
+      { text: "Cancelar", style: "cancel" },
+      {
+        text: "Finalizar",
+        onPress: async () => {
+          try {
+            const p = await completarSecado(procesoId, grupo._id);
+            showCierreDialog(p);
+            await fetchAll({ activosOnly: true });
+            await fetchUnreadCount();
+          } catch {
+            Alert.alert("Error", "No se pudo finalizar el secado.");
+          }
+        },
+      },
+    ]);
   };
 
   if (isLoading && grupos.length === 0) {
@@ -100,7 +182,7 @@ export const OperadorHomeScreen = () => {
       <ScreenHero
         roleLabel="Operador"
         title={`Hola, ${user?.nombre ?? "Operador"}`}
-        subtitle="Monitoreo de proceso por grupo y alertas de calibracion"
+        subtitle="Inicia el secado por grupo y monitorea temperatura y humedad"
       >
         <View style={styles.alertBtnWrap}>
           <Button
@@ -118,6 +200,7 @@ export const OperadorHomeScreen = () => {
       </ScreenHero>
 
       {error ? <Text style={styles.error}>{error}</Text> : null}
+      {secadoError ? <Text style={styles.error}>{secadoError}</Text> : null}
       {telemetryError ? <Text style={styles.error}>{telemetryError}</Text> : null}
 
       {humedad ? (
@@ -173,6 +256,9 @@ export const OperadorHomeScreen = () => {
 
           const t = grupo.calibracion.temperatura;
           const tValue = last?.lecturas.temperatura ?? null;
+          const proceso = getProcesoForGrupo(grupo._id, byGrupoId);
+          const enSecado = proceso?.estado === "en_secado";
+          const tiempoEst = grupo.calibracion.tiempoSecado?.estimadoMin ?? 0;
 
           let statusColor = statusColors.ok;
           if (last && humedad) {
@@ -264,7 +350,7 @@ export const OperadorHomeScreen = () => {
                     ) : null}
                     {last.lecturas.tiempoSecado != null ? (
                       <Chip compact icon="timer-outline" textStyle={chipText}>
-                        {last.lecturas.tiempoSecado} min
+                        Sensor {last.lecturas.tiempoSecado} min
                       </Chip>
                     ) : null}
                     <Chip compact icon="clock-outline" textStyle={chipText}>
@@ -276,6 +362,31 @@ export const OperadorHomeScreen = () => {
                     Sin telemetria todavia para este grupo.
                   </Text>
                 )}
+
+                {enSecado && proceso ? (
+                  <>
+                    <GrupoSecadoAlerts
+                      grupoRubroId={grupo._id}
+                      procesoSecadoId={proceso._id}
+                      activo={enSecado}
+                      onAtendida={fetchUnreadCount}
+                    />
+                    <SecadoTimer
+                      iniciadoEn={proceso.iniciadoEn}
+                      finalizaEn={proceso.finalizaEn}
+                      duracionMin={proceso.duracionMin}
+                      isMutating={isMutatingSecado}
+                      onTickComplete={() => handleCierreGrupo(grupo._id)}
+                      onFinalizar={() => handleFinalizarSecado(grupo, proceso._id)}
+                    />
+                  </>
+                ) : tiempoEst > 0 ? (
+                  <IniciarSecadoButton
+                    duracionMin={tiempoEst}
+                    loading={isMutatingSecado}
+                    onPress={() => handleIniciarSecado(grupo)}
+                  />
+                ) : null}
                 </Card.Content>
               </Card>
             </AnimatedReveal>

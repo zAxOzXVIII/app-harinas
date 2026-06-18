@@ -13,7 +13,7 @@ interface GruposState {
   isLoading: boolean;
   isMutating: boolean;
   error: string | null;
-  fetchAll: () => Promise<void>;
+  fetchAll: (opts?: { activosOnly?: boolean }) => Promise<void>;
   updateCalibracion: (id: string, payload: CalibracionPayload) => Promise<void>;
   updateHumedad: (payload: HumedadPayload) => Promise<void>;
   clearError: () => void;
@@ -26,11 +26,11 @@ export const useGruposStore = create<GruposState>((set, get) => ({
   isMutating: false,
   error: null,
 
-  fetchAll: async () => {
+  fetchAll: async (opts) => {
     try {
       set({ isLoading: true, error: null });
       const [grupos, humedad] = await Promise.all([
-        gruposService.list(),
+        gruposService.list(opts?.activosOnly ? { activos: true } : undefined),
         humedadService.get(),
       ]);
       set({ grupos, humedad, isLoading: false });

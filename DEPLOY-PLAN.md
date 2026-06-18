@@ -104,6 +104,25 @@ EXPO_PUBLIC_API_URL=https://<tu-backend-publico>
 
 ---
 
+## 6b) Fase D2 - ESP32 en planta (Wi‑Fi → API)
+
+Tras tener backend publico y Atlas:
+
+1. Cablea **AHT10 + DS3231** al **ESP32** (I2C, ver [`firmware/esp32-aht10-ds3231/README.md`](firmware/esp32-aht10-ds3231/README.md)).
+2. En `config.h` del firmware:
+   - `WIFI_SSID` / `WIFI_PASSWORD` — red de planta con salida a internet (o LAN al servidor).
+   - `API_URL` — `https://<tu-backend-publico>/api/arduino/telemetry`
+   - `API_USE_HTTPS` — `1`
+   - `CODIGO_GRUPO` — uno de los grupos sembrados (`garbanzo-lenteja`, etc.).
+3. Sube el sketch; monitor serie: `POST 201`.
+4. En la app: operador inicia secado → telemetria y alertas en tiempo real.
+
+La app **no** habla con el ESP32; solo consume el backend. Misma `EXPO_PUBLIC_API_URL` que en la APK.
+
+> Kit Arduino Uno sin ESP32: ruta temporal con gateway PC — ver [`firmware/arduino-uno-aht10-ds3231-hc05/`](firmware/arduino-uno-aht10-ds3231-hc05/README.md). No recomendado en produccion.
+
+---
+
 ## 7) Fase E - Seguridad minima obligatoria
 
 - Usar `JWT_SECRET` largo y distinto por entorno.

@@ -16,4 +16,13 @@ const loginAsGerente = async (request) => {
   return res.body.data.token;
 };
 
-module.exports = { getApp, loginAsGerente };
+const loginAsOperador = async (request) => {
+  const res = await request(getApp()).post("/api/auth/login").send({
+    email: "operador@nativa.com",
+    password: "operador123",
+  });
+  expect(res.status).toBe(200);
+  return res.body.data.token;
+};
+
+module.exports = { getApp, loginAsGerente, loginAsOperador };

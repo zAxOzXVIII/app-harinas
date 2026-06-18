@@ -18,6 +18,17 @@ beforeAll(async () => {
     });
   }
 
+  const operadorEmail = "operador@nativa.com";
+  const operadorExists = await User.findOne({ email: operadorEmail });
+  if (!operadorExists) {
+    await User.create({
+      email: operadorEmail,
+      nombre: "Operador Test",
+      password: await bcrypt.hash("operador123", 10),
+      rol: "operador",
+    });
+  }
+
   const GrupoRubro = require("../src/models/GrupoRubro");
   const HumedadConfig = require("../src/models/HumedadConfig");
 
