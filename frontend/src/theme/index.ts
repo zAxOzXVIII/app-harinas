@@ -9,24 +9,33 @@ import {
   type Theme as NavigationTheme,
 } from "@react-navigation/native";
 
-/** Paleta corporativa azul Nativa — Control de planta */
+/** Paleta corporativa verde Nativa — Control de planta */
 export const brand = {
-  navyDeep: "#0B1320",
-  primaryBlue: "#1565C0",
-  primaryBlueDark: "#0D47A1",
-  skyAccent: "#42A5F5",
+  /** Fondo oscuro principal (verde muy profundo). */
+  navyDeep: "#0D1F0D",
+  /** Verde primario (botones, bordes activos, íconos). */
+  primaryBlue: "#2E7D32",
+  /** Verde oscuro para fondos de botón. */
+  primaryBlueDark: "#1B5E20",
+  /** Verde claro de acento (chips, indicadores). */
+  skyAccent: "#66BB6A",
+  /** Ámbar dorado del logo (subtítulo SUPERALIMENTOS). */
+  amberBrand: "#F9A825",
   surfaceCard: "#FFFFFF",
-  surfaceMuted: "#E8EEF4",
-  textOnDark: "#E3F2FD",
+  /** Superficie tenue con tono verde claro. */
+  surfaceMuted: "#E8F5E9",
+  textOnDark: "#E8F5E9",
   /** Texto secundario legible sobre fondos claros (≈ AA). */
   textMutedOnLight: "#475569",
   /** Texto secundario legible sobre fondos oscuros. */
-  textMutedOnDark: "#E2E8F0",
+  textMutedOnDark: "#C8E6C9",
   warning: "#EF6C00",
   critical: "#C62828",
   ok: "#2E7D32",
-  surfaceLight: "#F5F9FC",
-  surfaceDark: "#0F1419",
+  /** Fondo de pantalla en modo claro. */
+  surfaceLight: "#F1F8E9",
+  /** Fondo de pantalla en modo oscuro. */
+  surfaceDark: "#0A170A",
 };
 
 export const lightTheme: MD3Theme = {
@@ -36,19 +45,19 @@ export const lightTheme: MD3Theme = {
     ...MD3LightTheme.colors,
     primary: brand.primaryBlue,
     onPrimary: "#FFFFFF",
-    primaryContainer: "#D6E8F7",
-    onPrimaryContainer: "#0D3B66",
+    primaryContainer: "#C8E6C9",
+    onPrimaryContainer: "#1B5E20",
     secondary: brand.skyAccent,
     onSecondary: "#FFFFFF",
-    secondaryContainer: "#E1F5FE",
-    onSecondaryContainer: "#0D3B66",
+    secondaryContainer: "#DCEDC8",
+    onSecondaryContainer: "#1B5E20",
     background: brand.surfaceLight,
     surface: brand.surfaceCard,
     surfaceVariant: brand.surfaceMuted,
     onSurface: "#0F172A",
     onSurfaceVariant: brand.textMutedOnLight,
     onBackground: "#0F172A",
-    outline: "#64748B",
+    outline: "#4CAF50",
     error: brand.critical,
   },
 };
@@ -59,30 +68,30 @@ export const darkTheme: MD3Theme = {
   colors: {
     ...MD3DarkTheme.colors,
     primary: brand.skyAccent,
-    onPrimary: "#0B1320",
-    primaryContainer: "#1E3A5F",
-    onPrimaryContainer: "#F1F5F9",
-    secondary: "#64B5F6",
-    onSecondary: "#0B1320",
-    secondaryContainer: "#243B55",
-    onSecondaryContainer: "#E3F2FD",
+    onPrimary: "#0D1F0D",
+    primaryContainer: "#1B5E20",
+    onPrimaryContainer: "#E8F5E9",
+    secondary: "#A5D6A7",
+    onSecondary: "#0D1F0D",
+    secondaryContainer: "#2E4A2E",
+    onSecondaryContainer: "#C8E6C9",
     background: brand.surfaceDark,
-    surface: "#161C22",
-    surfaceVariant: "#24303D",
-    onSurface: "#F8FAFC",
-    onSurfaceVariant: "#E2E8F0",
-    onBackground: "#F8FAFC",
-    outline: "#94A3B8",
-    outlineVariant: "#64748B",
+    surface: "#101E10",
+    surfaceVariant: "#1A2E1A",
+    onSurface: "#F1F8E9",
+    onSurfaceVariant: "#C8E6C9",
+    onBackground: "#F1F8E9",
+    outline: "#81C784",
+    outlineVariant: "#4CAF50",
     error: "#F87171",
-    onError: "#0B1320",
+    onError: "#0D1F0D",
     errorContainer: "#5C1A1A",
     onErrorContainer: "#FECACA",
     elevation: {
       ...MD3DarkTheme.colors.elevation,
-      level1: "#1A2229",
-      level2: "#1E2730",
-      level3: "#24303D",
+      level1: "#142014",
+      level2: "#182818",
+      level3: "#1A2E1A",
     },
   },
 };
@@ -94,8 +103,8 @@ export const navLight: NavigationTheme = {
     background: lightTheme.colors.background,
     card: lightTheme.colors.surface,
     primary: brand.primaryBlue,
-    text: "#1A237E",
-    border: "#E0E7EF",
+    text: "#1B5E20",
+    border: "#C8E6C9",
   },
 };
 
@@ -107,7 +116,7 @@ export const navDark: NavigationTheme = {
     card: darkTheme.colors.surface,
     primary: darkTheme.colors.primary,
     text: darkTheme.colors.onSurface,
-    border: "#26313A",
+    border: "#1A2E1A",
   },
 };
 

@@ -1,7 +1,8 @@
 import { useMemo, useState } from "react";
-import { StyleSheet, View } from "react-native";
+import { Image, StyleSheet, View } from "react-native";
 import { Button, Card, HelperText, Text, TextInput } from "react-native-paper";
 import { KeyboardAwareScreen } from "../components/KeyboardAwareScreen";
+import { NativaGreenCube } from "../components/NativaGreenCube";
 import { useAuthStore } from "../store/auth.store";
 import { brand } from "../theme";
 
@@ -47,15 +48,20 @@ export const LoginScreen = () => {
     >
       <Card mode="elevated" style={styles.card}>
         <Card.Content style={styles.cardInner}>
-          <View style={styles.logoBox}>
-            <Text style={styles.logoIcon}>N</Text>
+          <NativaGreenCube />
+
+          <View style={styles.logoWrap}>
+            <Image
+              source={require("../../assets/logo-nativa.png")}
+              style={styles.logoImg}
+              resizeMode="contain"
+            />
           </View>
 
-          <Text style={styles.brandTitle}>NATIVA</Text>
-          <Text style={styles.brandSub}>CONTROL DE PLANTA</Text>
+          <Text style={styles.brandSub}>GESTIÓN DE PLANTA</Text>
 
           <Text variant="bodySmall" style={styles.hint}>
-            Superalimentos C.A — acceso al sistema de monitoreo
+            Acceso al sistema de monitoreo
           </Text>
 
           <TextInput
@@ -70,6 +76,7 @@ export const LoginScreen = () => {
             outlineColor={brand.surfaceMuted}
             activeOutlineColor={brand.primaryBlue}
             left={<TextInput.Icon icon="email-outline" color={brand.primaryBlue} />}
+            theme={{ colors: { primary: brand.primaryBlue } }}
           />
           <HelperText type="error" visible={Boolean(emailError)}>
             {emailError}
@@ -86,6 +93,7 @@ export const LoginScreen = () => {
             outlineColor={brand.surfaceMuted}
             activeOutlineColor={brand.primaryBlue}
             left={<TextInput.Icon icon="lock-outline" color={brand.primaryBlue} />}
+            theme={{ colors: { primary: brand.primaryBlue } }}
             right={
               <TextInput.Icon
                 icon={showPassword ? "eye-off" : "eye"}
@@ -135,31 +143,20 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingVertical: 8,
   },
-  logoBox: {
-    width: 56,
-    height: 56,
-    borderRadius: 14,
-    backgroundColor: brand.primaryBlue,
+  logoWrap: {
+    width: "100%",
     alignItems: "center",
-    justifyContent: "center",
-    marginBottom: 12,
+    marginBottom: 6,
   },
-  logoIcon: {
-    color: "#FFFFFF",
-    fontSize: 28,
-    fontWeight: "800",
-  },
-  brandTitle: {
-    fontSize: 26,
-    fontWeight: "800",
-    color: brand.navyDeep,
-    letterSpacing: 2,
+  logoImg: {
+    width: 240,
+    height: 72,
   },
   brandSub: {
     fontSize: 11,
     color: brand.textMutedOnLight,
     letterSpacing: 3,
-    marginTop: 4,
+    fontWeight: "600",
     marginBottom: 16,
   },
   hint: {
