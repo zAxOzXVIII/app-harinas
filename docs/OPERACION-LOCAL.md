@@ -108,6 +108,8 @@ ESP32 ──Wi‑Fi──► Backend (Atlas) ──REST──► APK
 
 Guía completa: [`firmware/README.md`](../firmware/README.md).
 
+> El kit **Arduino Uno + ESP-12F** (reguladores, DS3231, AHT10): cableado y operación local en [`MONTAJE-HARDWARE-UNO-ESP12F.md`](MONTAJE-HARDWARE-UNO-ESP12F.md).
+
 > El kit **Arduino Uno + HC-05** sin ESP32 requiere un PC con gateway; no es la ruta de planta.
 
 ---

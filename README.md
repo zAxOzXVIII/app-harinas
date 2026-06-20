@@ -332,6 +332,8 @@ Medidas activas en backend:
 - Informe de cierre: `SECURITY-AUDIT.md`
 - Deploy: `DEPLOY-PLAN.md`
 - Operación local (ngrok, Atlas, APK, tests): `docs/OPERACION-LOCAL.md`
+- Montaje hardware Uno + ESP-12F + sensores: `docs/MONTAJE-HARDWARE-UNO-ESP12F.md`
+- Guía sistema (pantallas, código, API): `docs/GUIA-SISTEMA-COMPLETA.md`
 - Telemetría hardware (ESP32 Wi‑Fi): `firmware/README.md`
 - Deploy Render (blueprint): `render.yaml`
 

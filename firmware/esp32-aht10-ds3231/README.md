@@ -131,7 +131,9 @@ El backend ya acepta esos campos como opcionales.
 | Ruta | Cuándo usarla |
 |------|----------------|
 | **Este firmware (ESP32)** | Planta, demo estable, sin PC |
-| [`../arduino-uno-aht10-ds3231-hc05/`](../arduino-uno-aht10-ds3231-hc05/README.md) | Solo si aún no tienes ESP32; requiere gateway en PC |
+| [`arduino-uno-aht10-ds3231-hc05/`](arduino-uno-aht10-ds3231-hc05/README.md) | Solo desarrollo con Uno + gateway PC |
+
+Montaje detallado del kit Uno + ESP-12F + reguladores: [`docs/MONTAJE-HARDWARE-UNO-ESP12F.md`](../../docs/MONTAJE-HARDWARE-UNO-ESP12F.md).
 
 Índice general: [`../README.md`](../README.md)
 

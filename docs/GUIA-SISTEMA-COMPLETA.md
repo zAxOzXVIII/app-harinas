@@ -497,6 +497,7 @@ La APK embebe la URL del API al compilar. Si cambias ngrok/Render, hay que **rec
 |-----------|-----------|
 | `README.md` | Instalación general |
 | `docs/OPERACION-LOCAL.md` | ngrok, Atlas, APK, tests |
+| `docs/MONTAJE-HARDWARE-UNO-ESP12F.md` | Cableado Uno, ESP-12F, gateway, checklist |
 | `DEPLOY-PLAN.md` | Render + Atlas producción |
 | `backend/docs/arduino-telemetry-contract.md` | JSON telemetría |
 | `firmware/README.md` | ESP32 Wi‑Fi |

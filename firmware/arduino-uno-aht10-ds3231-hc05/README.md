@@ -221,6 +221,8 @@ No mezcles dos módulos BT en el mismo bus serial sin saber cuál es.
 
 Documentación API: [`backend/docs/arduino-telemetry-contract.md`](../../backend/docs/arduino-telemetry-contract.md).
 
+**Montaje de tu kit (Uno + ESP-12F + reguladores):** [`docs/MONTAJE-HARDWARE-UNO-ESP12F.md`](../../docs/MONTAJE-HARDWARE-UNO-ESP12F.md).
+
 ---
 
 ## Checklist rápido
