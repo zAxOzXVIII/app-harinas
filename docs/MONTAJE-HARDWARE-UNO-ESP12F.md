@@ -1,14 +1,17 @@
-# Montaje hardware — Arduino Uno + DS3231 + AHT10 (+ ESP-12F)
+# Montaje hardware — Arduino Uno + AHT10 + HW-084 + ESP-12F
 
 Guía paso a paso para **identificar, cablear y montar cada pieza** del kit de laboratorio Nativa y conectarlo al backend + app.
 
-> **Ruta recomendada para empezar:** Uno por **USB** + sensores I2C + **gateway en PC** (firmware listo en `firmware/arduino-uno-aht10-ds3231-hc05/`).  
-> El **ESP-12F** es fase avanzada (sin sketch en el repo). Para planta sin PC: **ESP32 Dev** (`firmware/esp32-aht10-ds3231/`).
+> **Tu kit:** **AHT10** (temp/humedad) + **HW-084** (reloj DS3231) + **ESP-12F** (Wi‑Fi).  
+> **Ahora:** Uno por **USB a la PC** → gateway en Node → backend → **MongoDB Atlas**.  
+> El **ESP-12F** se cablea en una fase posterior; primero valida sensores + USB.
 
 ---
 
 ## Índice
 
+0. [Guía rápida — cableado + Arduino IDE + Atlas](#0-guía-rápida--cableado--arduino-ide--atlas)
+   - [0.11 Hoja de datos — copiar y pegar](#011-hoja-de-datos--copiar-y-pegar-examen)
 1. [Materiales del kit](#1-materiales-del-kit)
    - [1.1 Guía visual — reconocer cada módulo](#11-guía-visual--reconocer-cada-módulo)
 2. [Orden de montaje recomendado](#2-orden-de-montaje-recomendado)
@@ -24,12 +27,397 @@ Guía paso a paso para **identificar, cablear y montar cada pieza** del kit de l
 
 ---
 
+## 0. Guía rápida — cableado + Arduino IDE + Atlas
+
+Esta sección resume **todo lo que necesitas hoy**: conectar **AHT10** y **HW-084** al Uno, subir el sketch, enlazar la PC con el cluster Atlas y ver datos en la app.
+
+### 0.1 Qué es cada pieza de tu kit
+
+| Pieza en tu mesa | Nombre técnico | Función |
+|------------------|----------------|---------|
+| Sensor pequeño 4 pines, **sin pila** | **AHT10** | Temperatura y humedad → API |
+| PCB con **CR2032** y texto **HW-084** | **DS3231** (+ EEPROM AT24C32) | Hora real → `timestamp` |
+| Módulo con **antena Wi‑Fi** | **ESP-12F** | Wi‑Fi 3.3 V — **después** (sin firmware en repo aún) |
+| Placa azul USB | **Arduino Uno** | Lee sensores y emite JSON |
+
+> **HW-084** es el nombre impreso en la PCB del reloj; por dentro es un **DS3231**. En el código y la API se usa como DS3231.
+
+### 0.2 Arquitectura (Uno por USB + Atlas)
+
+```
+AHT10 ──┐
+        ├── I2C (A4/A5) ──► Arduino Uno ──USB──► PC
+HW-084 ─┘                        │
+                                 ├── gateway (Node.js)
+                                 ├── backend :4000
+                                 └── MongoDB Atlas (cluster0.0jgv676)
+                                          │
+                                          └── App Nativa (operador/gerente)
+```
+
+El **ESP-12F no participa** en este flujo hasta que tengas firmware Wi‑Fi en el ESP o migres a ESP32.
+
+### 0.3 Tabla de conexiones — Arduino Uno (fase USB)
+
+Conecta **primero solo AHT10 + HW-084**. Deja el **ESP-12F sin alimentar** hasta que el monitor serie muestre `AHT10 OK` y `DS3231 OK`.
+
+| Desde (módulo) | Pin módulo | Hacia Arduino Uno | Color sugerido |
+|----------------|------------|-------------------|----------------|
+| **HW-084** | VCC | **5V** | Rojo |
+| **HW-084** | GND | **GND** | Negro |
+| **HW-084** | SDA | **A4** | Azul |
+| **HW-084** | SCL | **A5** | Amarillo |
+| **AHT10** | VCC | **5V** | Rojo |
+| **AHT10** | GND | **GND** | Negro |
+| **AHT10** | SDA | **A4** (mismo cable que HW-084) | Azul |
+| **AHT10** | SCL | **A5** (mismo cable que HW-084) | Amarillo |
+| **Uno** | USB | **PC** | Cable USB tipo B |
+
+**Orden de cableado recomendado:**
+
+1. GND común: Uno GND → riel GND → GND de ambos módulos.
+2. 5V: Uno 5V → VCC de HW-084 y AHT10.
+3. Insertar **CR2032** en HW-084 (+ hacia arriba).
+4. SDA y SCL en paralelo (A4 y A5).
+5. Conectar USB a la PC.
+
+```
+                    ┌── USB ──► PC
+                    │
+              ┌─────┴─────┐
+              │ Arduino   │
+              │ Uno       │
+              │ A4 ──SDA──┼──► HW-084 SDA ──► AHT10 SDA
+              │ A5 ──SCL──┼──► HW-084 SCL ──► AHT10 SCL
+              │ 5V ───────┼──► ambos VCC
+              │ GND ──────┼──► ambos GND
+              └───────────┘
+```
+
+### 0.4 ESP-12F — cuándo cablearlo
+
+| Fase | Qué hacer con ESP-12F |
+|------|------------------------|
+| **Ahora (USB)** | **No conectar** VCC ni TX/RX. Valida sensores primero. |
+| **Después** | 3.3 V (AMS1117), pull-ups 10 kΩ, divisor 1k/2k: Uno pin 11 → ESP RX, ESP TX → Uno pin 10. Ver [sección 3.10](#310-módulo-esp-12f-wi-fi--fase-avanzada). |
+
+El sketch del repo ya usa los pines **10** y **11** para serial (`SoftwareSerial`), preparado para cuando el ESP tenga firmware puente.
+
+### 0.5 Arduino IDE — paso a paso
+
+#### A) Instalar software
+
+1. Descarga [Arduino IDE](https://www.arduino.cc/en/software).
+2. Conecta el Uno por USB → en IDE: **Herramientas → Placa → Arduino Uno**.
+3. **Herramientas → Puerto** → elige el COM del Uno (ej. `COM3`).
+
+#### B) Instalar librerías
+
+**Herramientas → Administrar bibliotecas**, busca e instala:
+
+| Librería | Autor / nota |
+|----------|----------------|
+| **Adafruit AHTX0** | Adafruit |
+| **RTClib** | Adafruit |
+| **ArduinoJson** | Benoit Blanchon — versión **6.x** |
+
+#### C) Abrir el sketch del proyecto
+
+En el IDE: **Archivo → Abrir** y navega a:
+
+```
+firmware/arduino-uno-aht10-ds3231-hc05/nativa_uno_telemetry/nativa_uno_telemetry.ino
+```
+
+#### D) Crear `config.h`
+
+En la misma carpeta `nativa_uno_telemetry/`, copia `config.example.h` y renómbralo a **`config.h`**.
+
+O crea el archivo **`config.h`** con este contenido (ajústalo a tu secador):
+
+```cpp
+#pragma once
+
+/** Grupo de rubro (debe existir en el backend tras seed). */
+#define CODIGO_GRUPO "garbanzo-lenteja"
+
+/** ID único de este secador / línea. */
+#define DEVICE_ID "uno-secador-01"
+
+/** Intervalo entre lecturas (ms). Mínimo recomendado: 15000. */
+#define INTERVAL_MS 30000
+
+/**
+ * Serial hacia ESP-12F (fase futura). Pines 10/11 no son 0/1 para poder programar por USB.
+ * ESP TX  -> Arduino pin BT_RX_PIN (10)
+ * ESP RX  <- Arduino pin BT_TX_PIN (11) con divisor 5V->3.3V
+ */
+#define BT_RX_PIN 10
+#define BT_TX_PIN 11
+#define BT_BAUD 9600
+
+/** 1 = envía JSON por USB (necesario para el gateway en PC). */
+#define MIRROR_USB_SERIAL 1
+```
+
+| Variable | Valor ejemplo | Descripción |
+|----------|---------------|-------------|
+| `CODIGO_GRUPO` | `garbanzo-lenteja` | Grupo en MongoDB (tras `seed:demo` o `seed:grupos`) |
+| `DEVICE_ID` | `uno-secador-01` | Identificador del dispositivo en JSON |
+| `INTERVAL_MS` | `30000` | Una lectura cada 30 segundos |
+| `MIRROR_USB_SERIAL` | `1` | **Obligatorio** mientras uses USB + gateway |
+
+#### E) Subir y verificar
+
+1. Clic en **Subir** (flecha →).
+2. **Herramientas → Monitor serie** → velocidad **115200**.
+3. Debes ver:
+
+```
+Nativa Uno — AHT10 + DS3231 + HC-05
+AHT10 OK
+DS3231 OK
+{"eventId":"uno-secador-01-...","deviceId":"uno-secador-01",...}
+```
+
+Si sale `ERROR: AHT10 no detectado` o `DS3231 no detectado`, revisa A4/A5, 5V y GND ([sección 9](#9-problemas-frecuentes)).
+
+### 0.6 Backend en PC — MongoDB Atlas (cluster de prueba examen)
+
+> **Cluster de prueba:** `cluster0.0jgv676` — solo para el proyecto de examen. **Elimínalo en Atlas** cuando termines.
+
+#### A) Datos del cluster Atlas
+
+| Campo | Valor |
+|-------|-------|
+| **Cluster** | `cluster0.0jgv676.mongodb.net` |
+| **Usuario BD** | `mardenrosales44_db_user` |
+| **Contraseña** | `0fXBYeg3r3uC6etT` |
+| **Base de datos** | `app_harinas` |
+| **URI completa** | ver bloque `backend/.env` abajo |
+
+En [MongoDB Atlas](https://cloud.mongodb.com):
+
+1. **Network Access** → **Add IP Address** → tu IP actual o `0.0.0.0/0` (solo pruebas).
+2. Si falla la conexión, casi siempre es la IP no autorizada.
+
+#### B) Archivo `backend/.env` — copiar tal cual
+
+Crea el archivo `backend/.env` en tu PC con este contenido:
+
+```env
+PORT=4000
+MONGODB_URI=mongodb+srv://mardenrosales44_db_user:0fXBYeg3r3uC6etT@cluster0.0jgv676.mongodb.net/app_harinas?retryWrites=true&w=majority
+JWT_SECRET=super_secreto_nativa_2026
+JWT_EXPIRES_IN=8h
+NODE_ENV=development
+TRUST_PROXY=1
+CORS_ORIGINS=http://localhost:8082,http://localhost:19006
+RATE_LIMIT_WINDOW_MS=900000
+RATE_LIMIT_MAX=300
+AUTH_RATE_LIMIT_WINDOW_MS=900000
+AUTH_RATE_LIMIT_MAX=20
+PUSH_NOTIFICATIONS_ENABLED=true
+```
+
+#### C) Datos iniciales en Atlas (una vez)
+
+```powershell
+cd backend
+npm install
+npm run verify:atlas
+npm run seed:demo
+```
+
+`verify:atlas` debe mostrar `MongoDB conectado correctamente`.
+
+#### D) Arrancar backend
+
+```powershell
+cd backend
+npm run dev
+```
+
+Comprueba: http://localhost:4000/api/health → `"success": true`
+
+### 0.7 Gateway — Uno (USB) → API
+
+**Terminal 2** (con el Uno conectado por USB):
+
+```powershell
+cd firmware\arduino-uno-aht10-ds3231-hc05\gateway
+npm install
+```
+
+Crea `firmware/arduino-uno-aht10-ds3231-hc05/gateway/.env`:
+
+```env
+SERIAL_PORT=COM3
+SERIAL_BAUD=115200
+API_URL=http://localhost:4000/api/arduino/telemetry
+API_INSECURE_TLS=0
+```
+
+| Variable | Valor | Nota |
+|----------|-------|------|
+| `SERIAL_PORT` | `COM3` | Cambia al COM de tu Uno (Administrador de dispositivos) |
+| `SERIAL_BAUD` | `115200` | Igual que monitor serie del sketch |
+| `API_URL` | `http://localhost:4000/api/arduino/telemetry` | Backend local |
+
+```powershell
+npm start
+```
+
+Debe aparecer `POST 201` o `POST 200` cada ~30 s.
+
+### 0.8 App — ver telemetría
+
+Crea `frontend/.env` (desarrollo en emulador o misma PC):
+
+```env
+EXPO_PUBLIC_API_URL=http://localhost:4000
+```
+
+Si usas **teléfono físico** en la misma WiFi, pon la IP de tu PC, ej. `http://192.168.1.50:4000`. Con **ngrok**: `https://tu-dominio.ngrok-free.app`.
+
+| Rol | Email | Contraseña |
+|-----|-------|------------|
+| Operador | `operador@nativa.com` | `operador123` |
+| Supervisor | `supervisor@nativa.com` | `supervisor123` |
+| Gerente | `admin@nativa.com` | `admin123` |
+
+```powershell
+cd frontend
+npm install
+npx expo start -c --port 8082
+```
+
+En la app: **Operador** → grupo `garbanzo-lenteja` (u otro del seed) → **Iniciar secado** → ver T°, HR y timer.
+
+### 0.9 Resumen de terminales (día a día)
+
+| # | Terminal | Comando |
+|---|----------|---------|
+| 1 | Backend | `cd backend` → `npm run dev` |
+| 2 | Gateway | `cd firmware\arduino-uno-aht10-ds3231-hc05\gateway` → `npm start` |
+| 3 | App (opcional) | `cd frontend` → `npx expo start -c --port 8082` |
+
+Arduino Uno: conectado por **USB**, sketch subido, monitor serie puede estar cerrado (el gateway lee el COM).
+
+### 0.10 ESP-12F — cableado completo (cuando avances)
+
+Montar **después** de validar AHT10 + HW-084 por USB. Alimentación **solo 3.3 V**.
+
+| Pin ESP-12F | Conexión |
+|-------------|----------|
+| **VCC** | Salida **3.3 V** del AMS1117 (nunca 5 V) |
+| **GND** | Riel GND común con Uno |
+| **CH_PD / EN** | 3.3 V vía resistencia **10 kΩ** |
+| **GPIO15** | GND vía resistencia **10 kΩ** |
+| **GPIO0** | 3.3 V vía resistencia **10 kΩ** |
+| **GPIO2** | 3.3 V vía resistencia **10 kΩ** |
+| **TX** (ESP) | Arduino pin **10** |
+| **RX** (ESP) | Arduino pin **11** vía divisor **1 kΩ + 2 kΩ** (5 V → 3.3 V) |
+
+Divisor (Uno TX → ESP RX):
+
+```
+Arduino pin 11 ──[1 kΩ]──┬── ESP RX
+                         │
+                      [2 kΩ]
+                         │
+                        GND
+```
+
+> El repo **no trae firmware** para el ESP-12F. Hoy el JSON sale por **USB** al gateway. El ESP queda preparado en pines 10/11 para una fase futura.
+
+### 0.11 Hoja de datos — copiar y pegar (examen)
+
+Todo en un solo bloque para el día de la demo:
+
+**Cableado (fase USB):**
+
+```
+HW-084 / AHT10:
+  VCC → Arduino 5V
+  GND → Arduino GND
+  SDA → Arduino A4
+  SCL → Arduino A5
+  CR2032 en HW-084 (+ arriba)
+Arduino Uno USB → PC
+```
+
+**`nativa_uno_telemetry/config.h`:**
+
+```cpp
+#define CODIGO_GRUPO "garbanzo-lenteja"
+#define DEVICE_ID "uno-secador-01"
+#define INTERVAL_MS 30000
+#define BT_RX_PIN 10
+#define BT_TX_PIN 11
+#define BT_BAUD 9600
+#define MIRROR_USB_SERIAL 1
+```
+
+**`backend/.env`:**
+
+```env
+PORT=4000
+MONGODB_URI=mongodb+srv://mardenrosales44_db_user:0fXBYeg3r3uC6etT@cluster0.0jgv676.mongodb.net/app_harinas?retryWrites=true&w=majority
+JWT_SECRET=super_secreto_nativa_2026
+JWT_EXPIRES_IN=8h
+NODE_ENV=development
+TRUST_PROXY=1
+CORS_ORIGINS=http://localhost:8082,http://localhost:19006
+```
+
+**`gateway/.env`:** (cambia `COM3` por tu puerto)
+
+```env
+SERIAL_PORT=COM3
+SERIAL_BAUD=115200
+API_URL=http://localhost:4000/api/arduino/telemetry
+```
+
+**`frontend/.env`:**
+
+```env
+EXPO_PUBLIC_API_URL=http://localhost:4000
+```
+
+**Comandos en orden:**
+
+```powershell
+cd backend
+npm install
+npm run verify:atlas
+npm run seed:demo
+npm run dev
+
+# Otra terminal:
+cd firmware\arduino-uno-aht10-ds3231-hc05\gateway
+npm install
+npm start
+
+# Otra terminal (opcional):
+cd frontend
+npx expo start -c --port 8082
+```
+
+**Grupos válidos en la app:** `garbanzo-lenteja`, `platano-cambur`, `yuca-batata`
+
+**Health check:** http://localhost:4000/api/health
+
+**Al terminar el examen:** elimina el cluster en Atlas → **Database** → **...** → **Terminate**.
+
+---
+
 ## 1. Materiales del kit
 
 | Pieza | Cómo reconocerla | Función en Nativa |
 |-------|------------------|-------------------|
 | **Arduino Uno** | Placa azul, conector USB tipo B, chip ATmega328P | Lee sensores, arma JSON de telemetría |
-| **DS3231** | PCB pequeña con **ranura CR2032** y 4 pines | Reloj RTC → campo `timestamp` |
+| **HW-084** (= **DS3231**) | PCB con **ranura CR2032**, texto **HW-084** en la placa | Reloj RTC → campo `timestamp` |
 | **AHT10** | PCB ~4 pines, sin pila (sensor temp/humedad I2C) | Temperatura + humedad (obligatorios en API) |
 | **ESP-12F** | Módulo Wi‑Fi con antena, muchos pines soldados | Wi‑Fi 3.3 V — fase avanzada |
 | **HC-05** *(si viene en el kit)* | Módulo azul **6 pines**, etiqueta HC-05/06 | Bluetooth serial (alternativa al USB) |
@@ -62,17 +450,17 @@ Guía paso a paso para **identificar, cablear y montar cada pieza** del kit de l
 
 Usa esta sección **antes de cablear** para no confundir piezas parecidas (sobre todo DS3231 vs AHT10).
 
-#### DS3231 vs AHT10 — comparación rápida
+#### HW-084 (DS3231) vs AHT10 — comparación rápida
 
-| | **DS3231** (reloj) | **AHT10** (sensor) |
-|---|-------------------|-------------------|
-| Señal clave | **Ranura CR2032** en la PCB | **Sin pila**; chip pequeño central |
+| | **HW-084 / DS3231** (reloj) | **AHT10** (sensor) |
+|---|---------------------------|-------------------|
+| Señal clave | **Ranura CR2032** + texto **HW-084** | **Sin pila**; chip pequeño central |
 | Tamaño | PCB algo más grande | PCB más chica, 4 pines |
 | Función | Hora → `timestamp` | T° y HR → `lecturas` |
 | Pines | VCC, GND, SDA, SCL | VCC, GND, SDA, SCL |
 
 ```
-  DS3231 (vista superior)              AHT10 (vista superior)
+  HW-084 / DS3231 (vista superior)     AHT10 (vista superior)
   ┌─────────────────────┐            ┌──────────────┐
   │  ┌───────────────┐  │            │   ┌──────┐   │
   │  │  CR2032       │  │  ◄─ PILA   │   │ chip │   │  ◄─ sensor
@@ -86,7 +474,7 @@ Usa esta sección **antes de cablear** para no confundir piezas parecidas (sobre
    C D A L                             C D A L
 ```
 
-#### DS3231 — vista física y pines
+#### HW-084 (DS3231) — vista física y pines
 
 ```
 Vista lateral (pila):
@@ -362,9 +750,9 @@ Protoboard (vista superior)
 
 ---
 
-### 3.3 Módulo DS3231 (reloj RTC)
+### 3.3 Módulo HW-084 / DS3231 (reloj RTC)
 
-> **Identificación visual:** ver [DS3231 vs AHT10](#ds3231-vs-aht10--comparación-rápida) — la ranura **CR2032** es la señal inequívoca.
+> **Identificación visual:** PCB con texto **HW-084** y ranura **CR2032**. Ver [HW-084 vs AHT10](#hw-084-ds3231-vs-aht10--comparación-rápida).
 
 **Objetivo:** hora estable para el campo `timestamp` del JSON.
 
@@ -707,32 +1095,28 @@ Comprueba **sin USB/fuente conectada** (solo con multímetro en continuidad/resi
 
 ## 7. Software tras el montaje
 
+> **Guía completa paso a paso:** [sección 0](#0-guía-rápida--cableado--arduino-ide--atlas) (Arduino IDE, `config.h`, Atlas, gateway).
+
 Una vez la Fase 1 pasa la verificación eléctrica y el monitor serie muestra JSON:
 
 ### 7.1 Sketch Arduino
 
-1. [Arduino IDE](https://www.arduino.cc/en/software) → placa **Arduino Uno**.
-2. Librerías: **Adafruit AHTX0**, **RTClib**, **ArduinoJson 6**.
-3. Copiar `firmware/arduino-uno-aht10-ds3231-hc05/nativa_uno_telemetry/config.example.h` → `config.h`.
-4. Subir `nativa_uno_telemetry.ino`.
-5. Monitor serie **115200**: `AHT10 OK`, `DS3231 OK`, JSON cada 30 s.
+Ver [0.5 Arduino IDE](#05-arduino-ide--paso-a-paso). Resumen:
 
-| Variable `config.h` | Ejemplo | Descripción |
-|---------------------|---------|-------------|
-| `CODIGO_GRUPO` | `garbanzo-lenteja` | Grupo en backend |
-| `DEVICE_ID` | `uno-secador-01` | ID del secador |
-| `MIRROR_USB_SERIAL` | `1` | JSON por USB (gateway) |
+1. Librerías: **Adafruit AHTX0**, **RTClib**, **ArduinoJson 6**.
+2. Abrir `firmware/arduino-uno-aht10-ds3231-hc05/nativa_uno_telemetry/nativa_uno_telemetry.ino`.
+3. Crear `config.h` en la misma carpeta (contenido en [0.5.D](#d-crear-configh)).
+4. Monitor serie **115200**: `AHT10 OK`, `DS3231 OK`, JSON cada 30 s.
 
-### 7.2 Gateway + backend
+### 7.2 Gateway + backend (Atlas)
+
+Ver [0.6 Backend](#06-backend-en-pc--mongodb-atlas) y [0.7 Gateway](#07-gateway--uno-usb--api).
 
 ```powershell
 cd backend
 npm run dev
 
 cd firmware\arduino-uno-aht10-ds3231-hc05\gateway
-npm install
-copy .env.example .env
-# SERIAL_PORT=COMx  (Administrador de dispositivos)
 npm start
 ```
 

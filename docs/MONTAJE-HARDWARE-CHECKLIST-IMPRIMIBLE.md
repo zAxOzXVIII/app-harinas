@@ -1,6 +1,6 @@
-# Checklist imprimible — Montaje kit Nativa (Uno + DS3231 + AHT10)
+# Checklist imprimible — Montaje kit Nativa (Uno + HW-084 + AHT10)
 
-**Proyecto:** App Harinas · **Documento completo:** [`MONTAJE-HARDWARE-UNO-ESP12F.md`](MONTAJE-HARDWARE-UNO-ESP12F.md)
+**Proyecto:** App Harinas · **Guía completa:** [`MONTAJE-HARDWARE-UNO-ESP12F.md`](MONTAJE-HARDWARE-UNO-ESP12F.md) (sección 0 = cableado + IDE + Atlas)
 
 | Fecha: _______________ | Montador: _______________ | Fase: ☐ 1 (USB)  ☐ 2 (+ ESP) |
 |------------------------|-----------------------------|------------------------------|
@@ -11,14 +11,14 @@
 
 | Desde | Hacia | Color sugerido |
 |-------|-------|----------------|
-| Uno **GND** | Riel GND + DS3231 GND + AHT10 GND | Negro |
-| Uno **5V** | DS3231 VCC + AHT10 VCC | Rojo |
-| Uno **A4** | DS3231 SDA + AHT10 SDA | Azul |
-| Uno **A5** | DS3231 SCL + AHT10 SCL | Amarillo |
+| Uno **GND** | Riel GND + HW-084 GND + AHT10 GND | Negro |
+| Uno **5V** | HW-084 VCC + AHT10 VCC | Rojo |
+| Uno **A4** | HW-084 SDA + AHT10 SDA | Azul |
+| Uno **A5** | HW-084 SCL + AHT10 SCL | Amarillo |
 | Uno **pin 10** | HC-05/ESP **TX** | Verde |
 | Uno **pin 11** | HC-05/ESP **RX** (vía divisor) | Blanco |
 
-**DS3231** = PCB con **pila CR2032** · **AHT10** = PCB pequeña **sin pila**
+**HW-084** (= DS3231, con pila CR2032) · **AHT10** = PCB pequeña **sin pila**
 
 ---
 
@@ -29,13 +29,13 @@
 | ☐ | Protoboard lista; riel **GND** identificado y marcado | |
 | ☐ | Arduino Uno conectado; cable **USB** accesible | |
 | ☐ | **GND Uno** → riel GND común | |
-| ☐ | Módulo correcto: **DS3231** (tiene ranura pila) | |
+| ☐ | Módulo correcto: **HW-084** (texto en PCB + ranura pila) | |
 | ☐ | **CR2032** insertada (+ hacia arriba) | |
-| ☐ | DS3231: **VCC** → 5V, **GND** → GND | |
+| ☐ | HW-084: **VCC** → 5V, **GND** → GND | |
 | ☐ | Módulo correcto: **AHT10** (sin pila, chip sensor) | |
 | ☐ | AHT10: **VCC** → 5V, **GND** → GND | |
-| ☐ | **SDA** DS3231 + AHT10 → Uno **A4** | |
-| ☐ | **SCL** DS3231 + AHT10 → Uno **A5** | |
+| ☐ | **SDA** HW-084 + AHT10 → Uno **A4** | |
+| ☐ | **SCL** HW-084 + AHT10 → Uno **A5** | |
 | ☐ | Cables I2C **cortos** (< 20 cm) | |
 | ☐ | **No** hay cables 12 V ni reguladores conectados aún | |
 
@@ -55,14 +55,17 @@
 
 | ☐ | Paso | Notas |
 |---|------|-------|
-| ☐ | Sketch `nativa_uno_telemetry.ino` subido | |
-| ☐ | Monitor serie **115200** abierto | |
-| ☐ | Mensaje **`AHT10 OK`** | |
-| ☐ | Mensaje **`DS3231 OK`** | |
-| ☐ | JSON cada ~30 s con temp, humedad, timestamp | |
-| ☐ | Backend `npm run dev` → `/api/health` OK | |
-| ☐ | Gateway `npm start` → **POST 201** | COM: ______ |
-| ☐ | App: operador inicia secado → ve telemetría | |
+| ☐ | `config.h` creado (ver sección 0.11 del MD) | |
+| ☐ | Sketch subido — monitor **115200** | |
+| ☐ | **`AHT10 OK`** y **`DS3231 OK`** | |
+| ☐ | JSON cada ~30 s | |
+| ☐ | `backend/.env` + `npm run verify:atlas` | |
+| ☐ | `npm run seed:demo` | |
+| ☐ | `npm run dev` → health OK | |
+| ☐ | Gateway `POST 201` | COM: ______ |
+| ☐ | App: operador inicia secado | |
+
+**Atlas (examen):** `mongodb+srv://mardenrosales44_db_user:0fXBYeg3r3uC6etT@cluster0.0jgv676.mongodb.net/app_harinas`
 
 ---
 
