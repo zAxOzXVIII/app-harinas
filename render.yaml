@@ -26,5 +26,9 @@ services:
         value: 900000
       - key: AUTH_RATE_LIMIT_MAX
         value: 20
-      # Configurar en el dashboard de Render (secretos):
-      # MONGODB_URI, JWT_SECRET, CORS_ORIGINS
+      - key: PUSH_NOTIFICATIONS_ENABLED
+        value: "true"
+      # Secretos en el dashboard de Render (obligatorios):
+      # MONGODB_URI — Atlas cluster0.0jgv676 (ver docs/RENDER-DEPLOY.md)
+      # JWT_SECRET  — cadena larga única
+      # CORS_ORIGINS — * (examen) o orígenes concretos

@@ -331,6 +331,7 @@ Medidas activas en backend:
 - Seguridad y backups (Sprint 8): `backend/docs/BACKUP-SECURITY.md`
 - Informe de cierre: `SECURITY-AUDIT.md`
 - Deploy: `DEPLOY-PLAN.md`
+- **Render + Atlas (Venezuela, sin ngrok):** `docs/RENDER-DEPLOY.md`
 - Operación local (ngrok, Atlas, APK, tests): `docs/OPERACION-LOCAL.md`
 - Montaje hardware Uno + ESP-12F + sensores: `docs/MONTAJE-HARDWARE-UNO-ESP12F.md`
 - Guía sistema (pantallas, código, API): `docs/GUIA-SISTEMA-COMPLETA.md`
