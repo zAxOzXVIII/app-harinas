@@ -14,7 +14,7 @@
 // --- API Nativa (URL completa del endpoint de telemetría) ---
 // LAN:     http://192.168.1.100:4000/api/arduino/telemetry
 // ngrok:   https://tu-dominio.ngrok-free.app/api/arduino/telemetry  → API_USE_HTTPS 1
-// Render:  https://tu-app.onrender.com/api/arduino/telemetry        → API_USE_HTTPS 1
+// Render:  https://app-harinas.onrender.com/api/arduino/telemetry  → API_USE_HTTPS 1
 #define API_URL "http://192.168.1.100:4000/api/arduino/telemetry"
 #define API_USE_HTTPS 0
 

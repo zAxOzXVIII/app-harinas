@@ -3,7 +3,7 @@
 
 services:
   - type: web
-    name: app-harinas-api
+    name: app-harinas
     runtime: node
     rootDir: backend
     buildCommand: npm install

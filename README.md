@@ -330,6 +330,7 @@ Medidas activas en backend:
 - Guía rápida Postman: `backend/docs/postman/USO-RAPIDO.md`
 - Seguridad y backups (Sprint 8): `backend/docs/BACKUP-SECURITY.md`
 - Informe de cierre: `SECURITY-AUDIT.md`
+- **Render + Atlas (producción):** https://app-harinas.onrender.com/api/health
 - Deploy: `DEPLOY-PLAN.md`
 - **Render + Atlas (Venezuela, sin ngrok):** `docs/RENDER-DEPLOY.md`
 - Operación local (ngrok, Atlas, APK, tests): `docs/OPERACION-LOCAL.md`

@@ -15,7 +15,7 @@
         "buildType": "apk"
       },
       "env": {
-        "EXPO_PUBLIC_API_URL": "https://app-harinas-api.onrender.com"
+        "EXPO_PUBLIC_API_URL": "https://app-harinas.onrender.com"
       }
     },
     "production": {

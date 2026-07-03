@@ -70,7 +70,7 @@ AHT10 y DS3231 comparten el mismo bus I2C (direcciones distintas).
 |-----------|---------|
 | Backend en PC (LAN) | `http://192.168.1.100:4000/api/arduino/telemetry` |
 | ngrok (demo / APK) | `https://tu-dominio.ngrok-free.app/api/arduino/telemetry` |
-| Render + Atlas | `https://app-harinas-api.onrender.com/api/arduino/telemetry` |
+| Render + Atlas | `https://app-harinas.onrender.com/api/arduino/telemetry` |
 
 Grupos válidos (tras `npm run seed:grupos`): `garbanzo-lenteja`, `platano-cambur`, `yuca-batata`.
 

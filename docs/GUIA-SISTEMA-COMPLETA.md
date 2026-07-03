@@ -428,16 +428,18 @@ npx expo start -c --port 8082
 
 Escanea QR o abre en emulador. Login con credenciales de la sección 3.
 
-### Para APK en teléfono (ngrok)
+### Para APK en teléfono (Render + Atlas)
 
-```powershell
-# Terminal extra
-npx ngrok http --domain=conciliarly-interpetaloid-marisol.ngrok-free.app 4000
+```env
+EXPO_PUBLIC_API_URL=https://app-harinas.onrender.com
 ```
 
-Variable EAS preview: `EXPO_PUBLIC_API_URL=https://conciliarly-interpetaloid-marisol.ngrok-free.app`
+```powershell
+cd frontend
+eas build -p android --profile preview
+```
 
-Guía completa: `docs/OPERACION-LOCAL.md`
+Guía completa: [`docs/RENDER-DEPLOY.md`](RENDER-DEPLOY.md)
 
 ---
 

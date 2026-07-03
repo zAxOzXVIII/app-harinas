@@ -3,8 +3,9 @@
 Guía paso a paso para **identificar, cablear y montar cada pieza** del kit de laboratorio Nativa y conectarlo al backend + app.
 
 > **Tu kit:** **AHT10** (temp/humedad) + **HW-084** (reloj DS3231) + **ESP-12F** (Wi‑Fi).  
-> **Ahora:** Uno por **USB a la PC** → gateway en Node → backend → **MongoDB Atlas**.  
-> El **ESP-12F** se cablea en una fase posterior; primero valida sensores + USB.
+> **Producción:** API en **Render** (`https://app-harinas.onrender.com`) + **MongoDB Atlas** (`cluster0.0jgv676`).  
+> **Arduino:** Uno por USB → gateway en PC → API Render.  
+> El **ESP-12F** se cablea en una fase posterior.
 
 ---
 
@@ -42,17 +43,21 @@ Esta sección resume **todo lo que necesitas hoy**: conectar **AHT10** y **HW-08
 
 > **HW-084** es el nombre impreso en la PCB del reloj; por dentro es un **DS3231**. En el código y la API se usa como DS3231.
 
-### 0.2 Arquitectura (Uno por USB + Atlas)
+### 0.2 Arquitectura (Render + Atlas + gateway local)
 
 ```
 AHT10 ──┐
-        ├── I2C (A4/A5) ──► Arduino Uno ──USB──► PC
-HW-084 ─┘                        │
-                                 ├── gateway (Node.js)
-                                 ├── backend :4000
-                                 └── MongoDB Atlas (cluster0.0jgv676)
-                                          │
-                                          └── App Nativa (operador/gerente)
+        ├── I2C ──► Arduino Uno ──USB──► PC (gateway)
+HW-084 ─┘                                    │
+                                             │ POST /api/arduino/telemetry
+                                             ▼
+                              https://app-harinas.onrender.com (Render)
+                                             │
+                                             ▼
+                              MongoDB Atlas (cluster0.0jgv676)
+                                             │
+                                             ▼
+                              APK / Expo (operador / gerente)
 ```
 
 El **ESP-12F no participa** en este flujo hasta que tengas firmware Wi‑Fi en el ESP o migres a ESP32.
@@ -231,18 +236,22 @@ npm run seed:demo
 
 `verify:atlas` debe mostrar `MongoDB conectado correctamente`.
 
-#### D) Arrancar backend
+#### D) Arrancar backend local (opcional — desarrollo)
+
+Solo si pruebas en tu PC. En **producción/examen** el backend ya está en Render.
 
 ```powershell
 cd backend
 npm run dev
 ```
 
-Comprueba: http://localhost:4000/api/health → `"success": true`
+Comprueba local: http://localhost:4000/api/health
 
-### 0.7 Gateway — Uno (USB) → API
+**Producción (Render):** https://app-harinas.onrender.com/api/health
 
-**Terminal 2** (con el Uno conectado por USB):
+### 0.7 Gateway — Uno (USB) → API Render
+
+**Terminal** (con el Uno conectado por USB):
 
 ```powershell
 cd firmware\arduino-uno-aht10-ds3231-hc05\gateway
@@ -254,15 +263,15 @@ Crea `firmware/arduino-uno-aht10-ds3231-hc05/gateway/.env`:
 ```env
 SERIAL_PORT=COM3
 SERIAL_BAUD=115200
-API_URL=http://localhost:4000/api/arduino/telemetry
+API_URL=https://app-harinas.onrender.com/api/arduino/telemetry
 API_INSECURE_TLS=0
 ```
 
 | Variable | Valor | Nota |
 |----------|-------|------|
-| `SERIAL_PORT` | `COM3` | Cambia al COM de tu Uno (Administrador de dispositivos) |
+| `SERIAL_PORT` | `COM3` | COM del Uno (Administrador de dispositivos) |
 | `SERIAL_BAUD` | `115200` | Igual que monitor serie del sketch |
-| `API_URL` | `http://localhost:4000/api/arduino/telemetry` | Backend local |
+| `API_URL` | `https://app-harinas.onrender.com/api/arduino/telemetry` | API en Render + Atlas |
 
 ```powershell
 npm start
@@ -270,15 +279,15 @@ npm start
 
 Debe aparecer `POST 201` o `POST 200` cada ~30 s.
 
-### 0.8 App — ver telemetría
+### 0.8 App — ver telemetría (APK / Expo)
 
-Crea `frontend/.env` (desarrollo en emulador o misma PC):
+`frontend/.env`:
 
 ```env
-EXPO_PUBLIC_API_URL=http://localhost:4000
+EXPO_PUBLIC_API_URL=https://app-harinas.onrender.com
 ```
 
-Si usas **teléfono físico** en la misma WiFi, pon la IP de tu PC, ej. `http://192.168.1.50:4000`. Con **ngrok**: `https://tu-dominio.ngrok-free.app`.
+Para **APK** (EAS Build), la misma URL va en `frontend/eas.json` perfil `preview`.
 
 | Rol | Email | Contraseña |
 |-----|-------|------------|
@@ -292,17 +301,19 @@ npm install
 npx expo start -c --port 8082
 ```
 
-En la app: **Operador** → grupo `garbanzo-lenteja` (u otro del seed) → **Iniciar secado** → ver T°, HR y timer.
+O instala la APK compilada con `eas build -p android --profile preview`.
 
-### 0.9 Resumen de terminales (día a día)
+En la app: **Operador** → grupo `garbanzo-lenteja` → **Iniciar secado** → ver T°, HR y timer.
 
-| # | Terminal | Comando |
-|---|----------|---------|
-| 1 | Backend | `cd backend` → `npm run dev` |
-| 2 | Gateway | `cd firmware\arduino-uno-aht10-ds3231-hc05\gateway` → `npm start` |
-| 3 | App (opcional) | `cd frontend` → `npx expo start -c --port 8082` |
+### 0.9 Resumen de terminales (día a día — examen)
 
-Arduino Uno: conectado por **USB**, sketch subido, monitor serie puede estar cerrado (el gateway lee el COM).
+| # | Qué | Comando / URL |
+|---|-----|----------------|
+| — | API + Atlas (Render) | https://app-harinas.onrender.com/api/health |
+| 1 | Gateway Arduino | `cd firmware\arduino-uno-aht10-ds3231-hc05\gateway` → `npm start` |
+| 2 | App (opcional) | `cd frontend` → `npx expo start -c --port 8082` |
+
+Arduino Uno: USB + sketch subido. **No hace falta** `npm run dev` local si usas Render.
 
 ### 0.10 ESP-12F — cableado completo (cuando avances)
 
@@ -376,37 +387,34 @@ CORS_ORIGINS=http://localhost:8082,http://localhost:19006
 ```env
 SERIAL_PORT=COM3
 SERIAL_BAUD=115200
-API_URL=http://localhost:4000/api/arduino/telemetry
+API_URL=https://app-harinas.onrender.com/api/arduino/telemetry
 ```
 
-**`frontend/.env`:**
+**`frontend/.env` / APK:**
 
 ```env
-EXPO_PUBLIC_API_URL=http://localhost:4000
+EXPO_PUBLIC_API_URL=https://app-harinas.onrender.com
 ```
 
 **Comandos en orden:**
 
 ```powershell
 cd backend
-npm install
 npm run verify:atlas
 npm run seed:demo
-npm run dev
 
-# Otra terminal:
 cd firmware\arduino-uno-aht10-ds3231-hc05\gateway
 npm install
 npm start
 
-# Otra terminal (opcional):
+# APK nueva (si cambió la URL):
 cd frontend
-npx expo start -c --port 8082
+eas build -p android --profile preview
 ```
 
 **Grupos válidos en la app:** `garbanzo-lenteja`, `platano-cambur`, `yuca-batata`
 
-**Health check:** http://localhost:4000/api/health
+**Health check:** https://app-harinas.onrender.com/api/health
 
 **Al terminar el examen:** elimina el cluster en Atlas → **Database** → **...** → **Terminate**.
 
@@ -1042,7 +1050,7 @@ Configuración mínima para desarrollo con firmware del repo:
                  │
                  └── (opcional) Monitor serie 115200
 
-[PC] ── gateway ──► POST localhost:4000/api/arduino/telemetry
+[PC] ── gateway ──► POST https://app-harinas.onrender.com/api/arduino/telemetry
 ```
 
 **Piezas montadas:** Uno, DS3231, AHT10, cables dupont, pila CR2032.  

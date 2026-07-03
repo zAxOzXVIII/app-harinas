@@ -33,7 +33,7 @@ Configuras en el ESP32: `WIFI_SSID`, `WIFI_PASSWORD`, `API_URL` (ngrok, IP local
 |---------|-------------------|
 | PC en la misma red | `http://192.168.1.100:4000/api/arduino/telemetry` |
 | Túnel ngrok | `https://tu-dominio.ngrok-free.app/api/arduino/telemetry` |
-| Backend en la nube | `https://tu-app.onrender.com/api/arduino/telemetry` |
+| Backend en la nube | `https://app-harinas.onrender.com/api/arduino/telemetry` |
 
 ---
 

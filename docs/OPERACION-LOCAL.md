@@ -40,7 +40,29 @@ Tras `npm run seed:admin`:
 
 ---
 
-## 3) ngrok (API pública temporal)
+## 3) API pública — Render (recomendado en Venezuela)
+
+Backend desplegado en **Render** (sin ngrok):
+
+```text
+https://app-harinas.onrender.com
+```
+
+En `frontend/.env`:
+
+```env
+EXPO_PUBLIC_API_URL=https://app-harinas.onrender.com
+```
+
+Health: `GET https://app-harinas.onrender.com/api/health`
+
+Guía completa: [`RENDER-DEPLOY.md`](RENDER-DEPLOY.md)
+
+---
+
+## 3b) ngrok (solo si tu región lo permite)
+
+> **Venezuela:** ngrok suele bloquear conexiones (ERR_NGROK_9040). Usa Render.
 
 1. Backend en marcha en puerto **4000**.
 2. En `backend/.env`:
@@ -104,7 +126,7 @@ ESP32 ──Wi‑Fi──► Backend (Atlas) ──REST──► APK
 |---------------------|--------|
 | `http://IP_PC:4000/api/arduino/telemetry` | Misma red LAN |
 | `https://tu-dominio.ngrok-free.app/api/arduino/telemetry` | Demo con APK |
-| `https://tu-app.onrender.com/api/arduino/telemetry` | Producción estable |
+| `https://app-harinas.onrender.com/api/arduino/telemetry` | Producción (Render + Atlas) |
 
 Guía completa: [`firmware/README.md`](../firmware/README.md).
 

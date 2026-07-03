@@ -48,7 +48,7 @@ Si tienes Arduino Uno + HC-05, los sensores **AHT10 y DS3231 se reutilizan** al 
 |---------|-----------|
 | Backend en PC (misma red) | `http://192.168.1.100:4000/api/arduino/telemetry` |
 | Túnel ngrok | `https://tu-dominio.ngrok-free.app/api/arduino/telemetry` |
-| Backend en Render | `https://tu-app.onrender.com/api/arduino/telemetry` |
+| Backend en Render | `https://app-harinas.onrender.com/api/arduino/telemetry` |
 
 Con HTTPS (`https://...`), define `API_USE_HTTPS` en `1` en `config.h`.
 

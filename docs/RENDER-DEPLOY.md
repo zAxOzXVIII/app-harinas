@@ -9,7 +9,7 @@ Guía para publicar la API en **Render** con **MongoDB Atlas** y conectar la **A
 ## Arquitectura
 
 ```
-APK (teléfono) ──HTTPS──► Render (app-harinas-api.onrender.com)
+APK (teléfono) ──HTTPS──► Render (app-harinas.onrender.com)
 Arduino gateway ──HTTPS──► Render /api/arduino/telemetry
                                 │
                                 └── MongoDB Atlas (cluster0.0jgv676)
@@ -34,7 +34,7 @@ git pull origin main
 
 1. [Render Dashboard](https://dashboard.render.com) → **New** → **Blueprint**
 2. Conecta el repo `app-harinas`
-3. Render detecta `render.yaml` y crea el servicio `app-harinas-api`
+3. Render detecta `render.yaml` y crea el servicio `app-harinas`
 
 ### Opción B — Manual
 
@@ -88,7 +88,7 @@ mongodb://mardenrosales44_db_user:TU_PASSWORD@ac-xmbqxbd-shard-00-00.0jgv676.mon
 Tras el primer deploy (puede tardar 2–5 min):
 
 ```text
-GET https://app-harinas-api.onrender.com/api/health
+GET https://app-harinas.onrender.com/api/health
 ```
 
 Respuesta esperada: `"success": true`
@@ -130,7 +130,7 @@ Credenciales demo:
 ```env
 SERIAL_PORT=COM3
 SERIAL_BAUD=115200
-API_URL=https://app-harinas-api.onrender.com/api/arduino/telemetry
+API_URL=https://app-harinas.onrender.com/api/arduino/telemetry
 API_INSECURE_TLS=0
 ```
 
@@ -147,7 +147,7 @@ npm start
 `frontend/.env`:
 
 ```env
-EXPO_PUBLIC_API_URL=https://app-harinas-api.onrender.com
+EXPO_PUBLIC_API_URL=https://app-harinas.onrender.com
 ```
 
 `frontend/eas.json` — perfil `preview` ya incluye la misma URL.
