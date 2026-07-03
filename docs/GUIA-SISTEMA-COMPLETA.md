@@ -2,7 +2,7 @@
 
 Documento de referencia para entender **cómo funciona todo** (backend → frontend), **dónde está el código** y **qué pantallas capturar en la app** para documentación visual (fotos, informe, APK).
 
-> **Sobre el UML:** en este repositorio **no hay archivos `.uml` / `.puml`**. Los diagramas oficiales están aquí (Mermaid) y en los prompts de sprint (`docs/prompts/SPRINT-14-*`, `SPRINT-15-*`). Si tenías un UML externo, conviene volver a subirlo a `docs/diagramas/`.
+> **Sobre el UML:** en este repositorio **no hay archivos `.uml` / `.puml`**. Los diagramas oficiales están aquí (Mermaid). Si tenías un UML externo, conviene volver a subirlo a `docs/diagramas/`.
 
 ---
 
@@ -357,7 +357,8 @@ App-Harinas/
 └── docs/
     ├── GUIA-SISTEMA-COMPLETA.md    ← este archivo
     ├── OPERACION-LOCAL.md          ← ngrok, seeds, tests
-    └── prompts/                    ← specs por sprint
+    ├── RENDER-DEPLOY.md            ← deploy Render + Atlas
+    └── MONTAJE-HARDWARE-UNO-ESP12F.md
 ```
 
 ---
@@ -503,8 +504,6 @@ La APK embebe la URL del API al compilar. Si cambias ngrok/Render, hay que **rec
 | `DEPLOY-PLAN.md` | Render + Atlas producción |
 | `backend/docs/arduino-telemetry-contract.md` | JSON telemetría |
 | `firmware/README.md` | ESP32 Wi‑Fi |
-| `docs/prompts/SPRINT-14-OPERADOR-TEMPORIZADOR.md` | Spec temporizador |
-| `docs/prompts/SPRINT-15-OPERADOR-CALIFICACION.md` | Spec cierre secado |
 | `SPRINTS.md` | Historial de sprints |
 
 ---

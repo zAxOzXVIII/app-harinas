@@ -3,10 +3,6 @@
 Proyecto: **Nativa Superalimentos C.A**  
 Stack: React Native (Expo) + TypeScript + Node.js + Express + MongoDB
 
-> **Prompts para Cursor:** centralizados en [`docs/prompts/`](docs/prompts/README.md). Este archivo conserva producto, estado y checks; los bloques largos de prompt ya no se duplican aquí.
-
----
-
 ## Especificaciones del producto (Arduino + app) — vigente
 
 ### Vision general
@@ -101,11 +97,6 @@ Inicializar app Android con Expo + TypeScript, implementar autenticacion y dashb
 - [x] Dashboard inicial consumiendo `GET /api/harinas`.
 - [x] Validacion de compilacion TypeScript (`npx tsc --noEmit`).
 - [x] Metro Bundler levantando correctamente (`expo start`, `Waiting on http://localhost:8081`).
-
-### Prompt
-
-Ver [`docs/prompts/completados/sprint-02-frontend-base.md`](docs/prompts/completados/sprint-02-frontend-base.md).
-
 ---
 
 ## Sprint 3 - CRUD de Harinas en app movil (completado ✅)
@@ -124,22 +115,12 @@ Implementar modulo completo de gestion de harinas desde el frontend.
 - [x] `DashboardScreen` con `useFocusEffect` para refrescar datos al regresar del CRUD.
 - [x] Validacion TypeScript (`npx tsc --noEmit`) sin errores.
 - [x] Sin errores de linter en `src/`.
-
-### Prompt
-
-Ver [`docs/prompts/completados/sprint-03-crud-harinas.md`](docs/prompts/completados/sprint-03-crud-harinas.md).
-
 ---
 
 ## Sprint 4 - Endurecimiento y preparacion de release (recomendado)
 
 ### Objetivo
 Dejar la app lista para pruebas internas y crecimiento, y preparar el salto al **modelo Arduino + roles Gerente/Supervisor/Operador** descrito en la seccion de especificaciones.
-
-### Prompt
-
-Ver [`docs/prompts/completados/sprint-04-hardening.md`](docs/prompts/completados/sprint-04-hardening.md).
-
 ### Alcance sugerido
 - Roles de usuario (`gerente`, `supervisor`, `operador`) alineados al producto: **Gerente** control total y equipo; **Supervisor** calibracion; **Operador** supervision.
 - Mejoras UX (feedback, loaders, confirmaciones).
@@ -198,11 +179,6 @@ Implementar el **modelo de datos y permisos** que refleja el negocio: parejas de
 - [x] Validacion logica `min <= max` y rangos 0–100 en humedad / nivel secado.
 - [x] Auditoria de cambios de calibracion (`actualizadoPor`/`actualizadoEn`).
 - [x] `npx tsc --noEmit` y `node --check` sin errores.
-
-### Prompt
-
-Ver [`docs/prompts/completados/sprint-05-grupos-calibracion.md`](docs/prompts/completados/sprint-05-grupos-calibracion.md).
-
 ---
 
 ## Sprint 6 - Integracion Arduino (lecturas de proceso -> backend -> app) (completado ✅)
@@ -236,11 +212,6 @@ Recibir **telemetria de proceso** desde Arduino alineada a las variables por gru
 - [x] API de consulta para app: `GET /api/telemetry/latest` y `GET /api/telemetry/group/:grupoRubroId`.
 - [x] UI Operador muestra las cuatro dimensiones y estado (`OK` / `ALERTA` / `CRITICO`) vs calibracion/humedad.
 - [x] Simulador de carga para pruebas: `npm run simulate:telemetry`.
-
-### Prompt
-
-Ver [`docs/prompts/completados/sprint-06-telemetria.md`](docs/prompts/completados/sprint-06-telemetria.md).
-
 ---
 
 ## Sprint 7 - Notificaciones y alertas (proceso + stock si aplica) (completado ✅ in-app; push pendiente)
@@ -274,11 +245,6 @@ Avisar al operador (y opcionalmente al Gerente) cuando las lecturas **salgan de 
 - [ ] push notifications POC funcionando (pendiente — fase 7b).
 - [x] anti-spam implementado y persistido.
 - [x] UI de alertas para operador y resumen en Muro Gerente.
-
-### Prompt
-
-Ver [`docs/prompts/completados/sprint-07-alertas.md`](docs/prompts/completados/sprint-07-alertas.md).
-
 ---
 
 ## Sprint 8 - Respaldo y seguridad de datos (backups + cifrado + hardening) (completado ✅)
@@ -304,11 +270,6 @@ Garantizar integridad y disponibilidad de la informacion ante fallos de hardware
 - [x] Restore validado: `npm run verify:backup-restore` ejecutado y completado con verificacion logica JSON (exporta colecciones a BD temporal, compara conteos exactos, limpia). Modo `mongodump`/`mongorestore` activable cuando se instalen MongoDB Database Tools.
 - [x] Hardening aplicado (rate limit + CORS por ambiente + `helmet` + logging de errores HTTP).
 - [x] Documentacion de seguridad y secretos (`backend/docs/BACKUP-SECURITY.md`, `.env.example`, README).
-
-### Prompt
-
-Ver [`docs/prompts/completados/sprint-08-seguridad.md`](docs/prompts/completados/sprint-08-seguridad.md).
-
 ---
 
 ## Sprint 9 - Deploy POC en la nube (sin costos o costo minimo) + documentacion
@@ -340,9 +301,9 @@ Publicar un entorno de pruebas accesible para demos y para usar la app desde mul
 - [ ] Variables por ambiente definidas y seguras.
 - [ ] Documentacion `DEPLOY-POC.md` lista.
 
-### Prompt
+### Documentación
 
-Ver [`docs/prompts/SPRINT-09-DEPLOY.md`](docs/prompts/SPRINT-09-DEPLOY.md) y [`DEPLOY-PLAN.md`](DEPLOY-PLAN.md).
+Ver [`DEPLOY-PLAN.md`](DEPLOY-PLAN.md) y [`docs/RENDER-DEPLOY.md`](docs/RENDER-DEPLOY.md).
 
 ---
 
@@ -357,12 +318,6 @@ Alinear la app con identidad **NATIVA — Control de planta** (referencia visual
 - **10B1–10B5** — PDF por modulo
 - **10C** — Pulido visual pantallas por rol
 - **10D** — `trust proxy` para ngrok/deploy
-
-### Prompt y backlog de mejoras
-- Prompt completo: [`docs/prompts/SPRINT-10-VISUAL-PDF.md`](docs/prompts/SPRINT-10-VISUAL-PDF.md)
-- **PDF (datos BD, orden, diseño):** [`docs/prompts/PDF-DATOS-Y-DISENO.md`](docs/prompts/PDF-DATOS-Y-DISENO.md)
-- Analisis del sistema: [`docs/prompts/MEJORAS-SISTEMA.md`](docs/prompts/MEJORAS-SISTEMA.md)
-- Indice general: [`docs/prompts/README.md`](docs/prompts/README.md)
 
 ### Check de estado
 - [x] 10A tema + login azul
