@@ -8,37 +8,137 @@ Documento de referencia para entender **cómo funciona todo** (backend → front
 
 ## 1. Qué es el sistema
 
-Monorepo **Nativa Superalimentos** para control de planta:
+Monorepo **Nativa Superalimentos** para control de planta de secado de harinas:
 
 | Capa | Tecnología | Carpeta |
 |------|------------|---------|
 | API REST | Node.js + Express 5 + Mongoose | `backend/` |
-| Base de datos | MongoDB (local o Atlas) | colección `app_harinas` |
+| Base de datos | MongoDB (`app_harinas`) — local o Atlas | vía `MONGODB_URI` |
 | App móvil | Expo SDK 54 + React Native + TypeScript | `frontend/` |
-| Sensores (producción) | ESP32 + Wi‑Fi → API | `firmware/esp32-aht10-ds3231/` |
+| Sensores | AHT10 (T° + HR) + DS3231 (reloj) | cableado en docs hardware |
+| Firmware producción | ESP32 + Wi‑Fi → API | `firmware/esp32-aht10-ds3231/` |
+| Firmware examen / kit Uno | Arduino Uno + gateway Node en PC | `firmware/arduino-uno-aht10-ds3231-hc05/` |
 
-**Flujo principal:**
+### Flujo de datos (siempre el mismo)
 
 ```
-ESP32 (AHT10 + DS3231)
-        │ POST /api/arduino/telemetry
+Sensores (AHT10 + DS3231)
+        │ I2C → micro (ESP32 o Uno)
+        │ HTTP POST /api/arduino/telemetry
         ▼
-   Backend + MongoDB
-        │ REST (JWT)
+   Backend Express  ──►  MongoDB (telemetría, alertas, usuarios, secados)
+        │ REST + JWT
         ▼
    APK / Expo (Gerente, Supervisor, Operador)
 ```
 
-La app **no** habla con el Arduino por Bluetooth. Solo consume el backend.
+Reglas importantes:
+
+- La **app móvil nunca habla con el Arduino** (ni Bluetooth ni USB). Solo consume el backend por HTTPS.
+- El **backend es el único punto de verdad**: guarda telemetría, evalúa alertas, gestiona secados y roles.
+- Las **alertas de anomalía** (T°, humedad fuera de rango, etc.) solo se generan si hay un **secado activo** (`ProcesoSecado` en `en_secado`). La telemetría **sí se guarda siempre** que llegue al API, aunque no haya secado.
+- Los **grupos de rubro** (3 parejas fijas) no se crean desde la app: vienen del seed (`npm run seed:grupos`).
+
+### Rutas de hardware
+
+| Ruta | Cuándo | Requiere PC encendida |
+|------|--------|------------------------|
+| **ESP32 + Wi‑Fi** (recomendada en planta) | Producción / demo con sensores reales | No — el ESP32 envía directo al API |
+| **Arduino Uno + gateway** (kit examen) | Montaje docente, pruebas con Uno | Sí — script Node lee serial y hace POST al API |
+| **Simulador** (`npm run simulate:telemetry`) | Desarrollo sin hardware | Sí — solo en la máquina del backend |
 
 ---
 
-## 2. Arquitectura general
+## 2. Entornos de ejecución y conectividad
+
+El sistema **no es offline-first**: app, backend y base de datos deben poder comunicarse. Lo que cambia entre entornos es **dónde corre cada pieza** y **qué URL usa cada cliente**.
+
+### Modos de operación
+
+| Modo | Uso típico | Backend | MongoDB | App móvil | Telemetría |
+|------|------------|---------|---------|-----------|------------|
+| **A — Desarrollo local** | Programar en PC, Expo Go, tests | `http://localhost:4000` en tu PC | Local `127.0.0.1:27017` **o** Atlas | `EXPO_PUBLIC_API_URL` → localhost / IP LAN / `10.0.2.2` (emulador) | `npm run simulate:telemetry` |
+| **B — Examen / demo (Venezuela)** | APK en teléfono + sensores reales | **Render** `https://app-harinas.onrender.com` | **MongoDB Atlas** (nube) | APK con URL Render embebida (`eas.json` perfil `preview`) | ESP32 o gateway Uno → **HTTPS Render** |
+| **C — ngrok (opcional)** | Solo si tu región lo permite | Túnel a backend local | Local o Atlas | URL ngrok en `EXPO_PUBLIC_API_URL` | POST al dominio ngrok |
+
+> **Entorno oficial del proyecto (jun 2026): modo B.** Render + Atlas. ngrok **no funciona** desde Venezuela (ERR_NGROK_9040); no usarlo como plan principal.
+
+### Diagrama por entorno
+
+```mermaid
+flowchart LR
+  subgraph local["Modo A — Local"]
+    APP_L[Expo / emulador]
+    BE_L[Backend :4000]
+    DB_L[(MongoDB local o Atlas)]
+    SIM[simulate:telemetry]
+    APP_L --> BE_L --> DB_L
+    SIM --> BE_L
+  end
+
+  subgraph cloud["Modo B — Render + Atlas (producción demo)"]
+    APP_C[APK Android]
+    BE_C[Render HTTPS]
+    DB_C[(MongoDB Atlas)]
+    HW[ESP32 o gateway Uno]
+    APP_C -->|internet| BE_C --> DB_C
+    HW -->|internet| BE_C
+  end
+```
+
+### Qué necesita conexión a internet
+
+| Componente | Modo A local | Modo B Render |
+|------------|--------------|---------------|
+| PC del desarrollador | Solo para levantar backend/Expo | Para seeds, builds EAS, gateway Uno |
+| Teléfono con APK | No aplica (Expo en LAN) | **Sí** — login, telemetría, alertas van a Render |
+| ESP32 en planta | Solo si `API_URL` apunta a Render | **Sí** — Wi‑Fi de planta + internet |
+| Gateway Uno (PC) | Backend local o Render | **Sí** si API es Render |
+| MongoDB Atlas desde PC | **Sí** (sin VPN bloqueante) | Render se conecta solo |
+
+### Variables que definen el entorno
+
+| Variable | Dónde | Qué conecta |
+|----------|-------|-------------|
+| `MONGODB_URI` | `backend/.env` o Render Environment | Backend → MongoDB |
+| `EXPO_PUBLIC_API_URL` | `frontend/.env` y `frontend/eas.json` (build APK) | App → Backend |
+| `API_URL` | `firmware/**/config.h` o `gateway/.env` | Hardware → `POST .../api/arduino/telemetry` |
+| `CORS_ORIGINS` | `backend/.env` / Render | Orígenes permitidos (APK no envía Origin; `*` OK en examen) |
+
+**Valores vigentes (modo B):**
+
+```env
+# frontend/.env y eas.json → profile preview
+EXPO_PUBLIC_API_URL=https://app-harinas.onrender.com
+
+# gateway Uno o ESP32 config
+API_URL=https://app-harinas.onrender.com/api/arduino/telemetry
+```
+
+Health check: `GET https://app-harinas.onrender.com/api/health` → `"success": true`
+
+> El plan gratis de Render **duerme** tras inactividad; la primera petición puede tardar 30–60 s.
+
+### Desarrollo local vs APK: diferencia clave
+
+| | Expo Go / `expo start` | APK EAS (`preview`) |
+|--|------------------------|---------------------|
+| URL del API | Lee `frontend/.env` al arrancar Metro | **Embebida al compilar** en el binario |
+| Cambiar backend | Editar `.env` y reiniciar Expo | **Recompilar** APK (`eas build`) |
+| Ideal para | Iterar UI en PC | Demo en teléfono real, examen |
+
+Guías detalladas: [`OPERACION-LOCAL.md`](OPERACION-LOCAL.md) (arranque diario) · [`RENDER-DEPLOY.md`](RENDER-DEPLOY.md) (Render + Atlas)
+
+---
+
+## 3. Arquitectura general
 
 ```mermaid
 flowchart TB
   subgraph Hardware
-    ESP[ESP32 + sensores]
+    SENS[AHT10 + DS3231]
+    MCU[ESP32 Wi‑Fi o Uno + gateway PC]
+    SENS --> MCU
   end
 
   subgraph Backend["backend/"]
@@ -61,13 +161,13 @@ flowchart TB
     SCR --> STO --> SRV
   end
 
-  ESP -->|JSON telemetría| API
-  SRV -->|JWT| API
+  MCU -->|POST /api/arduino/telemetry| API
+  SRV -->|HTTPS + JWT| API
 ```
 
 ---
 
-## 3. Roles y navegación
+## 4. Roles y navegación
 
 El rol viene en el JWT tras login. `RootNavigator.tsx` elige el stack:
 
@@ -89,11 +189,11 @@ El rol viene en el JWT tras login. `RootNavigator.tsx` elige el stack:
 
 ---
 
-## 4. Mapa pantalla ↔ código ↔ API (para fotos en la app)
+## 5. Mapa pantalla ↔ código ↔ API (para fotos en la app)
 
 Usa esta tabla: abres la app, llegas a la pantalla, y sabes qué archivo implementa qué ves.
 
-### 4.1 Login (todos los roles)
+### 5.1 Login (todos los roles)
 
 | Lo que ves | Archivo frontend | Backend |
 |------------|------------------|---------|
@@ -106,7 +206,7 @@ Usa esta tabla: abres la app, llegas a la pantalla, y sabes qué archivo impleme
 
 ---
 
-### 4.2 Gerente (Admin)
+### 5.2 Gerente (Admin)
 
 | Pantalla en app | Título header | Archivo | API principal |
 |-----------------|---------------|---------|---------------|
@@ -138,7 +238,7 @@ Usa esta tabla: abres la app, llegas a la pantalla, y sabes qué archivo impleme
 
 ---
 
-### 4.3 Supervisor
+### 5.3 Supervisor
 
 | Pantalla | Título | Archivo | API |
 |----------|--------|---------|-----|
@@ -156,7 +256,7 @@ Usa esta tabla: abres la app, llegas a la pantalla, y sabes qué archivo impleme
 
 ---
 
-### 4.4 Operador
+### 5.4 Operador
 
 | Pantalla | Título | Archivo | API / componentes |
 |----------|--------|---------|-------------------|
@@ -177,15 +277,21 @@ Usa esta tabla: abres la app, llegas a la pantalla, y sabes qué archivo impleme
 - [ ] Pantalla Alertas (lista completa)
 - [ ] Resultado tras finalizar (listo / poco óptimo si aplica)
 
-**Para que haya datos en pantalla:** backend encendido + `npm run simulate:telemetry` o ESP32 enviando lecturas + operador debe **iniciar secado** para alertas en contexto.
+**Para que haya datos en pantalla:**
+
+| Entorno | Qué encender |
+|---------|--------------|
+| Local (modo A) | Backend en PC + `npm run simulate:telemetry` **o** gateway/ESP apuntando al API |
+| APK + Render (modo B) | Render despierto (health check) + telemetría llegando a Render + login en app |
+| Alertas en card del operador | Además de lo anterior: operador debe **iniciar secado** (alertas de anomalía solo con secado activo) |
 
 ---
 
-## 5. Base de datos — modelos Mongoose
+## 6. Base de datos — modelos Mongoose
 
 Colección MongoDB: **`app_harinas`**. Modelos en `backend/src/models/`.
 
-### 5.1 Diagrama entidad-relación
+### 6.1 Diagrama entidad-relación
 
 ```mermaid
 erDiagram
@@ -254,7 +360,7 @@ erDiagram
   }
 ```
 
-### 5.2 Detalle por modelo
+### 6.2 Detalle por modelo
 
 | Modelo | Archivo | Para qué sirve |
 |--------|---------|----------------|
@@ -274,9 +380,18 @@ erDiagram
 
 ---
 
-## 6. API REST — endpoints
+## 7. API REST — endpoints
 
-Base: `http://localhost:4000` (dev) o URL ngrok/Render (APK).
+**Base URL según entorno:**
+
+| Entorno | Base URL |
+|---------|----------|
+| Desarrollo local | `http://localhost:4000` |
+| Emulador Android (misma PC) | `http://10.0.2.2:4000` |
+| Teléfono en LAN (backend en PC) | `http://IP_LAN_PC:4000` |
+| APK / producción demo | `https://app-harinas.onrender.com` |
+
+Todas las rutas van bajo `/api/...`. La raíz `/` del servicio Render puede devolver 404; usar `/api/health`.
 
 | Método | Ruta | Auth | Rol | Descripción |
 |--------|------|------|-----|-------------|
@@ -304,24 +419,26 @@ Contrato telemetría: `backend/docs/arduino-telemetry-contract.md`
 
 ---
 
-## 7. Flujo operador — secado (diagrama)
+## 8. Flujo operador — secado (diagrama)
 
 ```mermaid
 stateDiagram-v2
-  [*] --> pendiente: grupo sin secado
+  [*] --> pendiente: grupo disponible
   pendiente --> en_secado: Operador INICIAR SECADO
-  en_secado --> en_secado: telemetría + alertas
-  en_secado --> completado: FINALIZAR SECADO
-  completado --> revisado_empaquetado: marcar empaquetado
-  completado --> [*]: resultado listo / poco_optimo
+  en_secado --> en_secado: telemetría guardada + alertas si fuera de rango
+  en_secado --> revisado_empaquetado: FINALIZAR o timer a 0
+  revisado_empaquetado --> archivado: Gerente REABRIR deja el anterior archivado
+  revisado_empaquetado --> [*]: sale de lista activa operador\nresultado listo / poco_optimo
 ```
+
+Al cerrar el secado el backend calcula `resultado` (`listo` o `poco_optimo`) según alertas de anomalía no atendidas. El grupo deja de mostrarse al operador (`GET /api/grupos-rubro?activos=true`).
 
 Código backend: `backend/src/services/procesoSecado.service.js`  
 Código frontend: `frontend/src/store/procesoSecado.store.ts` + `SecadoTimer.tsx`
 
 ---
 
-## 8. Estructura de carpetas (lo importante)
+## 9. Estructura de carpetas (lo importante)
 
 ```
 App-Harinas/
@@ -352,18 +469,19 @@ App-Harinas/
 │
 ├── firmware/
 │   ├── README.md
-│   └── esp32-aht10-ds3231/        ← producción Wi‑Fi
+│   ├── esp32-aht10-ds3231/                    ← producción Wi‑Fi
+│   └── arduino-uno-aht10-ds3231-hc05/         ← kit Uno + gateway PC
 │
 └── docs/
     ├── GUIA-SISTEMA-COMPLETA.md    ← este archivo
-    ├── OPERACION-LOCAL.md          ← ngrok, seeds, tests
-    ├── RENDER-DEPLOY.md            ← deploy Render + Atlas
+    ├── OPERACION-LOCAL.md          ← arranque local, Atlas, APK
+    ├── RENDER-DEPLOY.md            ← Render + Atlas (modo B)
     └── MONTAJE-HARDWARE-UNO-ESP12F.md
 ```
 
 ---
 
-## 9. Frontend — capas (cómo se conecta una pantalla)
+## 10. Frontend — capas (cómo se conecta una pantalla)
 
 Ejemplo: **Operador ve temperatura**
 
@@ -391,45 +509,59 @@ Archivos clave:
 
 ---
 
-## 10. Cómo ejecutar para demo y capturas
+## 11. Cómo ejecutar — por entorno
 
-### Terminal 1 — MongoDB local
+### Modo A — Desarrollo local (PC)
 
-Debe estar escuchando en `127.0.0.1:27017`.
+**Terminal 1 — MongoDB** (si no usas Atlas en `MONGODB_URI`):
 
-### Terminal 2 — Backend
+```powershell
+mongod --dbpath C:\data\db --bind_ip 127.0.0.1 --port 27017
+```
+
+**Terminal 2 — Backend:**
 
 ```powershell
 cd backend
 npm run dev
 ```
 
-Verificar: http://localhost:4000/api/health → `{"success":true}`
+Verificar: http://localhost:4000/api/health
 
-### Terminal 3 — Datos demo (si BD vacía)
+**Terminal 3 — Seeds** (BD vacía):
 
 ```powershell
 cd backend
 npm run seed:demo
 ```
 
-### Terminal 4 — Telemetría simulada (gráficas y alertas)
+**Terminal 4 — Telemetría simulada** (gráficas sin hardware):
 
 ```powershell
 cd backend
 npm run simulate:telemetry
 ```
 
-### Terminal 5 — Frontend (Expo)
+**Terminal 5 — Frontend:**
 
 ```powershell
 cd frontend
+# frontend/.env → EXPO_PUBLIC_API_URL=http://localhost:4000  (o IP LAN / 10.0.2.2)
 npx expo start -c --port 8082
 ```
 
-Escanea QR o abre en emulador. Login con credenciales de la sección 3.
+Login: credenciales §4. Sin internet externo si MongoDB es local y el API es localhost.
 
-### Para APK en teléfono (Render + Atlas)
+---
+
+### Modo B — Demo / examen (Render + Atlas + APK)
+
+Este es el flujo **esperado en producción académica** cuando el teléfono no está en la misma red que un PC con backend.
+
+1. Backend ya desplegado: `https://app-harinas.onrender.com`
+2. MongoDB en Atlas (`MONGODB_URI` en Render)
+3. Seeds en Atlas (una vez): `npm run seed:demo` con `.env` apuntando a Atlas
+4. APK compilada con:
 
 ```env
 EXPO_PUBLIC_API_URL=https://app-harinas.onrender.com
@@ -440,24 +572,34 @@ cd frontend
 eas build -p android --profile preview
 ```
 
-Guía completa: [`docs/RENDER-DEPLOY.md`](RENDER-DEPLOY.md)
+5. Telemetría real: ESP32 o gateway Uno con `API_URL=https://app-harinas.onrender.com/api/arduino/telemetry`
+6. Teléfono con **datos móviles o Wi‑Fi con internet** — la app **no funciona** contra un backend local sin estar en la misma LAN
+
+Guía paso a paso: [`RENDER-DEPLOY.md`](RENDER-DEPLOY.md)
 
 ---
 
-## 11. APK — preview e instalación
+### Modo C — ngrok (solo si tu región lo permite)
+
+Backend local + túnel ngrok + `EXPO_PUBLIC_API_URL` con dominio ngrok. **No recomendado en Venezuela.** Ver [`OPERACION-LOCAL.md`](OPERACION-LOCAL.md) §3b.
+
+---
+
+## 12. APK — preview e instalación
 
 | Concepto | Valor |
 |----------|-------|
 | Perfil EAS | `preview` → genera **APK** (`frontend/eas.json`) |
 | Comando build | `cd frontend && npx eas-cli build -p android --profile preview` |
-| Variable remota | `EXPO_PUBLIC_API_URL` en entorno **preview** de Expo |
+| Variable en build | `EXPO_PUBLIC_API_URL` en `frontend/eas.json` → profile `preview` |
+| URL vigente | `https://app-harinas.onrender.com` |
 | Builds recientes | `npx eas-cli build:list --platform android --limit 5` |
 
-La APK embebe la URL del API al compilar. Si cambias ngrok/Render, hay que **recompilar**.
+La APK **embebe** la URL del API al compilar. Si cambias de Render a otro host, hay que **recompilar** la APK.
 
 ---
 
-## 12. Mapa rápido “¿dónde busco X?”
+## 13. Mapa rápido “¿dónde busco X?”
 
 | Necesito… | Archivo |
 |-----------|---------|
@@ -471,19 +613,24 @@ La APK embebe la URL del API al compilar. Si cambias ngrok/Render, hay que **rec
 | Seeds / usuarios demo | `backend/src/scripts/seedDemo.js` |
 | Tests API | `backend/tests/*.test.js` → `npm test` |
 | Firmware ESP32 | `firmware/esp32-aht10-ds3231/` |
+| Gateway Uno (kit examen) | `firmware/arduino-uno-aht10-ds3231-hc05/gateway/` |
+| Variables entorno backend | `backend/.env.example`, `backend/src/config/env.js` |
+| URL API en app | `frontend/.env`, `frontend/eas.json` |
+| Entornos local vs nube | **Este doc §2**, `OPERACION-LOCAL.md`, `RENDER-DEPLOY.md` |
 
 ---
 
-## 13. Qué falta para el informe visual (sugerencia)
+## 14. Qué falta para el informe visual (sugerencia)
 
 | Entrega | Quién | Dónde / cómo |
 |---------|-------|--------------|
-| **Fotos app por rol** | Ella (en dispositivo) | Checklists secciones 4.2–4.4 |
+| **Fotos app por rol** | Ella (en dispositivo) | Checklists secciones 5.2–5.4 |
 | **Fotos código** | Ustedes | Archivos listados en tabla “Mapa pantalla ↔ código” |
 | **Diagramas UML formales** | Ustedes | No están en repo; usar diagramas Mermaid de este doc o exportar desde draw.io |
 | **Preview APK** | Build EAS | Sección 11 + enlace Expo |
-| **Esquema BD** | Este doc §5 | Captura del diagrama ER o MongoDB Compass |
-| **Arquitectura** | Este doc §2 | Diagrama flowchart |
+| **Esquema BD** | Este doc §6 | Captura del diagrama ER o MongoDB Compass |
+| **Arquitectura** | Este doc §3 | Diagrama flowchart |
+| **Entornos y conectividad** | Este doc §2 | Tabla modos A/B/C |
 
 **Preguntas útiles para ella (qué más falta):**
 
@@ -491,21 +638,24 @@ La APK embebe la URL del API al compilar. Si cambias ngrok/Render, hay que **rec
 - ¿Estados del operador con secado activo vs inactivo?
 - ¿Pantalla de error (sin red / login fallido)?
 - ¿PDF exportado desde harinas, muro o alertas?
+- ¿Demo con APK + Render (modo B) vs Expo local (modo A)?
 
 ---
 
-## 14. Documentos relacionados
+## 15. Documentos relacionados
 
 | Documento | Contenido |
 |-----------|-----------|
 | `README.md` | Instalación general |
-| `docs/OPERACION-LOCAL.md` | ngrok, Atlas, APK, tests |
+| `docs/OPERACION-LOCAL.md` | Arranque local, Atlas, APK, tests |
+| `docs/RENDER-DEPLOY.md` | Render + Atlas (modo B, Venezuela) |
 | `docs/MONTAJE-HARDWARE-UNO-ESP12F.md` | Cableado Uno, ESP-12F, gateway, checklist |
-| `DEPLOY-PLAN.md` | Render + Atlas producción |
+| `DEPLOY-PLAN.md` | Plan de despliegue |
 | `backend/docs/arduino-telemetry-contract.md` | JSON telemetría |
-| `firmware/README.md` | ESP32 Wi‑Fi |
+| `firmware/README.md` | ESP32 Wi‑Fi + rutas hardware |
+| `docs/AGENTE-ENTREGAS.md` | Prompts por partes (LeanHerz: ✓ operador, papelera gerente, fluctuaciones) |
 | `SPRINTS.md` | Historial de sprints |
 
 ---
 
-*Última actualización: junio 2026 — commit con Sprint 14–15, tema verde y logo Nativa.*
+*Última actualización: julio 2026 — entornos local vs Render+Atlas, rutas hardware Uno/ESP32.*
