@@ -164,6 +164,24 @@ export const DashboardScreen = ({ onGoToGestion }: Props) => {
               </Button>
               <Button
                 mode="contained-tonal"
+                icon="chart-timeline-variant"
+                onPress={() => navigation.navigate("FluctuacionesHumedad")}
+                style={[
+                  styles.gridBtn,
+                  {
+                    minWidth:
+                      layout.dashboardColumns === 1
+                        ? "100%"
+                        : layout.dashboardColumns === 2
+                          ? "48%"
+                          : "31%",
+                  },
+                ]}
+              >
+                Fluctuaciones HR
+              </Button>
+              <Button
+                mode="contained-tonal"
                 icon="delete-outline"
                 onPress={() => navigation.navigate("LotesPendientesArchivo")}
                 style={[

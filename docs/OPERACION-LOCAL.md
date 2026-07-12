@@ -158,7 +158,16 @@ npm test
 
 Usa MongoDB en memoria (no requiere MongoDB local instalado para tests).
 
-Cobertura actual: health, login, push-token, harinas CRUD, grupos/calibración, ingesta telemetría, alertas.
+Cobertura actual: health, login, push-token, harinas CRUD, grupos/calibración, ingesta telemetría, alertas, procesos-secado (marcar-listo/archivar), fluctuaciones humedad.
+
+### Endpoints nuevos (LeanHerz, jul 2026)
+
+| Método | Ruta | Rol |
+|--------|------|-----|
+| POST | `/api/procesos-secado/:id/marcar-listo` | operador |
+| POST | `/api/procesos-secado/:id/archivar` | gerente |
+| GET | `/api/procesos-secado/pendientes-archivo` | gerente |
+| GET | `/api/telemetry/fluctuaciones/humedad` | supervisor, gerente |
 
 En cada push a `main`, GitHub Actions ejecuta los tests automáticamente.
 
@@ -185,7 +194,7 @@ PUSH_NOTIFICATIONS_ENABLED=true
 
 ## 8) Exportar PDF desde la app
 
-En pantallas Harinas, Calibración, Alertas, Muro y Equipo → botón **Exportar PDF**.
+En pantallas Harinas, Calibración, Alertas, Muro, Equipo y **Fluctuaciones humedad** → botón **Exportar PDF**.
 
 ---
 

@@ -2,6 +2,8 @@
 
 Documento para ejecutar cambios solicitados por **LeanHerz (11/7/2026)** en el monorepo App-Harinas.
 
+**Estado:** Partes 1–4 **implementadas** (jul 2026). Commit de referencia: `7df11a5`.
+
 **Referencia del sistema:** [`GUIA-SISTEMA-COMPLETA.md`](GUIA-SISTEMA-COMPLETA.md) (§1 flujo, §2 entornos, §6 modelos, §8 secado).
 
 ---
@@ -307,17 +309,22 @@ Solo roles supervisor y gerente (Preview gerente OK).
 
 ## Checklist final (todas las partes)
 
-| # | Criterio | Parte |
-|---|----------|-------|
-| 1 | Operador marca ✓ listo tras secado cerrado | 1–2 |
-| 2 | Gerente ve 🗑 solo tras ✓ operador | 1–2 |
-| 3 | Archivar conserva TelemetryEvent y ProcessAlert | 1 |
-| 4 | Grupo vuelve disponible tras archivar/reabrir | 1–2 |
-| 5 | API fluctuaciones devuelve buckets diarios | 3 |
-| 6 | Supervisor ve registro por día con umbrales | 4 |
-| 7 | `npm test` backend verde | 1, 3 |
-| 8 | `npx tsc --noEmit` frontend OK | 2, 4 |
-| 9 | Funciona contra Render (Modo B) sin cambiar URLs hardcodeadas incorrectas | todas |
+| # | Criterio | Parte | Estado |
+|---|----------|-------|--------|
+| 1 | Operador marca ✓ listo tras secado cerrado | 1–2 | ✅ |
+| 2 | Gerente ve 🗑 solo tras ✓ operador | 1–2 | ✅ |
+| 3 | Archivar conserva TelemetryEvent y ProcessAlert | 1 | ✅ |
+| 4 | Grupo vuelve disponible tras archivar/reabrir | 1–2 | ✅ |
+| 5 | API fluctuaciones devuelve buckets diarios | 3 | ✅ |
+| 6 | Supervisor ve registro por día con umbrales | 4 | ✅ |
+| 7 | `npm test` backend verde | 1, 3 | ✅ |
+| 8 | `npx tsc --noEmit` frontend OK | 2, 4 | ✅ |
+| 9 | Funciona contra Render (Modo B) | todas | ✅ URL `app-harinas.onrender.com` |
+
+### Pendiente operativo (no código)
+
+- [ ] Recompilar APK EAS (`eas build -p android --profile preview`) para incluir UI nueva en teléfono.
+- [ ] Verificar auto-deploy Render tras push a `main` (o deploy manual).
 
 ---
 

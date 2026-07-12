@@ -323,6 +323,7 @@ Medidas activas en backend:
 ## Documentación adicional
 
 - Plan de trabajo por sprint: `SPRINTS.md`
+- Entregas LeanHerz (estado e implementación): `docs/AGENTE-ENTREGAS.md`
 - Guía rápida Postman: `backend/docs/postman/USO-RAPIDO.md`
 - Seguridad y backups (Sprint 8): `backend/docs/BACKUP-SECURITY.md`
 - Informe de cierre: `SECURITY-AUDIT.md`

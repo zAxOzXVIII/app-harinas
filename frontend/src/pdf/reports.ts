@@ -2,7 +2,7 @@ import type { ProcessAlert } from "../types/alert";
 import type { TeamUser, User } from "../types/auth";
 import type { Harina } from "../types/harina";
 import type { GrupoRubro, HumedadConfig } from "../types/grupoRubro";
-import type { TelemetryGroupItem, TelemetryLatestItem } from "../types/telemetry";
+import type { HumedadFluctuacionDiaria, TelemetryGroupItem, TelemetryLatestItem } from "../types/telemetry";
 import { exportPdf } from "../services/pdfReport.service";
 import {
   formatDate,
@@ -333,5 +333,59 @@ export const exportEquipoPdf = async (
         "Documento confidencial — Nativa Superalimentos C.A. — Solo uso interno. No incluye contraseñas.",
     },
     "equipo"
+  );
+};
+
+export const exportFluctuacionesPdf = async (
+  rows: HumedadFluctuacionDiaria[],
+  rangoLabel: string,
+  user?: User | null
+): Promise<void> => {
+  const sorted = [...rows].sort((a, b) => b.fecha.localeCompare(a.fecha));
+
+  await exportPdf(
+    {
+      reportTitle: "Registro de fluctuaciones de humedad",
+      userLabel: userLabel(user),
+      kpis: [
+        { label: "Rango", value: rangoLabel },
+        { label: "Registros diarios", value: String(sorted.length) },
+        {
+          label: "Lecturas totales",
+          value: String(sorted.reduce((acc, r) => acc + r.lecturas, 0)),
+        },
+      ],
+      sections: [
+        {
+          title: "Agregación por día y grupo",
+          headers: [
+            "Fecha",
+            "Grupo",
+            "Lecturas",
+            "Min %RH",
+            "Prom %RH",
+            "Max %RH",
+            "Fuera rango",
+            "Críticas",
+          ],
+          rows:
+            sorted.length > 0
+              ? sorted.map((r) => [
+                  r.fecha,
+                  r.nombreGrupo,
+                  String(r.lecturas),
+                  formatNumber(r.humedadMin),
+                  formatNumber(r.humedadPromedio),
+                  formatNumber(r.humedadMax),
+                  String(r.fueraRango),
+                  String(r.critico),
+                ])
+              : [["Sin datos en el rango seleccionado", "—", "—", "—", "—", "—", "—", "—"]],
+        },
+      ],
+      footerNote:
+        "Registro continuo de humedad ambiental — referencia diaria para calibración y trazabilidad.",
+    },
+    "fluctuaciones-humedad"
   );
 };

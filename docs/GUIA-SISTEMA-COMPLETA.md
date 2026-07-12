@@ -236,6 +236,8 @@ Usa esta tabla: abres la app, llegas a la pantalla, y sabes qué archivo impleme
 - [ ] Lista alertas + export PDF (icono en header si está)
 - [ ] Grupos de rubro + pantalla calibración
 - [ ] Humedad global
+- [ ] Lotes pendientes de archivo (papelera 🗑)
+- [ ] Fluctuaciones humedad (supervisor / gerente)
 
 ---
 
@@ -280,6 +282,8 @@ Usa esta tabla: abres la app, llegas a la pantalla, y sabes qué archivo impleme
 - [ ] Alertas dentro de la card del grupo (durante secado)
 - [ ] Pantalla Alertas (lista completa)
 - [ ] Resultado tras finalizar (listo / poco óptimo si aplica)
+- [ ] Grupo cerrado → botón **Marcar como listo** (✓)
+- [ ] Tras marcar listo, grupo desaparece de la lista operador
 
 **Para que haya datos en pantalla:**
 
@@ -444,7 +448,7 @@ stateDiagram-v2
 Tras cerrar el secado el backend calcula `resultado`. El operador debe **marcar listo** (`confirmadoListoPorOperador`) antes de que el gerente **archive**. Archivar no borra telemetría ni alertas. El grupo sale de la lista activa del operador solo después del ✓.
 
 Código backend: `backend/src/services/procesoSecado.service.js`  
-Código frontend: `frontend/src/store/procesoSecado.store.ts` + `SecadoTimer.tsx`
+Código frontend: `procesoSecado.store.ts`, `SecadoTimer.tsx`, `OperadorHomeScreen.tsx`, `LotesPendientesArchivoScreen.tsx`
 
 ---
 
@@ -618,8 +622,10 @@ La APK **embebe** la URL del API al compilar. Si cambias de Render a otro host, 
 | Añadir pantalla gerente | `RootNavigator.tsx` + nueva screen |
 | Lógica alertas | `backend/src/services/processAlert.service.js` |
 | Evaluación umbrales | `backend/src/services/grupoRubro.service.js` (evaluate) |
-| Secado operador | `procesoSecado.service.js` (backend) + `procesoSecado.store.ts` (frontend) |
-| PDF export | `frontend/src/utils/pdfTemplates.ts`, `pdfReport.service.ts` |
+| Secado operador | `procesoSecado.service.js` + `procesoSecado.store.ts` |
+| Marcar listo / archivar lote | `OperadorHomeScreen.tsx`, `LotesPendientesArchivoScreen.tsx` |
+| Fluctuaciones humedad | `telemetry.service.js`, `FluctuacionesHumedadScreen.tsx` |
+| PDF export | `frontend/src/utils/pdfTemplates.ts`, `pdf/reports.ts` |
 | Seeds / usuarios demo | `backend/src/scripts/seedDemo.js` |
 | Tests API | `backend/tests/*.test.js` → `npm test` |
 | Firmware ESP32 | `firmware/esp32-aht10-ds3231/` |

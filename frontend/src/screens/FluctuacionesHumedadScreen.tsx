@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { RefreshControl, ScrollView, StyleSheet, View } from "react-native";
 import {
   ActivityIndicator,
+  Button,
   Card,
   Chip,
   SegmentedButtons,
@@ -12,8 +13,11 @@ import { useFocusEffect } from "@react-navigation/native";
 import { ChartTrendBlock } from "../components/ChartTrendBlock";
 import { useScreenLayout } from "../hooks/useScreenLayout";
 import { useContrastStyles } from "../hooks/useContrastStyles";
+import { useAuthStore } from "../store/auth.store";
 import { useGruposStore } from "../store/grupos.store";
 import { telemetryService } from "../services/telemetry.service";
+import { usePdfExport } from "../hooks/usePdfExport";
+import { exportFluctuacionesPdf } from "../pdf/reports";
 import { brand } from "../theme";
 import type { HumedadFluctuacionDiaria } from "../types/telemetry";
 
@@ -46,6 +50,8 @@ export const FluctuacionesHumedadScreen = () => {
 
   const grupos = useGruposStore((s) => s.grupos);
   const fetchGrupos = useGruposStore((s) => s.fetchAll);
+  const user = useAuthStore((s) => s.user);
+  const { exporting, runExport } = usePdfExport();
 
   const [rango, setRango] = useState<RangoDias>("7");
   const [grupoFilter, setGrupoFilter] = useState<string | null>(null);
@@ -89,6 +95,13 @@ export const FluctuacionesHumedadScreen = () => {
     return `Rango operativo ${first.min}–${first.max} ${first.unidad} · Crítico ${first.criticoMin ?? "—"} / ${first.criticoMax ?? "—"}`;
   }, [rows]);
 
+  const rangoLabel = rango === "1" ? "Hoy" : rango === "7" ? "Últimos 7 días" : "Últimos 30 días";
+
+  const onExportPdf = () =>
+    runExport(async () => {
+      await exportFluctuacionesPdf(rows, rangoLabel, user);
+    });
+
   return (
     <ScrollView
       style={[styles.container, { backgroundColor: theme.colors.background }]}
@@ -99,6 +112,17 @@ export const FluctuacionesHumedadScreen = () => {
         Registro continuo de humedad — referencia diaria para calibración y trazabilidad,
         independiente del ciclo de secado manual.
       </Text>
+
+      <Button
+        mode="contained-tonal"
+        icon="file-pdf-box"
+        loading={exporting}
+        onPress={onExportPdf}
+        style={styles.pdfBtn}
+        disabled={rows.length === 0}
+      >
+        Exportar PDF
+      </Button>
 
       <SegmentedButtons
         value={rango}
@@ -205,6 +229,7 @@ export const FluctuacionesHumedadScreen = () => {
 const styles = StyleSheet.create({
   container: { flex: 1 },
   intro: { marginBottom: 12 },
+  pdfBtn: { marginBottom: 10 },
   segment: { marginBottom: 8 },
   umbrales: { marginBottom: 10 },
   filterRow: { marginBottom: 12, maxHeight: 44 },
