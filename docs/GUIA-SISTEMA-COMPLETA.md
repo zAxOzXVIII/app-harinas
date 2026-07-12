@@ -217,6 +217,7 @@ Usa esta tabla: abres la app, llegas a la pantalla, y sabes qué archivo impleme
 | Crear/editar usuario | **Usuario** | `frontend/src/screens/UsuarioFormScreen.tsx` | `POST/PUT /api/users` |
 | Muro (telemetría + alertas) | **Muro** | `frontend/src/screens/MuroGerenteScreen.tsx` | `/api/telemetry/*`, `/api/alerts` |
 | Lotes pendientes archivo | **Lotes pendientes** | `frontend/src/screens/LotesPendientesArchivoScreen.tsx` | `GET /api/procesos-secado/pendientes-archivo`, `POST .../archivar` |
+| Fluctuaciones humedad | **Fluctuaciones humedad** | `frontend/src/screens/FluctuacionesHumedadScreen.tsx` | `GET /api/telemetry/fluctuaciones/humedad`, export PDF |
 | Alertas de proceso | **Alertas de proceso** | `frontend/src/screens/AlertsListScreen.tsx` | `GET /api/alerts` |
 | Grupos de rubro | **Grupos de rubro** | `frontend/src/screens/GruposListScreen.tsx` | `GET /api/grupos-rubro` |
 | Calibración por grupo | **Calibracion** | `frontend/src/screens/CalibracionFormScreen.tsx` | `PUT /api/grupos-rubro/:id` |
@@ -224,7 +225,7 @@ Usa esta tabla: abres la app, llegas a la pantalla, y sabes qué archivo impleme
 | Preview Supervisor | **Vista Supervisor** | `SupervisorHomeScreen.tsx` (reutilizada) | — |
 | Preview Operador | **Vista Operador** | `OperadorHomeScreen.tsx` (reutilizada) | — |
 
-**Cómo llegar desde Dashboard:** botones en `DashboardScreen.tsx` → sección **Accesos rapidos** (Equipo, Calibracion, Muro, Alertas) y **Gestion de harinas**.
+**Cómo llegar desde Dashboard:** botones en `DashboardScreen.tsx` → **Accesos rapidos** (Equipo, Calibracion, Muro, **Fluctuaciones HR**, **Lotes pendientes**, Alertas) y **Gestion de harinas**.
 
 **Checklist fotos Gerente:**
 
@@ -237,7 +238,7 @@ Usa esta tabla: abres la app, llegas a la pantalla, y sabes qué archivo impleme
 - [ ] Grupos de rubro + pantalla calibración
 - [ ] Humedad global
 - [ ] Lotes pendientes de archivo (papelera 🗑)
-- [ ] Fluctuaciones humedad (supervisor / gerente)
+- [ ] Fluctuaciones humedad (supervisor / gerente) + export PDF
 
 ---
 
@@ -254,7 +255,7 @@ Usa esta tabla: abres la app, llegas a la pantalla, y sabes qué archivo impleme
 **Checklist fotos Supervisor:**
 
 - [ ] Home con botón "Ver y calibrar grupos"
-- [ ] Registro fluctuaciones humedad (7 días, chips fuera de rango)
+- [ ] Registro fluctuaciones humedad (7/30 días, chips fuera de rango) + export PDF
 - [ ] Lista de 3 grupos (garbanzo-lenteja, platano-cambur, yuca-batata)
 - [ ] Formulario calibración (T°, nivel secado, tiempo)
 - [ ] Humedad global (% min/max)

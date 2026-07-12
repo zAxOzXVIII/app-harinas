@@ -2,7 +2,7 @@
 
 Documento para ejecutar cambios solicitados por **LeanHerz (11/7/2026)** en el monorepo App-Harinas.
 
-**Estado:** Partes 1–4 **implementadas** (jul 2026). Commit de referencia: `7df11a5`.
+**Estado:** Partes 1–4 **implementadas** (jul 2026). Commits: `7df11a5` (core) + `606e89d` (PDF fluctuaciones, acceso gerente, docs).
 
 **Referencia del sistema:** [`GUIA-SISTEMA-COMPLETA.md`](GUIA-SISTEMA-COMPLETA.md) (§1 flujo, §2 entornos, §6 modelos, §8 secado).
 
@@ -138,12 +138,12 @@ Agregar campos:
 - backend/tests/procesos-secado.test.js
 
 ## Verificación (obligatoria antes de cerrar)
-- [ ] npm test en backend/ — verde
-- [ ] Test: marcar-listo OK como operador
-- [ ] Test: archivar OK como gerente tras chulito
-- [ ] Test: archivar sin chulito → 409
-- [ ] Test: operador no puede archivar → 403
-- [ ] Confirmar que TelemetryEvent no se borra al archivar
+- [x] npm test en backend/ — verde (42 tests)
+- [x] Test: marcar-listo OK como operador
+- [x] Test: archivar OK como gerente tras chulito
+- [x] Test: archivar sin chulito → 409
+- [x] Test: operador no puede archivar → 403
+- [x] Confirmar que TelemetryEvent no se borra al archivar
 
 ## Fuera de alcance
 - Cambios de UI (Parte 2)
@@ -189,10 +189,10 @@ Registrar ruta en RootNavigator si creas pantalla nueva.
 - store/procesoSecado.store.ts — acciones anteriores
 
 ## Verificación
-- [ ] npx tsc --noEmit en frontend/ — sin errores
-- [ ] Flujo manual: finalizar secado → marcar listo (operador) → ver papelera (gerente) → archivar
-- [ ] Gerente no ve papelera antes del chulito
-- [ ] Operador no ve papelera
+- [x] npx tsc --noEmit en frontend/ — sin errores
+- [x] Flujo manual: finalizar secado → marcar listo (operador) → ver papelera (gerente) → archivar
+- [x] Gerente no ve papelera antes del chulito
+- [x] Operador no ve papelera
 
 ## Fuera de alcance
 - Partes 3–4 (fluctuaciones)
@@ -245,9 +245,9 @@ Respuesta por día + grupo:
 - backend/docs/arduino-telemetry-contract.md (nota ingesta continua 24/7)
 
 ## Verificación
-- [ ] npm test en backend/ — casos agregación
-- [ ] Con simulate:telemetry devuelve buckets diarios
-- [ ] Archivar ProcesoSecado no altera conteos históricos
+- [x] npm test en backend/ — casos agregación
+- [x] Con simulate:telemetry devuelve buckets diarios
+- [x] Archivar ProcesoSecado no altera conteos históricos
 
 ## Fuera de alcance
 - UI supervisor (Parte 4)
@@ -296,13 +296,14 @@ Solo roles supervisor y gerente (Preview gerente OK).
 "Registro continuo de humedad — referencia diaria para calibración y trazabilidad."
 
 ## Verificación
-- [ ] npx tsc --noEmit en frontend/
-- [ ] Datos coinciden con API Parte 3
-- [ ] Operador NO accede a esta pantalla
-- [ ] Contraste legible (useContrastStyles)
+- [x] npx tsc --noEmit en frontend/
+- [x] Datos coinciden con API Parte 3
+- [x] Operador NO accede a esta pantalla
+- [x] Contraste legible (useContrastStyles)
 
-## Opcional MVP+
-- Botón export PDF (pdf/reports.ts) — solo si queda tiempo
+## Export PDF (implementado en `606e89d`)
+- Botón en header de `FluctuacionesHumedadScreen.tsx` → `exportFluctuacionesPdf` en `pdf/reports.ts`
+- Acceso gerente desde Dashboard → **Fluctuaciones HR**
 ```
 
 ---
@@ -320,11 +321,12 @@ Solo roles supervisor y gerente (Preview gerente OK).
 | 7 | `npm test` backend verde | 1, 3 | ✅ |
 | 8 | `npx tsc --noEmit` frontend OK | 2, 4 | ✅ |
 | 9 | Funciona contra Render (Modo B) | todas | ✅ URL `app-harinas.onrender.com` |
+| 10 | Export PDF fluctuaciones humedad | 4 | ✅ `exportFluctuacionesPdf` |
 
 ### Pendiente operativo (no código)
 
 - [ ] Recompilar APK EAS (`eas build -p android --profile preview`) para incluir UI nueva en teléfono.
-- [ ] Verificar auto-deploy Render tras push a `main` (o deploy manual).
+- [x] Verificar auto-deploy Render tras push a `main` — `GET /api/health` → `{"success":true}` (jul 2026).
 
 ---
 
