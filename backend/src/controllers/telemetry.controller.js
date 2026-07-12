@@ -2,6 +2,7 @@ const {
   ingestTelemetry,
   getLatestByGroup,
   getRecentByGroup,
+  getHumedadFluctuacionesDiarias,
 } = require("../services/telemetry.service");
 
 const ingest = async (req, res, next) => {
@@ -37,4 +38,17 @@ const recentByGroup = async (req, res, next) => {
   }
 };
 
-module.exports = { ingest, latest, recentByGroup };
+const humedadFluctuaciones = async (req, res, next) => {
+  try {
+    const data = await getHumedadFluctuacionesDiarias({
+      from: req.query.from,
+      to: req.query.to,
+      grupoRubroId: req.query.grupoRubroId,
+    });
+    res.status(200).json({ success: true, data });
+  } catch (error) {
+    next(error);
+  }
+};
+
+module.exports = { ingest, latest, recentByGroup, humedadFluctuaciones };

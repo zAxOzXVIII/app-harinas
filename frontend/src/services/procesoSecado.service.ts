@@ -40,4 +40,25 @@ export const procesoSecadoService = {
     >(`/api/procesos-secado/grupo/${grupoRubroId}/reabrir`);
     return data.data;
   },
+
+  async marcarListo(procesoId: string): Promise<ProcesoSecado> {
+    const { data } = await api.post<ApiResponse<ProcesoSecado>>(
+      `/api/procesos-secado/${procesoId}/marcar-listo`
+    );
+    return data.data;
+  },
+
+  async listPendientesArchivo(): Promise<ProcesoSecado[]> {
+    const { data } = await api.get<ApiResponse<ProcesoSecado[]>>(
+      "/api/procesos-secado/pendientes-archivo"
+    );
+    return data.data;
+  },
+
+  async archivar(procesoId: string): Promise<ProcesoSecado> {
+    const { data } = await api.post<ApiResponse<ProcesoSecado>>(
+      `/api/procesos-secado/${procesoId}/archivar`
+    );
+    return data.data;
+  },
 };

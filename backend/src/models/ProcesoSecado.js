@@ -77,6 +77,21 @@ const procesoSecadoSchema = new mongoose.Schema(
       default: 0,
       min: 0,
     },
+    /** Operador confirmó producto listo para empaquetar (✓). */
+    confirmadoListoPorOperador: {
+      type: Boolean,
+      default: false,
+      index: true,
+    },
+    confirmadoListoEn: {
+      type: Date,
+      default: null,
+    },
+    confirmadoListoPor: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      default: null,
+    },
   },
   {
     versionKey: false,

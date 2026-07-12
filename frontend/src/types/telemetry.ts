@@ -1,3 +1,25 @@
+export interface HumedadFluctuacionUmbrales {
+  min: number;
+  max: number;
+  criticoMin: number | null;
+  criticoMax: number | null;
+  unidad: string;
+}
+
+export interface HumedadFluctuacionDiaria {
+  grupoRubroId: string;
+  nombreGrupo: string;
+  codigoGrupo: string;
+  fecha: string;
+  lecturas: number;
+  humedadMin: number;
+  humedadMax: number;
+  humedadPromedio: number;
+  fueraRango: number;
+  critico: number;
+  umbrales: HumedadFluctuacionUmbrales;
+}
+
 export interface TelemetryLecturas {
   temperatura: number;
   humedad: number;

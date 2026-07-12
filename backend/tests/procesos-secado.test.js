@@ -81,7 +81,45 @@ describe("API /api/procesos-secado", () => {
     expect(res.status).toBe(409);
   });
 
-  it("filtro activos excluye grupos empaquetados", async () => {
+  it("filtro activos mantiene grupo cerrado hasta marcar listo", async () => {
+    const res = await request(getApp())
+      .get("/api/grupos-rubro?activos=true")
+      .set("Authorization", `Bearer ${operadorToken}`);
+
+    expect(res.status).toBe(200);
+    const ids = res.body.data.map((g) => g._id);
+    expect(ids).toContain(grupoGarbanzo._id);
+    expect(ids).toContain(grupoPlatano._id);
+  });
+
+  it("operador marca lote como listo", async () => {
+    const actualRes = await request(getApp())
+      .get(`/api/procesos-secado/grupo/${grupoGarbanzo._id}`)
+      .set("Authorization", `Bearer ${operadorToken}`);
+    const procesoId = actualRes.body.data._id;
+
+    const res = await request(getApp())
+      .post(`/api/procesos-secado/${procesoId}/marcar-listo`)
+      .set("Authorization", `Bearer ${operadorToken}`);
+
+    expect(res.status).toBe(200);
+    expect(res.body.data.confirmadoListoPorOperador).toBe(true);
+    expect(res.body.data.confirmadoListoEn).toBeDefined();
+  });
+
+  it("rechaza marcar listo duplicado", async () => {
+    const actualRes = await request(getApp())
+      .get(`/api/procesos-secado/grupo/${grupoGarbanzo._id}`)
+      .set("Authorization", `Bearer ${operadorToken}`);
+
+    const res = await request(getApp())
+      .post(`/api/procesos-secado/${actualRes.body.data._id}/marcar-listo`)
+      .set("Authorization", `Bearer ${operadorToken}`);
+
+    expect(res.status).toBe(409);
+  });
+
+  it("filtro activos excluye grupo tras marcar listo", async () => {
     const res = await request(getApp())
       .get("/api/grupos-rubro?activos=true")
       .set("Authorization", `Bearer ${operadorToken}`);
@@ -90,6 +128,29 @@ describe("API /api/procesos-secado", () => {
     const ids = res.body.data.map((g) => g._id);
     expect(ids).not.toContain(grupoGarbanzo._id);
     expect(ids).toContain(grupoPlatano._id);
+  });
+
+  it("gerente lista lotes pendientes de archivo", async () => {
+    const res = await request(getApp())
+      .get("/api/procesos-secado/pendientes-archivo")
+      .set("Authorization", `Bearer ${gerenteToken}`);
+
+    expect(res.status).toBe(200);
+    expect(res.body.data.length).toBeGreaterThanOrEqual(1);
+    expect(res.body.data[0].confirmadoListoPorOperador).toBe(true);
+    expect(res.body.data.some((p) => p.grupoRubroId._id === grupoGarbanzo._id)).toBe(true);
+  });
+
+  it("operador no puede archivar lote", async () => {
+    const actualRes = await request(getApp())
+      .get(`/api/procesos-secado/grupo/${grupoGarbanzo._id}`)
+      .set("Authorization", `Bearer ${operadorToken}`);
+
+    const res = await request(getApp())
+      .post(`/api/procesos-secado/${actualRes.body.data._id}/archivar`)
+      .set("Authorization", `Bearer ${operadorToken}`);
+
+    expect(res.status).toBe(403);
   });
 
   it("bloquea recalibracion en lote cerrado", async () => {
@@ -145,12 +206,16 @@ describe("API /api/procesos-secado", () => {
   });
 
   it("gerente reabre lote cerrado y operador puede iniciar de nuevo", async () => {
-    const reopenRes = await request(getApp())
-      .post(`/api/procesos-secado/grupo/${grupoGarbanzo._id}/reabrir`)
+    const actualRes = await request(getApp())
+      .get(`/api/procesos-secado/grupo/${grupoGarbanzo._id}`)
       .set("Authorization", `Bearer ${gerenteToken}`);
 
-    expect(reopenRes.status).toBe(200);
-    expect(reopenRes.body.data.reabierto).toBe(true);
+    const archivarRes = await request(getApp())
+      .post(`/api/procesos-secado/${actualRes.body.data._id}/archivar`)
+      .set("Authorization", `Bearer ${gerenteToken}`);
+
+    expect(archivarRes.status).toBe(200);
+    expect(archivarRes.body.data.estado).toBe("archivado");
 
     const activosRes = await request(getApp())
       .get("/api/grupos-rubro?activos=true")
@@ -163,5 +228,17 @@ describe("API /api/procesos-secado", () => {
       .set("Authorization", `Bearer ${operadorToken}`);
 
     expect(startRes.status).toBe(201);
+  });
+
+  it("rechaza archivar sin confirmacion del operador", async () => {
+    const actualRes = await request(getApp())
+      .get(`/api/procesos-secado/grupo/${grupoPlatano._id}`)
+      .set("Authorization", `Bearer ${gerenteToken}`);
+
+    const res = await request(getApp())
+      .post(`/api/procesos-secado/${actualRes.body.data._id}/archivar`)
+      .set("Authorization", `Bearer ${gerenteToken}`);
+
+    expect(res.status).toBe(409);
   });
 });

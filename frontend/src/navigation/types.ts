@@ -14,6 +14,8 @@ export type GerenteStackParamList = {
   GruposList: undefined;
   CalibracionEdit: { grupoId: string };
   HumedadEdit: undefined;
+  LotesPendientesArchivo: undefined;
+  FluctuacionesHumedad: undefined;
 };
 
 export type GruposStackParamList = {
@@ -21,6 +23,7 @@ export type GruposStackParamList = {
   GruposList: undefined;
   CalibracionEdit: { grupoId: string };
   HumedadEdit: undefined;
+  FluctuacionesHumedad: undefined;
 };
 
 export type OperadorStackParamList = {

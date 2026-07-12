@@ -40,5 +40,6 @@ const telemetryEventSchema = new mongoose.Schema(
 );
 
 telemetryEventSchema.index({ deviceId: 1, timestamp: -1 });
+telemetryEventSchema.index({ grupoRubroId: 1, timestamp: -1 });
 
 module.exports = mongoose.model("TelemetryEvent", telemetryEventSchema);

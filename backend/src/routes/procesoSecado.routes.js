@@ -6,6 +6,9 @@ const {
   completarController,
   marcarEmpaquetadoController,
   reabrirLoteController,
+  marcarListoController,
+  archivarController,
+  listPendientesArchivoController,
 } = require("../controllers/procesoSecado.controller");
 const { requireAuth } = require("../middlewares/auth.middleware");
 const { requireRoles } = require("../middlewares/role.middleware");
@@ -13,6 +16,12 @@ const { requireRoles } = require("../middlewares/role.middleware");
 const router = Router();
 
 router.use(requireAuth);
+
+router.get(
+  "/pendientes-archivo",
+  requireRoles("gerente"),
+  listPendientesArchivoController
+);
 
 router.get(
   "/activos",
@@ -32,6 +41,18 @@ router.post(
   "/:id/completar",
   requireRoles("operador", "gerente"),
   completarController
+);
+
+router.post(
+  "/:id/marcar-listo",
+  requireRoles("operador"),
+  marcarListoController
+);
+
+router.post(
+  "/:id/archivar",
+  requireRoles("gerente"),
+  archivarController
 );
 
 router.post(

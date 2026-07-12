@@ -6,6 +6,7 @@ import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { useAuthStore } from "../store/auth.store";
 import type { GerenteStackParamList } from "../navigation/types";
 import { useHarinasStore } from "../store/harinas.store";
+import { useProcesoSecadoStore } from "../store/procesoSecado.store";
 import { HarinaListItem } from "../components/HarinaListItem";
 import { ScreenHero } from "../components/ScreenHero";
 import { AnimatedReveal } from "../components/AnimatedReveal";
@@ -33,11 +34,16 @@ export const DashboardScreen = ({ onGoToGestion }: Props) => {
   const isLoading = useHarinasStore((state) => state.isLoading);
   const error = useHarinasStore((state) => state.error);
   const fetchHarinas = useHarinasStore((state) => state.fetchHarinas);
+  const pendientesArchivo = useProcesoSecadoStore((s) => s.pendientesArchivo);
+  const fetchPendientesArchivo = useProcesoSecadoStore((s) => s.fetchPendientesArchivo);
 
   useFocusEffect(
     useCallback(() => {
       fetchHarinas();
-    }, [fetchHarinas])
+      if (isGerente) {
+        fetchPendientesArchivo();
+      }
+    }, [fetchHarinas, fetchPendientesArchivo, isGerente])
   );
 
   const latestHarinas = useMemo(() => harinas.slice(0, 5), [harinas]);
@@ -155,6 +161,24 @@ export const DashboardScreen = ({ onGoToGestion }: Props) => {
                 ]}
               >
                 Muro
+              </Button>
+              <Button
+                mode="contained-tonal"
+                icon="delete-outline"
+                onPress={() => navigation.navigate("LotesPendientesArchivo")}
+                style={[
+                  styles.gridBtn,
+                  {
+                    minWidth:
+                      layout.dashboardColumns === 1
+                        ? "100%"
+                        : layout.dashboardColumns === 2
+                          ? "48%"
+                          : "31%",
+                  },
+                ]}
+              >
+                Lotes pendientes{pendientesArchivo.length > 0 ? ` (${pendientesArchivo.length})` : ""}
               </Button>
               <Button
                 mode="contained-tonal"

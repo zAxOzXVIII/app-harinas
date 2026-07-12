@@ -216,6 +216,7 @@ Usa esta tabla: abres la app, llegas a la pantalla, y sabes qué archivo impleme
 | Equipo (usuarios) | **Equipo** | `frontend/src/screens/EquipoListScreen.tsx` | `GET /api/users` |
 | Crear/editar usuario | **Usuario** | `frontend/src/screens/UsuarioFormScreen.tsx` | `POST/PUT /api/users` |
 | Muro (telemetría + alertas) | **Muro** | `frontend/src/screens/MuroGerenteScreen.tsx` | `/api/telemetry/*`, `/api/alerts` |
+| Lotes pendientes archivo | **Lotes pendientes** | `frontend/src/screens/LotesPendientesArchivoScreen.tsx` | `GET /api/procesos-secado/pendientes-archivo`, `POST .../archivar` |
 | Alertas de proceso | **Alertas de proceso** | `frontend/src/screens/AlertsListScreen.tsx` | `GET /api/alerts` |
 | Grupos de rubro | **Grupos de rubro** | `frontend/src/screens/GruposListScreen.tsx` | `GET /api/grupos-rubro` |
 | Calibración por grupo | **Calibracion** | `frontend/src/screens/CalibracionFormScreen.tsx` | `PUT /api/grupos-rubro/:id` |
@@ -243,6 +244,7 @@ Usa esta tabla: abres la app, llegas a la pantalla, y sabes qué archivo impleme
 | Pantalla | Título | Archivo | API |
 |----------|--------|---------|-----|
 | Home supervisor | **Supervisor** | `frontend/src/screens/SupervisorHomeScreen.tsx` | — |
+| Fluctuaciones humedad | **Fluctuaciones humedad** | `frontend/src/screens/FluctuacionesHumedadScreen.tsx` | `GET /api/telemetry/fluctuaciones/humedad` |
 | Grupos de rubro | **Grupos de rubro** | `frontend/src/screens/GruposListScreen.tsx` | `GET /api/grupos-rubro` |
 | Calibración | **Calibracion** | `frontend/src/screens/CalibracionFormScreen.tsx` | `PUT /api/grupos-rubro/:id` |
 | Humedad global | **Humedad global** | `frontend/src/screens/HumedadFormScreen.tsx` | `/api/config/humedad` |
@@ -250,6 +252,7 @@ Usa esta tabla: abres la app, llegas a la pantalla, y sabes qué archivo impleme
 **Checklist fotos Supervisor:**
 
 - [ ] Home con botón "Ver y calibrar grupos"
+- [ ] Registro fluctuaciones humedad (7 días, chips fuera de rango)
 - [ ] Lista de 3 grupos (garbanzo-lenteja, platano-cambur, yuca-batata)
 - [ ] Formulario calibración (T°, nivel secado, tiempo)
 - [ ] Humedad global (% min/max)
@@ -264,6 +267,7 @@ Usa esta tabla: abres la app, llegas a la pantalla, y sabes qué archivo impleme
 | Tarjeta por grupo | (en Home) | `OperadorHomeScreen.tsx` + `GrupoRubroCard` | `/api/grupos-rubro`, telemetría |
 | Iniciar secado | botón en card | `frontend/src/components/SecadoTimer.tsx` | `POST /api/procesos-secado/grupo/:id/iniciar` |
 | Timer + finalizar | chip / botón | `SecadoTimer.tsx` | `POST /api/procesos-secado/:id/completar` |
+| Marcar como listo (✓) | botón en card | `OperadorHomeScreen.tsx` | `POST /api/procesos-secado/:id/marcar-listo` |
 | Alertas del secado | lista en card | `frontend/src/components/GrupoSecadoAlerts.tsx` | `GET /api/alerts?procesoSecadoId=` |
 | Gráfica T/HR | sparkline + gauge | `ChartTrendBlock.tsx`, `MetricGauge.tsx` | `GET /api/telemetry/group/:id` |
 | Lista alertas | **Alertas** | `frontend/src/screens/AlertsListScreen.tsx` | `GET /api/alerts` |
@@ -406,6 +410,7 @@ Todas las rutas van bajo `/api/...`. La raíz `/` del servicio Render puede devo
 | POST | `/api/arduino/telemetry` | No | — | Ingesta ESP32 |
 | GET | `/api/telemetry/latest` | Sí | todos | Última lectura por grupo |
 | GET | `/api/telemetry/group/:id` | Sí | todos | Historial telemetría |
+| GET | `/api/telemetry/fluctuaciones/humedad` | Sí | sup/ger | Registro diario humedad |
 | GET | `/api/alerts` | Sí | todos | Listado alertas |
 | GET | `/api/alerts/count` | Sí | todos | Contador no leídas |
 | PATCH | `/api/alerts/:id/read` | Sí | todos | Marcar leída |
@@ -413,7 +418,10 @@ Todas las rutas van bajo `/api/...`. La raíz `/` del servicio Render puede devo
 | GET | `/api/procesos-secado/activos` | Sí | op/sup/ger | Secados en curso |
 | POST | `/api/procesos-secado/grupo/:id/iniciar` | Sí | operador | Iniciar secado |
 | POST | `/api/procesos-secado/:id/completar` | Sí | op/ger | Finalizar + calificación |
-| POST | `/api/procesos-secado/grupo/:id/reabrir` | Sí | gerente | Reabrir lote |
+| POST | `/api/procesos-secado/:id/marcar-listo` | Sí | operador | Confirmar producto listo (✓) |
+| POST | `/api/procesos-secado/:id/archivar` | Sí | gerente | Archivar lote (conserva telemetría) |
+| GET | `/api/procesos-secado/pendientes-archivo` | Sí | gerente | Lotes listos pendientes de papelera |
+| POST | `/api/procesos-secado/grupo/:id/reabrir` | Sí | gerente | Reabrir lote (alternativa a archivar) |
 
 Contrato telemetría: `backend/docs/arduino-telemetry-contract.md`
 
@@ -427,11 +435,13 @@ stateDiagram-v2
   pendiente --> en_secado: Operador INICIAR SECADO
   en_secado --> en_secado: telemetría guardada + alertas si fuera de rango
   en_secado --> revisado_empaquetado: FINALIZAR o timer a 0
-  revisado_empaquetado --> archivado: Gerente REABRIR deja el anterior archivado
-  revisado_empaquetado --> [*]: sale de lista activa operador\nresultado listo / poco_optimo
+  revisado_empaquetado --> revisado_empaquetado: Operador MARCA LISTO (✓)
+  revisado_empaquetado --> archivado: Gerente ARCHIVAR (🗑)
+  revisado_empaquetado --> archivado: Gerente REABRIR (alternativa)
+  archivado --> [*]: grupo disponible para nuevo ciclo
 ```
 
-Al cerrar el secado el backend calcula `resultado` (`listo` o `poco_optimo`) según alertas de anomalía no atendidas. El grupo deja de mostrarse al operador (`GET /api/grupos-rubro?activos=true`).
+Tras cerrar el secado el backend calcula `resultado`. El operador debe **marcar listo** (`confirmadoListoPorOperador`) antes de que el gerente **archive**. Archivar no borra telemetría ni alertas. El grupo sale de la lista activa del operador solo después del ✓.
 
 Código backend: `backend/src/services/procesoSecado.service.js`  
 Código frontend: `frontend/src/store/procesoSecado.store.ts` + `SecadoTimer.tsx`

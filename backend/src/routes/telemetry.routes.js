@@ -4,9 +4,11 @@ const {
   ingest,
   latest,
   recentByGroup,
+  humedadFluctuaciones,
 } = require("../controllers/telemetry.controller");
 const { validateRequest } = require("../middlewares/validate.middleware");
 const { requireAuth } = require("../middlewares/auth.middleware");
+const { requireRoles } = require("../middlewares/role.middleware");
 
 const router = Router();
 
@@ -28,6 +30,18 @@ router.post("/arduino/telemetry", ingestValidations, ingest);
 
 // Consultas para app.
 router.get("/telemetry/latest", requireAuth, latest);
+router.get(
+  "/telemetry/fluctuaciones/humedad",
+  requireAuth,
+  requireRoles("supervisor", "gerente"),
+  [
+    query("from").optional().isISO8601().withMessage("from invalido"),
+    query("to").optional().isISO8601().withMessage("to invalido"),
+    query("grupoRubroId").optional().isMongoId().withMessage("grupoRubroId invalido"),
+    validateRequest,
+  ],
+  humedadFluctuaciones
+);
 router.get(
   "/telemetry/group/:grupoRubroId",
   requireAuth,

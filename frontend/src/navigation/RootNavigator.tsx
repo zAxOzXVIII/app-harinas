@@ -14,6 +14,8 @@ import { HumedadFormScreen } from "../screens/HumedadFormScreen";
 import { SupervisorHomeScreen } from "../screens/SupervisorHomeScreen";
 import { OperadorHomeScreen } from "../screens/OperadorHomeScreen";
 import { AlertsListScreen } from "../screens/AlertsListScreen";
+import { LotesPendientesArchivoScreen } from "../screens/LotesPendientesArchivoScreen";
+import { FluctuacionesHumedadScreen } from "../screens/FluctuacionesHumedadScreen";
 import { useAuthStore } from "../store/auth.store";
 import { LoadingScreen } from "../components/LoadingScreen";
 import { useBootstrapSession } from "../hooks/useBootstrapSession";
@@ -112,6 +114,16 @@ const GerenteNavigator = () => (
       children={({ navigation }) => <HumedadFormScreen onSuccess={() => navigation.goBack()} />}
     />
     <GerenteStack.Screen
+      name="LotesPendientesArchivo"
+      options={{ title: "Lotes pendientes" }}
+      component={LotesPendientesArchivoScreen}
+    />
+    <GerenteStack.Screen
+      name="FluctuacionesHumedad"
+      options={{ title: "Fluctuaciones humedad" }}
+      component={FluctuacionesHumedadScreen}
+    />
+    <GerenteStack.Screen
       name="PreviewSupervisor"
       options={{ title: "Vista Supervisor" }}
       component={SupervisorHomeScreen}
@@ -145,6 +157,11 @@ const SupervisorNavigator = () => (
           onSuccess={() => navigation.goBack()}
         />
       )}
+    />
+    <SupervisorStack.Screen
+      name="FluctuacionesHumedad"
+      options={{ title: "Fluctuaciones humedad" }}
+      component={FluctuacionesHumedadScreen}
     />
     <SupervisorStack.Screen
       name="HumedadEdit"

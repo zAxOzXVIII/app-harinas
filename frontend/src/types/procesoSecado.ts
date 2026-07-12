@@ -32,6 +32,9 @@ export interface ProcesoSecado {
   calificacion?: string | null;
   descripcionCierre?: string | null;
   alertasPendientesAlCierre?: number;
+  confirmadoListoPorOperador?: boolean;
+  confirmadoListoEn?: string | null;
+  confirmadoListoPor?: string | ProcesoSecadoUserRef | null;
   restanteMs?: number;
   transcurridoMs?: number;
   restanteMin?: number;

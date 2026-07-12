@@ -21,9 +21,15 @@ const getEmpaquetadoGrupoIds = async () => {
       $group: {
         _id: "$grupoRubroId",
         latestEstado: { $first: "$estado" },
+        latestConfirmado: { $first: "$confirmadoListoPorOperador" },
       },
     },
-    { $match: { latestEstado: "revisado_empaquetado" } },
+    {
+      $match: {
+        latestEstado: "revisado_empaquetado",
+        latestConfirmado: true,
+      },
+    },
   ]);
   return new Set(rows.map((r) => r._id.toString()));
 };
@@ -264,6 +270,89 @@ const reabrirLote = async (grupoRubroId) => {
   return { grupoRubroId, reabierto: true };
 };
 
+const marcarListoOperador = async (procesoId, userId) => {
+  if (!mongoose.Types.ObjectId.isValid(procesoId)) {
+    const err = new Error("ID de proceso invalido");
+    err.status = 400;
+    throw err;
+  }
+
+  const proceso = await ProcesoSecado.findById(procesoId);
+  if (!proceso) {
+    const err = new Error("Proceso de secado no encontrado");
+    err.status = 404;
+    throw err;
+  }
+  if (proceso.estado !== "revisado_empaquetado") {
+    const err = new Error("Solo se puede marcar listo un lote ya cerrado");
+    err.status = 409;
+    throw err;
+  }
+  if (proceso.confirmadoListoPorOperador) {
+    const err = new Error("El lote ya fue marcado como listo por el operador");
+    err.status = 409;
+    throw err;
+  }
+
+  proceso.confirmadoListoPorOperador = true;
+  proceso.confirmadoListoEn = new Date();
+  proceso.confirmadoListoPor = userId || null;
+  await proceso.save();
+
+  return enrichProceso(
+    await ProcesoSecado.findById(procesoId)
+      .populate("confirmadoListoPor", "nombre email")
+      .populate("grupoRubroId", "nombre codigo")
+  );
+};
+
+const archivarLote = async (procesoId) => {
+  if (!mongoose.Types.ObjectId.isValid(procesoId)) {
+    const err = new Error("ID de proceso invalido");
+    err.status = 400;
+    throw err;
+  }
+
+  const proceso = await ProcesoSecado.findById(procesoId);
+  if (!proceso) {
+    const err = new Error("Proceso de secado no encontrado");
+    err.status = 404;
+    throw err;
+  }
+  if (proceso.estado !== "revisado_empaquetado") {
+    const err = new Error("Solo se puede archivar un lote cerrado pendiente de archivo");
+    err.status = 409;
+    throw err;
+  }
+  if (!proceso.confirmadoListoPorOperador) {
+    const err = new Error("El operador debe marcar el lote como listo antes de archivar");
+    err.status = 409;
+    throw err;
+  }
+
+  proceso.estado = "archivado";
+  await proceso.save();
+
+  return enrichProceso(
+    await ProcesoSecado.findById(procesoId)
+      .populate("confirmadoListoPor", "nombre email")
+      .populate("grupoRubroId", "nombre codigo")
+  );
+};
+
+const listPendientesArchivo = async () => {
+  const docs = await ProcesoSecado.find({
+    estado: "revisado_empaquetado",
+    confirmadoListoPorOperador: true,
+  })
+    .populate("grupoRubroId", "nombre codigo items")
+    .populate("confirmadoListoPor", "nombre email")
+    .populate("iniciadoPor", "nombre email")
+    .sort({ confirmadoListoEn: -1 });
+
+  return docs.map(enrichProceso);
+};
+
 module.exports = {
   finalizeExpiredSessions,
   getEmpaquetadoGrupoIds,
@@ -274,4 +363,7 @@ module.exports = {
   completarManual,
   marcarEmpaquetado,
   reabrirLote,
+  marcarListoOperador,
+  archivarLote,
+  listPendientesArchivo,
 };

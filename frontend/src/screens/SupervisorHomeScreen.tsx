@@ -59,6 +59,30 @@ export const SupervisorHomeScreen = () => {
         >
           <Card.Content>
             <Text variant="titleMedium" style={[styles.cardTitle, titleStyle]}>
+              Registro de fluctuaciones
+            </Text>
+            <Text variant="bodySmall" style={mutedText}>
+              Humedad ambiental por día — registro 24/7 para calibración y trazabilidad.
+            </Text>
+            <Button
+              mode="contained"
+              icon="chart-timeline-variant"
+              style={styles.btn}
+              onPress={() => navigation.navigate("FluctuacionesHumedad")}
+            >
+              Ver fluctuaciones de humedad
+            </Button>
+          </Card.Content>
+        </Card>
+      </AnimatedReveal>
+
+      <AnimatedReveal delay={120}>
+        <Card
+          mode="elevated"
+          style={[styles.card, { backgroundColor: theme.colors.primaryContainer }]}
+        >
+          <Card.Content>
+            <Text variant="titleMedium" style={[styles.cardTitle, titleStyle]}>
               Humedad global
             </Text>
             <Text variant="bodySmall" style={mutedText}>
@@ -76,7 +100,7 @@ export const SupervisorHomeScreen = () => {
         </Card>
       </AnimatedReveal>
 
-      <AnimatedReveal delay={130}>
+      <AnimatedReveal delay={160}>
         <Button mode="outlined" onPress={logout} icon="logout" style={styles.logoutBtn}>
           Cerrar sesion
         </Button>

@@ -68,6 +68,7 @@ export const OperadorHomeScreen = () => {
   const fetchByGrupo = useProcesoSecadoStore((s) => s.fetchByGrupo);
   const iniciarSecado = useProcesoSecadoStore((s) => s.iniciarSecado);
   const completarSecado = useProcesoSecadoStore((s) => s.completarSecado);
+  const marcarListo = useProcesoSecadoStore((s) => s.marcarListo);
   const clearSecadoError = useProcesoSecadoStore((s) => s.clearError);
   const activosSecado = useProcesoSecadoStore((s) => s.activos);
 
@@ -165,6 +166,29 @@ export const OperadorHomeScreen = () => {
     ]);
   };
 
+  const handleMarcarListo = (grupo: GrupoRubro, procesoId: string) => {
+    Alert.alert(
+      "Marcar como listo",
+      "¿Confirmas que el producto está listo para empaquetar?",
+      [
+        { text: "Cancelar", style: "cancel" },
+        {
+          text: "Marcar listo",
+          onPress: async () => {
+            try {
+              await marcarListo(procesoId, grupo._id);
+              Alert.alert("Listo", "Lote marcado. El gerente podrá archivarlo desde su panel.");
+              await fetchAll({ activosOnly: true });
+              await fetchByGrupo(grupo._id);
+            } catch {
+              Alert.alert("Error", "No se pudo marcar el lote como listo.");
+            }
+          },
+        },
+      ]
+    );
+  };
+
   if (isLoading && grupos.length === 0) {
     return (
       <View style={styles.centered}>
@@ -258,6 +282,12 @@ export const OperadorHomeScreen = () => {
           const tValue = last?.lecturas.temperatura ?? null;
           const proceso = getProcesoForGrupo(grupo._id, byGrupoId);
           const enSecado = proceso?.estado === "en_secado";
+          const lotePendienteListo =
+            proceso?.estado === "revisado_empaquetado" && !proceso.confirmadoListoPorOperador;
+          const puedeIniciarSecado =
+            !enSecado &&
+            !lotePendienteListo &&
+            (!proceso || proceso.estado === "archivado");
           const tiempoEst = grupo.calibracion.tiempoSecado?.estimadoMin ?? 0;
 
           let statusColor = statusColors.ok;
@@ -380,7 +410,35 @@ export const OperadorHomeScreen = () => {
                       onFinalizar={() => handleFinalizarSecado(grupo, proceso._id)}
                     />
                   </>
-                ) : tiempoEst > 0 ? (
+                ) : lotePendienteListo && proceso ? (
+                  <View style={styles.cierreBlock}>
+                    <Chip
+                      compact
+                      icon="check-circle-outline"
+                      style={{ alignSelf: "flex-start", marginBottom: 8 }}
+                    >
+                      Secado finalizado
+                    </Chip>
+                    {proceso.resultado ? (
+                      <Chip
+                        compact
+                        icon={proceso.resultado === "listo" ? "thumb-up" : "alert"}
+                        style={{ alignSelf: "flex-start", marginBottom: 8 }}
+                      >
+                        {proceso.resultado === "listo" ? "Producto listo" : "Poco óptimo"}
+                      </Chip>
+                    ) : null}
+                    <Button
+                      mode="contained"
+                      icon="check-circle"
+                      loading={isMutatingSecado}
+                      onPress={() => handleMarcarListo(grupo, proceso._id)}
+                      style={styles.marcarListoBtn}
+                    >
+                      Marcar como listo
+                    </Button>
+                  </View>
+                ) : puedeIniciarSecado && tiempoEst > 0 ? (
                   <IniciarSecadoButton
                     duracionMin={tiempoEst}
                     loading={isMutatingSecado}
@@ -416,6 +474,8 @@ const styles = StyleSheet.create({
   gaugeBlock: { marginTop: 8 },
   chartBlock: { marginTop: 12, gap: 4 },
   lastRow: { flexDirection: "row", flexWrap: "wrap", gap: 8, marginTop: 12 },
+  cierreBlock: { marginTop: 12 },
+  marcarListoBtn: { borderRadius: 10, marginTop: 4 },
   sectionTitle: { marginTop: 6 },
   error: { color: brand.critical },
   logoutBtn: { marginTop: 16 },

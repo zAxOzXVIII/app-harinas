@@ -114,4 +114,53 @@ describe("API telemetria", () => {
     expect(Array.isArray(res.body.data)).toBe(true);
     expect(res.body.data.length).toBeGreaterThan(0);
   });
+
+  it("GET /api/telemetry/fluctuaciones/humedad agrupa por dia", async () => {
+    const today = new Date();
+    const todayIso = today.toISOString();
+
+    await request(getApp())
+      .post("/api/arduino/telemetry")
+      .send({
+        eventId: `fluct-${Date.now()}-a`,
+        deviceId: "test-fluct",
+        codigoGrupo: "garbanzo-lenteja",
+        timestamp: todayIso,
+        lecturas: { temperatura: 30, humedad: 50 },
+      });
+
+    await request(getApp())
+      .post("/api/arduino/telemetry")
+      .send({
+        eventId: `fluct-${Date.now()}-b`,
+        deviceId: "test-fluct",
+        codigoGrupo: "garbanzo-lenteja",
+        timestamp: todayIso,
+        lecturas: { temperatura: 31, humedad: 90 },
+      });
+
+    const operadorRes = await request(getApp()).post("/api/auth/login").send({
+      email: "operador@nativa.com",
+      password: "operador123",
+    });
+    const operadorToken = operadorRes.body.data.token;
+
+    const forbidden = await request(getApp())
+      .get("/api/telemetry/fluctuaciones/humedad")
+      .set("Authorization", `Bearer ${operadorToken}`);
+    expect(forbidden.status).toBe(403);
+
+    const res = await request(getApp())
+      .get("/api/telemetry/fluctuaciones/humedad")
+      .set("Authorization", `Bearer ${token}`);
+
+    expect(res.status).toBe(200);
+    expect(Array.isArray(res.body.data)).toBe(true);
+    const bucket = res.body.data.find((row) => row.codigoGrupo === "garbanzo-lenteja");
+    expect(bucket).toBeDefined();
+    expect(bucket.lecturas).toBeGreaterThanOrEqual(2);
+    expect(bucket.humedadMin).toBeLessThanOrEqual(bucket.humedadMax);
+    expect(bucket.umbrales.min).toBeDefined();
+    expect(bucket.fueraRango).toBeGreaterThanOrEqual(1);
+  });
 });

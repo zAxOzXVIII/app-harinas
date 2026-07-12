@@ -115,8 +115,137 @@ const getRecentByGroup = async (grupoRubroId, limit = 20) => {
     .limit(Math.min(Math.max(limit, 1), 200));
 };
 
+const startOfDay = (date) => {
+  const d = new Date(date);
+  d.setUTCHours(0, 0, 0, 0);
+  return d;
+};
+
+const endOfDay = (date) => {
+  const d = new Date(date);
+  d.setUTCHours(23, 59, 59, 999);
+  return d;
+};
+
+const round1 = (n) => Math.round(n * 10) / 10;
+
+/** Agregación diaria de humedad por grupo (registro 24/7). */
+const getHumedadFluctuacionesDiarias = async ({ from, to, grupoRubroId } = {}) => {
+  const { getConfig } = require("./humedadConfig.service");
+  const humedad = await getConfig();
+  const min = humedad.min;
+  const max = humedad.max;
+  const criticoMin = humedad.criticoMin;
+  const criticoMax = humedad.criticoMax;
+
+  const toDate = to ? endOfDay(new Date(to)) : endOfDay(new Date());
+  const fromDate = from
+    ? startOfDay(new Date(from))
+    : startOfDay(new Date(toDate.getTime() - 6 * 24 * 60 * 60 * 1000));
+
+  if (Number.isNaN(fromDate.getTime()) || Number.isNaN(toDate.getTime())) {
+    const err = new Error("Rango de fechas invalido");
+    err.status = 400;
+    throw err;
+  }
+
+  const match = {
+    timestamp: { $gte: fromDate, $lte: toDate },
+  };
+
+  if (grupoRubroId) {
+    if (!mongoose.Types.ObjectId.isValid(grupoRubroId)) {
+      const err = new Error("ID de grupo invalido");
+      err.status = 400;
+      throw err;
+    }
+    match.grupoRubroId = new mongoose.Types.ObjectId(grupoRubroId);
+  }
+
+  const criticoCond = [];
+  if (criticoMin != null) {
+    criticoCond.push({ $lt: ["$lecturas.humedad", criticoMin] });
+  }
+  if (criticoMax != null) {
+    criticoCond.push({ $gt: ["$lecturas.humedad", criticoMax] });
+  }
+
+  const groupStage = {
+    _id: {
+      fecha: { $dateToString: { format: "%Y-%m-%d", date: "$timestamp" } },
+      grupoRubroId: "$grupoRubroId",
+    },
+    lecturas: { $sum: 1 },
+    humedadMin: { $min: "$lecturas.humedad" },
+    humedadMax: { $max: "$lecturas.humedad" },
+    humedadPromedio: { $avg: "$lecturas.humedad" },
+    fueraRango: {
+      $sum: {
+        $cond: [
+          {
+            $or: [
+              { $lt: ["$lecturas.humedad", min] },
+              { $gt: ["$lecturas.humedad", max] },
+            ],
+          },
+          1,
+          0,
+        ],
+      },
+    },
+  };
+
+  if (criticoCond.length > 0) {
+    groupStage.critico = {
+      $sum: {
+        $cond: [{ $or: criticoCond }, 1, 0],
+      },
+    };
+  } else {
+    groupStage.critico = { $sum: 0 };
+  }
+
+  const rows = await TelemetryEvent.aggregate([
+    { $match: match },
+    { $group: groupStage },
+    {
+      $lookup: {
+        from: "gruporubros",
+        localField: "_id.grupoRubroId",
+        foreignField: "_id",
+        as: "grupo",
+      },
+    },
+    { $unwind: "$grupo" },
+    { $sort: { "_id.fecha": -1, "grupo.nombre": 1 } },
+  ]);
+
+  const umbrales = {
+    min,
+    max,
+    criticoMin: criticoMin ?? null,
+    criticoMax: criticoMax ?? null,
+    unidad: humedad.unidad ?? "%RH",
+  };
+
+  return rows.map((row) => ({
+    grupoRubroId: row._id.grupoRubroId,
+    nombreGrupo: row.grupo.nombre,
+    codigoGrupo: row.grupo.codigo,
+    fecha: row._id.fecha,
+    lecturas: row.lecturas,
+    humedadMin: round1(row.humedadMin),
+    humedadMax: round1(row.humedadMax),
+    humedadPromedio: round1(row.humedadPromedio),
+    fueraRango: row.fueraRango,
+    critico: row.critico,
+    umbrales,
+  }));
+};
+
 module.exports = {
   ingestTelemetry,
   getLatestByGroup,
   getRecentByGroup,
+  getHumedadFluctuacionesDiarias,
 };

@@ -73,6 +73,9 @@ Solo **temperatura** y **humedad** son obligatorias. Firmware de referencia: **E
 
 - `GET /api/telemetry/latest` (auth): última lectura por grupo.
 - `GET /api/telemetry/group/:grupoRubroId?limit=20` (auth): historial reciente por grupo.
+- `GET /api/telemetry/fluctuaciones/humedad?from=&to=&grupoRubroId=` (auth, supervisor/gerente): agregación diaria min/max/promedio y conteo fuera de rango.
+
+Para el **registro de fluctuaciones 24/7**, el gateway o ESP32 debe enviar telemetría de forma continua (no solo durante secado activo). Cada evento se persiste en `TelemetryEvent`.
 
 ## Alertas (Sprint 7)
 

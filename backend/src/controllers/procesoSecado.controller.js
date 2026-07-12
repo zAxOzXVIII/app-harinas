@@ -5,6 +5,9 @@ const {
   completarManual,
   marcarEmpaquetado,
   reabrirLote,
+  marcarListoOperador,
+  archivarLote,
+  listPendientesArchivo,
 } = require("../services/procesoSecado.service");
 
 const listActivosController = async (_req, res, next) => {
@@ -61,6 +64,33 @@ const reabrirLoteController = async (req, res, next) => {
   }
 };
 
+const marcarListoController = async (req, res, next) => {
+  try {
+    const data = await marcarListoOperador(req.params.id, req.user?.userId);
+    res.status(200).json({ success: true, message: "Lote marcado como listo", data });
+  } catch (error) {
+    next(error);
+  }
+};
+
+const archivarController = async (req, res, next) => {
+  try {
+    const data = await archivarLote(req.params.id);
+    res.status(200).json({ success: true, message: "Lote archivado", data });
+  } catch (error) {
+    next(error);
+  }
+};
+
+const listPendientesArchivoController = async (_req, res, next) => {
+  try {
+    const data = await listPendientesArchivo();
+    res.status(200).json({ success: true, data });
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   listActivosController,
   getActualController,
@@ -68,4 +98,7 @@ module.exports = {
   completarController,
   marcarEmpaquetadoController,
   reabrirLoteController,
+  marcarListoController,
+  archivarController,
+  listPendientesArchivoController,
 };
