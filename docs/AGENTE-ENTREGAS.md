@@ -335,6 +335,7 @@ Solo roles supervisor y gerente (Preview gerente OK).
 | Archivo | Uso |
 |---------|-----|
 | [`GUIA-SISTEMA-COMPLETA.md`](GUIA-SISTEMA-COMPLETA.md) | Arquitectura, entornos, pantallas, API |
+| [`AGENTE-ENTREGAS-COLA-GRUPOS.md`](AGENTE-ENTREGAS-COLA-GRUPOS.md) | Cola FIFO de grupos, crear grupo, saludos (LeanHerz 22/7/2026) |
 | [`OPERACION-LOCAL.md`](OPERACION-LOCAL.md) | Arranque Modo A |
 | [`RENDER-DEPLOY.md`](RENDER-DEPLOY.md) | Deploy Modo B |
 | [`MONTAJE-HARDWARE-UNO-ESP12F.md`](MONTAJE-HARDWARE-UNO-ESP12F.md) | Gateway Uno → Render |

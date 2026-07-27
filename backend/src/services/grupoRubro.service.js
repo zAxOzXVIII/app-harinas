@@ -2,12 +2,64 @@ const mongoose = require("mongoose");
 const GrupoRubro = require("../models/GrupoRubro");
 const { getEmpaquetadoGrupoIds, isGrupoLoteCerrado } = require("./procesoSecado.service");
 
+/**
+ * Orden de la cola de trabajo: SIEMPRE createdAt ascendente (mas viejo primero),
+ * nunca por nombre. El admin crea el grupo -> entra al final de la fila; al
+ * salir el primero (marcado listo), el siguiente en createdAt queda arriba.
+ */
 const listGrupos = async ({ activos = false } = {}) => {
-  const grupos = await GrupoRubro.find().sort({ nombre: 1 }).lean();
+  const grupos = await GrupoRubro.find().sort({ createdAt: 1 }).lean();
   if (!activos) return grupos;
 
   const ocultos = await getEmpaquetadoGrupoIds();
   return grupos.filter((g) => !ocultos.has(g._id.toString()));
+};
+
+const slugify = (text) =>
+  text
+    .toString()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+
+const buildUniqueCodigo = async (nombre) => {
+  const base = slugify(nombre) || "grupo";
+  let codigo = base;
+  let suffix = 1;
+  // eslint-disable-next-line no-await-in-loop
+  while (await GrupoRubro.exists({ codigo })) {
+    suffix += 1;
+    codigo = `${base}-${suffix}`;
+  }
+  return codigo;
+};
+
+const createGrupo = async ({ nombre, items, calibracion }, userId) => {
+  if (!nombre || !nombre.trim()) {
+    const err = new Error("nombre es requerido");
+    err.status = 422;
+    throw err;
+  }
+  if (!Array.isArray(items) || items.length !== 2 || items.some((i) => !i || !i.trim())) {
+    const err = new Error("items debe contener exactamente 2 rubros");
+    err.status = 422;
+    throw err;
+  }
+
+  const codigo = await buildUniqueCodigo(nombre);
+
+  const grupo = await GrupoRubro.create({
+    codigo,
+    nombre: nombre.trim(),
+    items: items.map((i) => i.trim()),
+    ...(calibracion ? { calibracion } : {}),
+    creadoPor: userId || null,
+  });
+
+  return grupo;
 };
 
 const getGrupoById = async (id) => {
@@ -86,4 +138,4 @@ const updateCalibracion = async (id, payload, userId) => {
   return grupo;
 };
 
-module.exports = { listGrupos, getGrupoById, updateCalibracion };
+module.exports = { listGrupos, getGrupoById, updateCalibracion, createGrupo };

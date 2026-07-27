@@ -12,6 +12,7 @@ export type GerenteStackParamList = {
   PreviewSupervisor: undefined;
   PreviewOperador: undefined;
   GruposList: undefined;
+  GrupoCreate: undefined;
   CalibracionEdit: { grupoId: string };
   HumedadEdit: undefined;
   LotesPendientesArchivo: undefined;
@@ -21,6 +22,9 @@ export type GerenteStackParamList = {
 export type GruposStackParamList = {
   Home: undefined;
   GruposList: undefined;
+  // Solo se registra en el stack Gerente; se declara aqui para que
+  // GruposListScreen (compartida Gerente/Supervisor) tipe bien la navegacion.
+  GrupoCreate: undefined;
   CalibracionEdit: { grupoId: string };
   HumedadEdit: undefined;
   FluctuacionesHumedad: undefined;

@@ -43,7 +43,6 @@ export const OperadorHomeScreen = () => {
   const { muted: mutedText, title: titleStyle, body: bodyStyle } = useContrastStyles();
   const chipText = { color: theme.colors.onSurfaceVariant, fontSize: 12 };
   const navigation = useNavigation<Nav>();
-  const user = useAuthStore((s) => s.user);
   const logout = useAuthStore((s) => s.logout);
 
   const grupos = useGruposStore((s) => s.grupos);
@@ -114,6 +113,13 @@ export const OperadorHomeScreen = () => {
     clearSecadoError();
     try {
       await iniciarSecado(grupo._id);
+      // Refresco inmediato: que las graficas reflejen actividad al instante,
+      // sin que el operador tenga que mirar la terminal del backend.
+      await Promise.all([
+        fetchLatest(),
+        fetchHistory(grupo._id, 30),
+        fetchActivos(),
+      ]);
     } catch {
       Alert.alert("No se pudo iniciar", "Verifica que el lote no este cerrado o en secado.");
     }
@@ -205,7 +211,7 @@ export const OperadorHomeScreen = () => {
     >
       <ScreenHero
         roleLabel="Operador"
-        title={`Hola, ${user?.nombre ?? "Operador"}`}
+        title="Operación de secado"
         subtitle="Inicia el secado por grupo y monitorea temperatura y humedad"
       >
         <View style={styles.alertBtnWrap}>
@@ -262,13 +268,18 @@ export const OperadorHomeScreen = () => {
       ) : null}
 
       <Text variant="titleLarge" style={[styles.sectionTitle, titleStyle]}>
-        Grupos calibrados
+        Grupos por trabajar
+      </Text>
+      <Text variant="bodySmall" style={mutedText}>
+        Orden de creación: el primero de la lista es el siguiente a despachar.
       </Text>
 
       {grupos.length === 0 ? (
         <Card style={{ backgroundColor: theme.colors.surface }}>
           <Card.Content>
-            <Text variant="bodyMedium" style={bodyStyle}>No hay grupos disponibles.</Text>
+            <Text variant="bodyMedium" style={bodyStyle}>
+              No hay grupos pendientes. El gerente debe crear el siguiente.
+            </Text>
           </Card.Content>
         </Card>
       ) : (
@@ -311,6 +322,25 @@ export const OperadorHomeScreen = () => {
                 <Card.Content>
                   <View style={styles.cardHeader}>
                     <View style={{ flex: 1 }}>
+                      {idx === 0 ? (
+                        <Chip
+                          compact
+                          icon="arrow-up-bold-circle"
+                          style={[styles.queueChip, { backgroundColor: theme.colors.primaryContainer }]}
+                          textStyle={{ color: theme.colors.onPrimaryContainer, fontSize: 12 }}
+                        >
+                          Siguiente en la cola
+                        </Chip>
+                      ) : (
+                        <Chip
+                          compact
+                          icon="clock-outline"
+                          style={[styles.queueChip, { backgroundColor: theme.colors.surfaceVariant }]}
+                          textStyle={{ color: theme.colors.onSurfaceVariant, fontSize: 12 }}
+                        >
+                          #{idx + 1} en la cola
+                        </Chip>
+                      )}
                       <Text variant="titleMedium" style={{ color: theme.colors.onSurface }}>
                   {grupo.nombre}
                 </Text>
@@ -467,6 +497,7 @@ const styles = StyleSheet.create({
   badge: { position: "absolute", top: -6, right: -6 },
   card: { borderRadius: 14 },
   cardHeader: { flexDirection: "row", alignItems: "center", gap: 8 },
+  queueChip: { alignSelf: "flex-start", marginBottom: 6 },
   chipsRow: { flexDirection: "row", flexWrap: "wrap", gap: 6, marginTop: 6 },
   chipItem: {},
   statusDot: { width: 12, height: 12, borderRadius: 6 },

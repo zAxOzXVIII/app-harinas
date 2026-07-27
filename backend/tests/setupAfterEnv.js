@@ -29,6 +29,17 @@ beforeAll(async () => {
     });
   }
 
+  const supervisorEmail = "supervisor@nativa.com";
+  const supervisorExists = await User.findOne({ email: supervisorEmail });
+  if (!supervisorExists) {
+    await User.create({
+      email: supervisorEmail,
+      nombre: "Supervisor Test",
+      password: await bcrypt.hash("supervisor123", 10),
+      rol: "supervisor",
+    });
+  }
+
   const GrupoRubro = require("../src/models/GrupoRubro");
   const HumedadConfig = require("../src/models/HumedadConfig");
 

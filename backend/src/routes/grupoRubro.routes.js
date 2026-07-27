@@ -3,6 +3,7 @@ const { body } = require("express-validator");
 const {
   list,
   getOne,
+  create,
   updateCalibracionController,
 } = require("../controllers/grupoRubro.controller");
 const { requireAuth } = require("../middlewares/auth.middleware");
@@ -15,6 +16,20 @@ const router = Router();
 router.use(requireAuth);
 router.get("/", list);
 router.get("/:id", getOne);
+
+// Solo Gerente crea grupos (Admin > Supervisor > Operador).
+const createValidations = [
+  body("nombre").isString().trim().notEmpty().withMessage("nombre es requerido"),
+  body("items").isArray({ min: 2, max: 2 }).withMessage("items debe tener exactamente 2 rubros"),
+  body("items.*").isString().trim().notEmpty().withMessage("cada item debe ser texto no vacio"),
+];
+
+router.post(
+  "/",
+  requireRoles("gerente"),
+  [...createValidations, validateRequest],
+  create
+);
 
 // Solo Gerente y Supervisor pueden calibrar.
 const calibracionValidations = [

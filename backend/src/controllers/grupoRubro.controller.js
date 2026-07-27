@@ -2,6 +2,7 @@ const {
   listGrupos,
   getGrupoById,
   updateCalibracion,
+  createGrupo,
 } = require("../services/grupoRubro.service");
 
 const list = async (req, res, next) => {
@@ -26,6 +27,16 @@ const getOne = async (req, res, next) => {
   }
 };
 
+const create = async (req, res, next) => {
+  try {
+    const { nombre, items, calibracion } = req.body;
+    const grupo = await createGrupo({ nombre, items, calibracion }, req.user?.userId);
+    res.status(201).json({ success: true, message: "Grupo creado", data: grupo });
+  } catch (error) {
+    next(error);
+  }
+};
+
 const updateCalibracionController = async (req, res, next) => {
   try {
     const grupo = await updateCalibracion(req.params.id, req.body, req.user?.userId);
@@ -37,4 +48,4 @@ const updateCalibracionController = async (req, res, next) => {
   }
 };
 
-module.exports = { list, getOne, updateCalibracionController };
+module.exports = { list, getOne, create, updateCalibracionController };

@@ -29,6 +29,7 @@ export const GruposListScreen = () => {
   const rol = useAuthStore((s) => s.user?.rol);
 
   const canEdit = rol === "gerente" || rol === "supervisor";
+  const canCreate = rol === "gerente";
   const user = useAuthStore((s) => s.user);
   const { exporting, runExport } = usePdfExport();
 
@@ -60,6 +61,17 @@ export const GruposListScreen = () => {
       refreshControl={<RefreshControl refreshing={isLoading} onRefresh={fetchAll} />}
     >
       {error ? <Text style={styles.error}>{error}</Text> : null}
+
+      {canCreate ? (
+        <Button
+          mode="contained"
+          icon="plus-circle"
+          onPress={() => navigation.navigate("GrupoCreate")}
+          style={styles.pdfBtn}
+        >
+          Crear grupo
+        </Button>
+      ) : null}
 
       <Button
         mode="contained-tonal"
@@ -110,12 +122,15 @@ export const GruposListScreen = () => {
       <Text variant="titleLarge" style={[styles.sectionTitle, { color: theme.colors.primary }]}>
         Grupos de rubro
       </Text>
+      <Text variant="bodySmall" style={[styles.queueHint, mutedText]}>
+        Orden de trabajo: del más antiguo (arriba) al más nuevo.
+      </Text>
 
       {grupos.length === 0 ? (
         <Card>
           <Card.Content>
             <Text variant="bodyMedium" style={bodyStyle}>
-              No hay grupos sembrados. Ejecuta `npm run seed:grupos` en el backend.
+              No hay grupos creados todavía. {canCreate ? "Crea el primero arriba." : "Espera a que el gerente cree uno."}
             </Text>
           </Card.Content>
         </Card>
@@ -125,6 +140,7 @@ export const GruposListScreen = () => {
             <GrupoRubroCard
               grupo={grupo}
               humedad={humedad}
+              queuePosition={idx + 1}
               onPress={
                 canEdit
                   ? () => navigation.navigate("CalibracionEdit", { grupoId: grupo._id })
@@ -146,5 +162,6 @@ const styles = StyleSheet.create({
   humedadCard: { borderRadius: 12, marginBottom: 16 },
   humedadValue: { marginTop: 8, fontWeight: "700" },
   humedadBtn: { marginTop: 12 },
-  sectionTitle: { marginTop: 8, marginBottom: 8 },
+  sectionTitle: { marginTop: 8, marginBottom: 4 },
+  queueHint: { marginBottom: 10 },
 });

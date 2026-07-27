@@ -2,6 +2,7 @@ import { api } from "./api";
 import type {
   CalibracionPayload,
   GrupoRubro,
+  GrupoRubroPayload,
   HumedadConfig,
   HumedadPayload,
 } from "../types/grupoRubro";
@@ -24,6 +25,11 @@ export const gruposService = {
 
   async getOne(id: string): Promise<GrupoRubro> {
     const { data } = await api.get<ApiResponse<GrupoRubro>>(`/api/grupos-rubro/${id}`);
+    return data.data;
+  },
+
+  async create(payload: GrupoRubroPayload): Promise<GrupoRubro> {
+    const { data } = await api.post<ApiResponse<GrupoRubro>>("/api/grupos-rubro", payload);
     return data.data;
   },
 

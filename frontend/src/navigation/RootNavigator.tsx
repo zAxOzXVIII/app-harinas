@@ -16,6 +16,7 @@ import { OperadorHomeScreen } from "../screens/OperadorHomeScreen";
 import { AlertsListScreen } from "../screens/AlertsListScreen";
 import { LotesPendientesArchivoScreen } from "../screens/LotesPendientesArchivoScreen";
 import { FluctuacionesHumedadScreen } from "../screens/FluctuacionesHumedadScreen";
+import { GrupoFormScreen } from "../screens/GrupoFormScreen";
 import { useAuthStore } from "../store/auth.store";
 import { LoadingScreen } from "../components/LoadingScreen";
 import { useBootstrapSession } from "../hooks/useBootstrapSession";
@@ -97,6 +98,11 @@ const GerenteNavigator = () => (
       name="GruposList"
       options={{ title: "Grupos de rubro" }}
       component={GruposListScreen}
+    />
+    <GerenteStack.Screen
+      name="GrupoCreate"
+      options={{ title: "Nuevo grupo", presentation: "modal", animation: "slide_from_bottom" }}
+      children={({ navigation }) => <GrupoFormScreen onSuccess={() => navigation.goBack()} />}
     />
     <GerenteStack.Screen
       name="CalibracionEdit"

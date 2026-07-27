@@ -31,7 +31,10 @@ const grupoRubroSchema = new mongoose.Schema(
       type: String,
       required: true,
       unique: true,
-      enum: ["garbanzo-lenteja", "platano-cambur", "yuca-batata"],
+      trim: true,
+      lowercase: true,
+      // Los 3 grupos semilla usan estos codigos fijos; el gerente puede crear
+      // grupos nuevos con codigo derivado del nombre (ver grupoRubro.service.createGrupo).
     },
     nombre: {
       type: String,
@@ -50,6 +53,12 @@ const grupoRubroSchema = new mongoose.Schema(
       type: calibracionSchema,
       required: true,
       default: () => ({}),
+    },
+    /** Gerente que creo el grupo (null para los 3 sembrados por seed). */
+    creadoPor: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      default: null,
     },
     actualizadoPor: {
       type: mongoose.Schema.Types.ObjectId,

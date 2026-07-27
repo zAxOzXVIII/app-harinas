@@ -37,7 +37,7 @@ Reglas importantes:
 - La **app móvil nunca habla con el Arduino** (ni Bluetooth ni USB). Solo consume el backend por HTTPS.
 - El **backend es el único punto de verdad**: guarda telemetría, evalúa alertas, gestiona secados y roles.
 - Las **alertas de anomalía** (T°, humedad fuera de rango, etc.) solo se generan si hay un **secado activo** (`ProcesoSecado` en `en_secado`). La telemetría **sí se guarda siempre** que llegue al API, aunque no haya secado.
-- Los **grupos de rubro** (3 parejas fijas) no se crean desde la app: vienen del seed (`npm run seed:grupos`).
+- Los **grupos de rubro**: 3 parejas iniciales vienen del seed (`npm run seed:grupos`); desde jul/2026 el **gerente puede crear grupos nuevos** desde la app (`POST /api/grupos-rubro`). La lista siempre se ordena por **fecha de creación** (más viejo primero = cola FIFO): Admin crea → Supervisor calibra → Operador despacha en ese orden.
 
 ### Rutas de hardware
 
@@ -219,7 +219,8 @@ Usa esta tabla: abres la app, llegas a la pantalla, y sabes qué archivo impleme
 | Lotes pendientes archivo | **Lotes pendientes** | `frontend/src/screens/LotesPendientesArchivoScreen.tsx` | `GET /api/procesos-secado/pendientes-archivo`, `POST .../archivar` |
 | Fluctuaciones humedad | **Fluctuaciones humedad** | `frontend/src/screens/FluctuacionesHumedadScreen.tsx` | `GET /api/telemetry/fluctuaciones/humedad`, export PDF |
 | Alertas de proceso | **Alertas de proceso** | `frontend/src/screens/AlertsListScreen.tsx` | `GET /api/alerts` |
-| Grupos de rubro | **Grupos de rubro** | `frontend/src/screens/GruposListScreen.tsx` | `GET /api/grupos-rubro` |
+| Grupos de rubro | **Grupos de rubro** | `frontend/src/screens/GruposListScreen.tsx` | `GET /api/grupos-rubro` (orden cola) |
+| Nuevo grupo | **Nuevo grupo** | `frontend/src/screens/GrupoFormScreen.tsx` | `POST /api/grupos-rubro` (solo gerente) |
 | Calibración por grupo | **Calibracion** | `frontend/src/screens/CalibracionFormScreen.tsx` | `PUT /api/grupos-rubro/:id` |
 | Humedad global | **Humedad global** | `frontend/src/screens/HumedadFormScreen.tsx` | `GET/PUT /api/config/humedad` |
 | Preview Supervisor | **Vista Supervisor** | `SupervisorHomeScreen.tsx` (reutilizada) | — |
@@ -236,6 +237,7 @@ Usa esta tabla: abres la app, llegas a la pantalla, y sabes qué archivo impleme
 - [ ] Muro con gráficas y chips de alertas
 - [ ] Lista alertas + export PDF (icono en header si está)
 - [ ] Grupos de rubro + pantalla calibración
+- [ ] Crear grupo nuevo (Nuevo grupo) → aparece al final de la cola
 - [ ] Humedad global
 - [ ] Lotes pendientes de archivo (papelera 🗑)
 - [ ] Fluctuaciones humedad (supervisor / gerente) + export PDF
@@ -256,7 +258,7 @@ Usa esta tabla: abres la app, llegas a la pantalla, y sabes qué archivo impleme
 
 - [ ] Home con botón "Ver y calibrar grupos"
 - [ ] Registro fluctuaciones humedad (7/30 días, chips fuera de rango) + export PDF
-- [ ] Lista de 3 grupos (garbanzo-lenteja, platano-cambur, yuca-batata)
+- [ ] Lista de grupos en orden de cola (chip "Siguiente en la cola" / "#N en la cola")
 - [ ] Formulario calibración (T°, nivel secado, tiempo)
 - [ ] Humedad global (% min/max)
 
@@ -277,7 +279,7 @@ Usa esta tabla: abres la app, llegas a la pantalla, y sabes qué archivo impleme
 
 **Checklist fotos Operador:**
 
-- [ ] Home con 3 grupos y telemetría (T°, HR, chips)
+- [ ] Home con grupos en cola (chip "Siguiente en la cola") y telemetría (T°, HR, chips)
 - [ ] Grupo con secado **inactivo** → botón **Iniciar secado**
 - [ ] Grupo con secado **activo** → timer + **Finalizar secado**
 - [ ] Alertas dentro de la card del grupo (durante secado)
@@ -375,7 +377,7 @@ erDiagram
 |--------|---------|----------------|
 | **User** | `User.js` | Login, roles, push token |
 | **Harina** | `Harina.js` | Inventario CRUD (Gerente) |
-| **GrupoRubro** | `GrupoRubro.js` | 3 parejas de rubros + calibración (T°, nivel, tiempo) |
+| **GrupoRubro** | `GrupoRubro.js` | Parejas de rubros + calibración (T°, nivel, tiempo). 3 sembradas por seed + las que crea el gerente (cola FIFO por `createdAt`) |
 | **HumedadConfig** | `HumedadConfig.js` | Umbrales globales de humedad |
 | **TelemetryEvent** | `TelemetryEvent.js` | Lecturas ESP32/simulador |
 | **ProcessAlert** | `ProcessAlert.js` | Alertas por umbrales o fin de secado |
@@ -409,7 +411,8 @@ Todas las rutas van bajo `/api/...`. La raíz `/` del servicio Render puede devo
 | PUT | `/api/auth/push-token` | Sí | todos | Token Expo push |
 | GET/POST/PUT/DELETE | `/api/harinas` | Sí | gerente | CRUD harinas |
 | GET/POST/PUT/DELETE | `/api/users` | Sí | gerente | CRUD equipo |
-| GET | `/api/grupos-rubro` | Sí | todos* | Lista grupos |
+| GET | `/api/grupos-rubro` | Sí | todos* | Lista grupos (orden `createdAt` ASC = cola FIFO) |
+| POST | `/api/grupos-rubro` | Sí | gerente | Crear grupo nuevo (entra al final de la cola) |
 | GET/PUT | `/api/grupos-rubro/:id` | Sí | supervisor/gerente | Calibración |
 | GET/PUT | `/api/config/humedad` | Sí | supervisor/gerente | Humedad global |
 | POST | `/api/arduino/telemetry` | No | — | Ingesta ESP32 |
@@ -670,7 +673,8 @@ La APK **embebe** la URL del API al compilar. Si cambias de Render a otro host, 
 | `DEPLOY-PLAN.md` | Plan de despliegue |
 | `backend/docs/arduino-telemetry-contract.md` | JSON telemetría |
 | `firmware/README.md` | ESP32 Wi‑Fi + rutas hardware |
-| `docs/AGENTE-ENTREGAS.md` | Prompts por partes (LeanHerz: ✓ operador, papelera gerente, fluctuaciones) |
+| `docs/AGENTE-ENTREGAS.md` | Prompts por partes (LeanHerz 11/7: ✓ operador, papelera gerente, fluctuaciones) |
+| `docs/AGENTE-ENTREGAS-COLA-GRUPOS.md` | Cola FIFO de grupos Admin→Sup→Op, saludos, gráficas (LeanHerz 22/7) — implementada |
 | `SPRINTS.md` | Historial de sprints |
 
 ---

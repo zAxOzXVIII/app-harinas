@@ -137,7 +137,8 @@ export const MuroGerenteScreen = () => {
         <Card style={styles.card}>
           <Card.Content>
             <Text variant="bodyMedium" style={bodyStyle}>
-              Sin telemetria aun. Ejecuta `npm run simulate:telemetry` en el backend.
+              Esperando lecturas del sensor. Cuando el operador inicie un secado, la
+              telemetría aparecerá aquí automáticamente.
             </Text>
           </Card.Content>
         </Card>

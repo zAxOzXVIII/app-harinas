@@ -1,7 +1,6 @@
-export type GrupoRubroCodigo =
-  | "garbanzo-lenteja"
-  | "platano-cambur"
-  | "yuca-batata";
+// Los 3 primeros vienen del seed; el gerente puede crear grupos nuevos con
+// codigo derivado del nombre (slug), por eso el tipo admite cualquier string.
+export type GrupoRubroCodigo = string;
 
 export interface RangoTemperatura {
   min: number;
@@ -34,10 +33,17 @@ export interface GrupoRubro {
   nombre: string;
   items: string[];
   calibracion: Calibracion;
+  creadoPor?: string | null;
   actualizadoPor?: string | null;
   actualizadoEn?: string | null;
   createdAt?: string;
   updatedAt?: string;
+}
+
+/** Payload minimo para que el gerente cree un grupo nuevo (cola FIFO). */
+export interface GrupoRubroPayload {
+  nombre: string;
+  items: [string, string];
 }
 
 export interface CalibracionPayload {

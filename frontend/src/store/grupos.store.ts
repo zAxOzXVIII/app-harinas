@@ -3,6 +3,7 @@ import { gruposService, humedadService } from "../services/grupos.service";
 import type {
   CalibracionPayload,
   GrupoRubro,
+  GrupoRubroPayload,
   HumedadConfig,
   HumedadPayload,
 } from "../types/grupoRubro";
@@ -14,6 +15,7 @@ interface GruposState {
   isMutating: boolean;
   error: string | null;
   fetchAll: (opts?: { activosOnly?: boolean }) => Promise<void>;
+  createGrupo: (payload: GrupoRubroPayload) => Promise<GrupoRubro>;
   updateCalibracion: (id: string, payload: CalibracionPayload) => Promise<void>;
   updateHumedad: (payload: HumedadPayload) => Promise<void>;
   clearError: () => void;
@@ -36,6 +38,19 @@ export const useGruposStore = create<GruposState>((set, get) => ({
       set({ grupos, humedad, isLoading: false });
     } catch (_error) {
       set({ isLoading: false, error: "No fue posible cargar los grupos de rubro" });
+    }
+  },
+
+  createGrupo: async (payload) => {
+    try {
+      set({ isMutating: true, error: null });
+      const nuevo = await gruposService.create(payload);
+      // El nuevo grupo es el mas reciente: va al final de la cola (orden FIFO).
+      set({ grupos: [...get().grupos, nuevo], isMutating: false });
+      return nuevo;
+    } catch (error) {
+      set({ isMutating: false, error: "No fue posible crear el grupo" });
+      throw error;
     }
   },
 

@@ -17,7 +17,6 @@ export const SupervisorHomeScreen = () => {
   const layout = useScreenLayout();
   const { muted: mutedText, title: titleStyle } = useContrastStyles();
   const navigation = useNavigation<Nav>();
-  const user = useAuthStore((s) => s.user);
   const logout = useAuthStore((s) => s.logout);
 
   return (
@@ -27,7 +26,7 @@ export const SupervisorHomeScreen = () => {
     >
       <ScreenHero
         roleLabel="Supervisor"
-        title={`Hola, ${user?.nombre ?? "Supervisor"}`}
+        title="Cola de grupos"
         subtitle="Calibra temperatura, nivel de secado y tiempo por grupo de rubro"
       />
 

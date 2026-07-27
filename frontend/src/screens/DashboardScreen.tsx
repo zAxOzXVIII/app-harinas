@@ -56,7 +56,7 @@ export const DashboardScreen = ({ onGoToGestion }: Props) => {
     >
       <ScreenHero
         roleLabel="Gerente"
-        title={`Hola, ${user?.nombre ?? "Usuario"}`}
+        title="Inicio"
         subtitle="Panel de control — inventario, equipo y monitoreo de planta"
       />
 
