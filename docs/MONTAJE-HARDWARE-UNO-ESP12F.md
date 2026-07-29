@@ -1,17 +1,42 @@
 # Montaje hardware — Arduino Uno + AHT10 + HW-084 + ESP-12F
 
-Guía paso a paso para **identificar, cablear y montar cada pieza** del kit de laboratorio Nativa y conectarlo al backend + app.
+Guía para cablear el kit de laboratorio Nativa y mandar telemetría a la API + app.
 
-> **Tu kit:** **AHT10** (temp/humedad) + **HW-084** (reloj DS3231) + **ESP-12F** (Wi‑Fi).  
-> **Producción:** API en **Render** (`https://app-harinas.onrender.com`) + **MongoDB Atlas** (`cluster0.0jgv676`).  
-> **Arduino:** Uno por USB → gateway en PC → API Render.  
-> El **ESP-12F** se cablea en una fase posterior.
+> **Tu kit:** **AHT10** + **HW-084** (DS3231) + **ESP-12F** (Wi‑Fi ESP8266) + **Arduino Uno**.  
+> **API demo:** `https://app-harinas.onrender.com` + MongoDB Atlas.  
+> **Ruta recomendada ahora:** sensores en el **ESP-12F** (mismo esquema que el ESP32) → Wi‑Fi → Render.  
+> **Ruta alternativa:** sensores en el **Uno** → USB → gateway en PC → Render (sin usar el ESP).
+
+---
+
+## ¿Solo Uno + ESP-12F + 2 sensores? ¿Hace falta algo más?
+
+**Respuesta corta:** con **solo** esas cuatro piezas **a menudo no alcanza** para arrancar el ESP-12F de forma segura. Depende de si tu ESP-12F viene en **adaptador / breakout**.
+
+| Pieza | ¿Obligatoria? | Por qué |
+|-------|---------------|---------|
+| **Arduino Uno** | Opcional en runtime | En la ruta Wi‑Fi el MCU es el ESP-12F. El Uno sirve como **5 V por USB** hacia un regulador 3.3 V, o como ruta USB+gateway si dejas sensores en el Uno. |
+| **ESP-12F** | Sí | Wi‑Fi + POST a Render |
+| **AHT10 + HW-084** | Sí | Temperatura, humedad y hora |
+| **3.3 V estable (AMS1117 u otro)** | **Sí, salvo que el adaptador ya lo traiga** | El ESP-12F **se quema a 5 V**. El pin 3.3 V del Uno suele ser **débil** para picos Wi‑Fi. |
+| **Resistencias 10 kΩ (boot)** | **Sí, salvo que el adaptador ya las traiga** | Sin CH_PD/EN, GPIO15, GPIO0, GPIO2 bien cableados el ESP **no arranca**. |
+| **Adaptador USB‑TTL 3.3 V** (FTDI/CP2102/CH340) | **Sí para programar**, si el breakout no tiene USB | El sketch va al ESP-12F, **no** al Uno. |
+| **Protoboard + dupont + CR2032** | Práctico / sí en HW-084 | Montaje y hora del RTC |
+| **Divisor 1k+2k** | Solo si Uno TX (5 V) → ESP RX | En la ruta “sensores en ESP” **no hace falta** (no usas serial Uno↔ESP) |
+| **Fuente 12 V + 7805** | No para demo USB | Solo planta / sin PC |
+
+**Caso feliz:** ESP-12F en **placa adaptadora** con regulador 3.3 V + resistencias de boot + USB → en la práctica te bastan **adaptador + 2 sensores + Wi‑Fi**, y el Uno puede ni usarse.
+
+**Caso módulo ESP-12F “pelado”:** **sí necesitas** AMS1117 (o 3.3 V fuerte), 4× 10 kΩ, condensadores 104, USB‑TTL y protoboard. El Uno solo no sustituye eso.
+
+Firmware ESP-12F (nuevo en el repo): [`firmware/esp8266-esp12f-aht10-ds3231/`](../firmware/esp8266-esp12f-aht10-ds3231/README.md).
 
 ---
 
 ## Índice
 
 0. [Guía rápida — cableado + Arduino IDE + Atlas](#0-guía-rápida--cableado--arduino-ide--atlas)
+   - [0.0 Ruta A — ESP-12F Wi‑Fi (sensores en el ESP)](#00-ruta-a--esp-12f-wi-fi-sensores-en-el-esp-como-esp32)
    - [0.11 Hoja de datos — copiar y pegar](#011-hoja-de-datos--copiar-y-pegar-examen)
 1. [Materiales del kit](#1-materiales-del-kit)
    - [1.1 Guía visual — reconocer cada módulo](#11-guía-visual--reconocer-cada-módulo)
@@ -30,7 +55,90 @@ Guía paso a paso para **identificar, cablear y montar cada pieza** del kit de l
 
 ## 0. Guía rápida — cableado + Arduino IDE + Atlas
 
-Esta sección resume **todo lo que necesitas hoy**: conectar **AHT10** y **HW-084** al Uno, subir el sketch, enlazar la PC con el cluster Atlas y ver datos en la app.
+Hay **dos rutas**. Elige una:
+
+| Ruta | MCU que lee sensores | Cómo llega a Render | Cuándo |
+|------|----------------------|---------------------|--------|
+| **A — ESP-12F Wi‑Fi** | **ESP-12F** | Wi‑Fi directo (sin PC) | Quieres el mismo esquema que el ESP32 |
+| **B — Uno + USB** | **Arduino Uno** | PC + gateway | Validar sensores rápido; ESP apagado |
+
+### 0.0 Ruta A — ESP-12F Wi‑Fi (sensores en el ESP, como ESP32)
+
+```
+AHT10 ──┐
+        ├── I2C (GPIO4/GPIO5) ──► ESP-12F ──Wi‑Fi──► POST .../api/arduino/telemetry
+HW-084 ─┘                              │
+                                       ▼
+                         https://app-harinas.onrender.com
+                                       │
+                                       ▼
+                              App (operador / muro / gráficas)
+```
+
+El **Arduino Uno no lee sensores** en esta ruta. Si lo conectas, solo puede alimentar **5 V USB** → regulador **3.3 V** del ESP (o no usarlo).
+
+#### Cableado sensores → ESP-12F
+
+| Desde | Pin | Hacia ESP-12F | Notas |
+|-------|-----|---------------|-------|
+| AHT10 / HW-084 | SDA | **GPIO4** | Bus compartido |
+| AHT10 / HW-084 | SCL | **GPIO5** | Bus compartido |
+| AHT10 / HW-084 | GND | **GND** | Común con ESP |
+| AHT10 / HW-084 | VCC | **3.3 V** (preferido) o 5 V si el módulo lo admite *y* el nivel I2C es seguro | Muchos módulos 5 V + ESP 3.3 V I2C funcionan; si hay dudas, alimenta sensores a 3.3 V |
+| ESP-12F | VCC | **Solo 3.3 V** | Nunca 5 V |
+| ESP-12F | CH_PD/EN, GPIO0, GPIO2 | Pull-up **10 kΩ** a 3.3 V | Si el adaptador no los trae |
+| ESP-12F | GPIO15 | Pull-down **10 kΩ** a GND | Obligatorio para boot |
+
+```
+              3.3 V ──► VCC ESP + (ideal) VCC sensores
+              GND  ──► GND ESP + GND sensores
+              GPIO4 ──► SDA (AHT10 + HW-084)
+              GPIO5 ──► SCL (AHT10 + HW-084)
+              CR2032 en HW-084
+```
+
+#### Pasos software (Ruta A)
+
+1. Instala el core **esp8266** en Arduino IDE (Gestor de placas → URL Espressif ESP8266).
+2. Placa: **NodeMCU 1.0 (ESP-12E Module)** o **Generic ESP8266 Module**.
+3. Librerías: **Adafruit AHTX0**, **RTClib**, **ArduinoJson 6.x**.
+4. Abre:
+   ```
+   firmware/esp8266-esp12f-aht10-ds3231/esp12f_nativa_telemetry/esp12f_nativa_telemetry.ino
+   ```
+5. Copia `config.example.h` → `config.h`:
+
+```cpp
+#pragma once
+#define WIFI_SSID "TU_WIFI_2.4GHz"
+#define WIFI_PASSWORD "TU_CLAVE"
+#define API_URL "https://app-harinas.onrender.com/api/arduino/telemetry"
+#define API_USE_HTTPS 1
+#define DEVICE_ID "esp12f-secador-01"
+#define CODIGO_GRUPO "garbanzo-lenteja"
+#define INTERVAL_MS 30000
+#define I2C_SDA 4
+#define I2C_SCL 5
+```
+
+6. Pon GPIO0 a GND → sube el sketch → quita GPIO0 a GND (modo run) → reset.
+7. Monitor serie **115200** (USB‑TTL o USB del adaptador): `AHT10 OK`, `DS3231 OK`, `IP: ...`, `POST 201`.
+8. En la app: Operador → grupo `garbanzo-lenteja` → **Iniciar secado** → ver T°/HR.
+
+**Wi‑Fi:** solo **2.4 GHz** (el ESP-12F no usa 5 GHz).
+
+#### Checklist Ruta A
+
+- [ ] ESP a **3.3 V** (medido con multímetro)
+- [ ] Boot: EN/CH_PD, GPIO0, GPIO2, GPIO15 correctos (o adaptador)
+- [ ] I2C en GPIO4/GPIO5
+- [ ] `config.h` con Wi‑Fi + Render + `API_USE_HTTPS 1`
+- [ ] Monitor: `POST 201`
+- [ ] App con secado iniciado en el mismo `CODIGO_GRUPO`
+
+---
+
+El resto de la sección 0 (0.1 en adelante) documenta la **Ruta B (Uno + USB + gateway)** y el cableado detallado del kit.
 
 ### 0.1 Qué es cada pieza de tu kit
 
@@ -38,12 +146,16 @@ Esta sección resume **todo lo que necesitas hoy**: conectar **AHT10** y **HW-08
 |------------------|----------------|---------|
 | Sensor pequeño 4 pines, **sin pila** | **AHT10** | Temperatura y humedad → API |
 | PCB con **CR2032** y texto **HW-084** | **DS3231** (+ EEPROM AT24C32) | Hora real → `timestamp` |
-| Módulo con **antena Wi‑Fi** | **ESP-12F** | Wi‑Fi 3.3 V — **después** (sin firmware en repo aún) |
-| Placa azul USB | **Arduino Uno** | Lee sensores y emite JSON |
+| Módulo con **antena Wi‑Fi** | **ESP-12F** | Wi‑Fi 3.3 V — **Ruta A** (firmware en `firmware/esp8266-esp12f-aht10-ds3231/`) |
+| Placa azul USB | **Arduino Uno** | **Ruta B**: lee sensores y emite JSON; en Ruta A solo opcional (5 V USB) |
 
 > **HW-084** es el nombre impreso en la PCB del reloj; por dentro es un **DS3231**. En el código y la API se usa como DS3231.
 
-### 0.2 Arquitectura (Render + Atlas + gateway local)
+### 0.2 Arquitectura
+
+**Ruta A (recomendada con ESP-12F cableado como ESP32):** ver [0.0](#00-ruta-a--esp-12f-wi-fi-sensores-en-el-esp-como-esp32).
+
+**Ruta B (Uno + USB + gateway — sin Wi‑Fi del ESP):**
 
 ```
 AHT10 ──┐
@@ -54,17 +166,17 @@ HW-084 ─┘                                    │
                               https://app-harinas.onrender.com (Render)
                                              │
                                              ▼
-                              MongoDB Atlas (cluster0.0jgv676)
+                              MongoDB Atlas
                                              │
                                              ▼
                               APK / Expo (operador / gerente)
 ```
 
-El **ESP-12F no participa** en este flujo hasta que tengas firmware Wi‑Fi en el ESP o migres a ESP32.
+En Ruta B el **ESP-12F no participa** (déjalo sin alimentar).
 
-### 0.3 Tabla de conexiones — Arduino Uno (fase USB)
+### 0.3 Tabla de conexiones — Arduino Uno (Ruta B — USB)
 
-Conecta **primero solo AHT10 + HW-084**. Deja el **ESP-12F sin alimentar** hasta que el monitor serie muestre `AHT10 OK` y `DS3231 OK`.
+Conecta **solo AHT10 + HW-084 al Uno**. Si usas **Ruta A**, ignora esta tabla y usa [0.0](#00-ruta-a--esp-12f-wi-fi-sensores-en-el-esp-como-esp32).
 
 | Desde (módulo) | Pin módulo | Hacia Arduino Uno | Color sugerido |
 |----------------|------------|-------------------|----------------|
@@ -99,14 +211,13 @@ Conecta **primero solo AHT10 + HW-084**. Deja el **ESP-12F sin alimentar** hasta
               └───────────┘
 ```
 
-### 0.4 ESP-12F — cuándo cablearlo
+### 0.4 ESP-12F — dos usos posibles
 
-| Fase | Qué hacer con ESP-12F |
-|------|------------------------|
-| **Ahora (USB)** | **No conectar** VCC ni TX/RX. Valida sensores primero. |
-| **Después** | 3.3 V (AMS1117), pull-ups 10 kΩ, divisor 1k/2k: Uno pin 11 → ESP RX, ESP TX → Uno pin 10. Ver [sección 3.10](#310-módulo-esp-12f-wi-fi--fase-avanzada). |
-
-El sketch del repo ya usa los pines **10** y **11** para serial (`SoftwareSerial`), preparado para cuando el ESP tenga firmware puente.
+| Uso | Qué hacer |
+|-----|-----------|
+| **Ruta A — Wi‑Fi** | Sensores en GPIO4/GPIO5 del ESP; firmware `esp8266-esp12f-aht10-ds3231`. Ver [0.0](#00-ruta-a--esp-12f-wi-fi-sensores-en-el-esp-como-esp32). |
+| **Ruta B — Uno USB** | **No alimentar** el ESP. Valida sensores en el Uno primero. |
+| **Puente serial (avanzado)** | Uno lee sensores y habla con ESP por pines 10/11 + divisor 1k/2k. Requiere otro firmware puente; **no** es el sketch Wi‑Fi actual. Ver [3.10](#310-módulo-esp-12f-wi-fi--fase-avanzada). |
 
 ### 0.5 Arduino IDE — paso a paso
 
@@ -315,9 +426,17 @@ En la app: **Operador** → grupo `garbanzo-lenteja` → **Iniciar secado** → 
 
 Arduino Uno: USB + sketch subido. **No hace falta** `npm run dev` local si usas Render.
 
-### 0.10 ESP-12F — cableado completo (cuando avances)
+### 0.10 ESP-12F — cableado (Ruta A Wi‑Fi o puente serial)
 
-Montar **después** de validar AHT10 + HW-084 por USB. Alimentación **solo 3.3 V**.
+#### A) Sensores en el ESP (Ruta A — preferida)
+
+Ver tabla en [0.0](#00-ruta-a--esp-12f-wi-fi-sensores-en-el-esp-como-esp32). Firmware:
+
+`firmware/esp8266-esp12f-aht10-ds3231/`
+
+#### B) Puente serial Uno → ESP (avanzado, opcional)
+
+Montar **después** de validar AHT10 + HW-084 en el Uno. Alimentación ESP **solo 3.3 V**.
 
 | Pin ESP-12F | Conexión |
 |-------------|----------|
@@ -340,7 +459,7 @@ Arduino pin 11 ──[1 kΩ]──┬── ESP RX
                         GND
 ```
 
-> El repo **no trae firmware** para el ESP-12F. Hoy el JSON sale por **USB** al gateway. El ESP queda preparado en pines 10/11 para una fase futura.
+> El sketch Wi‑Fi del repo (**Ruta A**) **no** usa este puente: el ESP lee los sensores solo. El puente serial es para una arquitectura distinta (Uno + ESP como módem).
 
 ### 0.11 Hoja de datos — copiar y pegar (examen)
 
@@ -427,7 +546,7 @@ eas build -p android --profile preview
 | **Arduino Uno** | Placa azul, conector USB tipo B, chip ATmega328P | Lee sensores, arma JSON de telemetría |
 | **HW-084** (= **DS3231**) | PCB con **ranura CR2032**, texto **HW-084** en la placa | Reloj RTC → campo `timestamp` |
 | **AHT10** | PCB ~4 pines, sin pila (sensor temp/humedad I2C) | Temperatura + humedad (obligatorios en API) |
-| **ESP-12F** | Módulo Wi‑Fi con antena, muchos pines soldados | Wi‑Fi 3.3 V — fase avanzada |
+| **ESP-12F** | Módulo Wi‑Fi con antena, muchos pines soldados | Wi‑Fi 3.3 V — **Ruta A** (firmware en repo) |
 | **HC-05** *(si viene en el kit)* | Módulo azul **6 pines**, etiqueta HC-05/06 | Bluetooth serial (alternativa al USB) |
 | **Regulador 12 V** | Módulo de entrada (fuente/batería) | Entrada desde 12 V |
 | **Regulador 5 V** (7805) | Chip con 3 patas: IN, GND, OUT | Alimenta Arduino a 5 V |
@@ -448,9 +567,9 @@ eas build -p android --profile preview
 
 | Ruta | Cuándo | Firmware |
 |------|--------|----------|
-| **Uno + USB + gateway** | Demo, desarrollo, informe | `firmware/arduino-uno-aht10-ds3231-hc05/` |
-| **ESP32 Dev + Wi‑Fi** | Producción en planta | `firmware/esp32-aht10-ds3231/` |
-| **Uno + ESP-12F** | Experimental | **Sin firmware en repo** |
+| **ESP-12F + Wi‑Fi (Ruta A)** | Sensores en el ESP, sin PC en runtime | `firmware/esp8266-esp12f-aht10-ds3231/` |
+| **Uno + USB + gateway (Ruta B)** | Demo / desarrollo sin flashear ESP | `firmware/arduino-uno-aht10-ds3231-hc05/` |
+| **ESP32 Dev + Wi‑Fi** | Producción con placa ESP32 | `firmware/esp32-aht10-ds3231/` |
 
 ---
 
@@ -947,9 +1066,9 @@ Monitor serie (115200) tras subir `nativa_uno_telemetry.ino`:
 
 ---
 
-### 3.10 Módulo ESP-12F (Wi‑Fi — Fase avanzada)
+### 3.10 Módulo ESP-12F (Wi‑Fi)
 
-> El repo **no incluye** firmware para ESP-12F. Este montaje es para quien programe el ESP8266 aparte o migre después a ESP32.
+> **Firmware Wi‑Fi (Ruta A):** [`firmware/esp8266-esp12f-aht10-ds3231/`](../firmware/esp8266-esp12f-aht10-ds3231/README.md) — sensores en I2C del ESP (GPIO4/GPIO5), POST a Render.
 
 **Regla crítica:** **VCC = 3.3 V únicamente.** Conectar 5 V **destruye** el módulo.
 
@@ -1103,11 +1222,11 @@ Comprueba **sin USB/fuente conectada** (solo con multímetro en continuidad/resi
 
 ## 7. Software tras el montaje
 
-> **Guía completa paso a paso:** [sección 0](#0-guía-rápida--cableado--arduino-ide--atlas) (Arduino IDE, `config.h`, Atlas, gateway).
+### 7.0 Ruta A — ESP-12F Wi‑Fi
 
-Una vez la Fase 1 pasa la verificación eléctrica y el monitor serie muestra JSON:
+Ver [0.0](#00-ruta-a--esp-12f-wi-fi-sensores-en-el-esp-como-esp32) y [`firmware/esp8266-esp12f-aht10-ds3231/README.md`](../firmware/esp8266-esp12f-aht10-ds3231/README.md).
 
-### 7.1 Sketch Arduino
+### 7.1 Ruta B — Sketch Arduino Uno
 
 Ver [0.5 Arduino IDE](#05-arduino-ide--paso-a-paso). Resumen:
 
@@ -1116,17 +1235,16 @@ Ver [0.5 Arduino IDE](#05-arduino-ide--paso-a-paso). Resumen:
 3. Crear `config.h` en la misma carpeta (contenido en [0.5.D](#d-crear-configh)).
 4. Monitor serie **115200**: `AHT10 OK`, `DS3231 OK`, JSON cada 30 s.
 
-### 7.2 Gateway + backend (Atlas)
+### 7.2 Gateway + backend (solo Ruta B)
 
 Ver [0.6 Backend](#06-backend-en-pc--mongodb-atlas) y [0.7 Gateway](#07-gateway--uno-usb--api).
 
 ```powershell
-cd backend
-npm run dev
-
 cd firmware\arduino-uno-aht10-ds3231-hc05\gateway
 npm start
 ```
+
+(API en Render: no hace falta `npm run dev` local.)
 
 ### 7.3 Documentación detallada de operación
 
@@ -1134,6 +1252,7 @@ npm start
 |------|-----------|
 | ngrok, APK, Atlas | [`OPERACION-LOCAL.md`](OPERACION-LOCAL.md) |
 | Gateway y HC-05 | [`firmware/arduino-uno-aht10-ds3231-hc05/README.md`](../firmware/arduino-uno-aht10-ds3231-hc05/README.md) |
+| ESP-12F Wi‑Fi | [`firmware/esp8266-esp12f-aht10-ds3231/README.md`](../firmware/esp8266-esp12f-aht10-ds3231/README.md) |
 | Contrato JSON | [`backend/docs/arduino-telemetry-contract.md`](../backend/docs/arduino-telemetry-contract.md) |
 | Mapa sistema completo | [`GUIA-SISTEMA-COMPLETA.md`](GUIA-SISTEMA-COMPLETA.md) |
 

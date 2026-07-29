@@ -8,7 +8,7 @@ Arquitectura oficial para monitoreo en tiempo real desde la app móvil.
   AHT10 + DS3231
         │ I2C
         ▼
-     ESP32 + Wi‑Fi
+  ESP32  o  ESP-12F (ESP8266)  + Wi‑Fi
         │  POST /api/arduino/telemetry  (JSON cada ~30 s)
         ▼
   Backend Nativa  ──►  MongoDB Atlas
@@ -20,7 +20,7 @@ Arquitectura oficial para monitoreo en tiempo real desde la app móvil.
 | Capa | Qué hace |
 |------|----------|
 | **Sensores** | AHT10: temperatura y humedad. DS3231: hora del evento (`timestamp`). |
-| **ESP32** | Se une a la red Wi‑Fi de planta y envía lecturas al servidor por HTTP. **No requiere PC encendida.** |
+| **ESP32 / ESP-12F** | Se une a la red Wi‑Fi de planta y envía lecturas al servidor por HTTP. **No requiere PC encendida.** |
 | **Backend** | Valida el payload, guarda telemetría, evalúa alertas si hay secado activo. |
 | **App móvil** | Consulta `GET /api/telemetry/*` y alertas; **no** se conecta al Arduino por Bluetooth. |
 
@@ -29,17 +29,18 @@ Arquitectura oficial para monitoreo en tiempo real desde la app móvil.
 | Carpeta | Uso |
 |---------|-----|
 | **[`esp32-aht10-ds3231/`](esp32-aht10-ds3231/README.md)** | **Producción** — ESP32 + Wi‑Fi directo al API |
-| [`arduino-uno-aht10-ds3231-hc05/`](arduino-uno-aht10-ds3231-hc05/README.md) | Solo desarrollo / kit Uno sin ESP32 (gateway en PC) |
+| **[`esp8266-esp12f-aht10-ds3231/`](esp8266-esp12f-aht10-ds3231/README.md)** | **ESP-12F (ESP8266)** + Wi‑Fi directo al API (mismo contrato) |
+| [`arduino-uno-aht10-ds3231-hc05/`](arduino-uno-aht10-ds3231-hc05/README.md) | Solo desarrollo / kit Uno sin Wi‑Fi (gateway en PC) |
 
-Si tienes Arduino Uno + HC-05, los sensores **AHT10 y DS3231 se reutilizan** al migrar a ESP32; solo cambia la placa con Wi‑Fi.
+Si tienes Arduino Uno + sensores, puedes **mover AHT10 y DS3231 al ESP-12F/ESP32** (I2C) y dejar de usar el gateway.
 
-## Configuración rápida (ESP32)
+## Configuración rápida (ESP32 o ESP-12F)
 
-1. Cablea AHT10 y DS3231 al bus I2C del ESP32 (GPIO 21/22 por defecto).
-2. Copia `esp32-aht10-ds3231/esp32_nativa_telemetry/config.example.h` → `config.h`.
+1. Cablea AHT10 y DS3231 al I2C de la placa Wi‑Fi (ESP32: 21/22 — ESP-12F: **4/5**).
+2. Copia `config.example.h` → `config.h` en la carpeta del firmware correspondiente.
 3. Completa `WIFI_SSID`, `WIFI_PASSWORD`, `API_URL`, `DEVICE_ID`, `CODIGO_GRUPO`.
-4. Sube `esp32_nativa_telemetry.ino` con la placa **ESP32 Dev Module**.
-5. Backend en marcha (local, ngrok o Render) con MongoDB Atlas.
+4. Sube el `.ino` con la placa correcta (ESP32 Dev Module **o** NodeMCU/Generic ESP8266).
+5. Backend en marcha (local o Render) con MongoDB Atlas.
 6. En la app: operador inicia secado → ver T/HR, gráficos y alertas.
 
 ### Ejemplos de `API_URL`

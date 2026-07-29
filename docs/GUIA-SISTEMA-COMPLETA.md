@@ -16,7 +16,7 @@ Monorepo **Nativa Superalimentos** para control de planta de secado de harinas:
 | Base de datos | MongoDB (`app_harinas`) — local o Atlas | vía `MONGODB_URI` |
 | App móvil | Expo SDK 54 + React Native + TypeScript | `frontend/` |
 | Sensores | AHT10 (T° + HR) + DS3231 (reloj) | cableado en docs hardware |
-| Firmware producción | ESP32 + Wi‑Fi → API | `firmware/esp32-aht10-ds3231/` |
+| Firmware producción | ESP32 o ESP-12F + Wi‑Fi → API | `firmware/esp32-aht10-ds3231/` · `firmware/esp8266-esp12f-aht10-ds3231/` |
 | Firmware examen / kit Uno | Arduino Uno + gateway Node en PC | `firmware/arduino-uno-aht10-ds3231-hc05/` |
 
 ### Flujo de datos (siempre el mismo)
@@ -632,7 +632,7 @@ La APK **embebe** la URL del API al compilar. Si cambias de Render a otro host, 
 | PDF export | `frontend/src/utils/pdfTemplates.ts`, `pdf/reports.ts` |
 | Seeds / usuarios demo | `backend/src/scripts/seedDemo.js` |
 | Tests API | `backend/tests/*.test.js` → `npm test` |
-| Firmware ESP32 | `firmware/esp32-aht10-ds3231/` |
+| Firmware ESP32 / ESP-12F | `firmware/esp32-aht10-ds3231/`, `firmware/esp8266-esp12f-aht10-ds3231/` |
 | Gateway Uno (kit examen) | `firmware/arduino-uno-aht10-ds3231-hc05/gateway/` |
 | Variables entorno backend | `backend/.env.example`, `backend/src/config/env.js` |
 | URL API en app | `frontend/.env`, `frontend/eas.json` |
