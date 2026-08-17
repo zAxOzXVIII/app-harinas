@@ -104,7 +104,7 @@ export const HumedadFormScreen = ({ onSuccess }: Props) => {
             Humedad global ({humedad.unidad ?? "%RH"})
           </Text>
           <Text variant="bodyMedium" style={mutedText}>
-            Aplica para todos los grupos de rubro.
+            Aplica para todos los lotes de secado.
           </Text>
         </Card.Content>
       </Card>

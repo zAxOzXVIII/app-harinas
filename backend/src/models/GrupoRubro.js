@@ -69,6 +69,12 @@ const grupoRubroSchema = new mongoose.Schema(
       type: Date,
       default: null,
     },
+    /** Si true, es receta interna de una Harina (no se muestra como "grupo" en UI). */
+    vinculadoAHarina: {
+      type: Boolean,
+      default: false,
+      index: true,
+    },
   },
   {
     versionKey: false,

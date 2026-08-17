@@ -29,6 +29,7 @@ describe("API /api/harinas", () => {
 
     expect(createRes.status).toBe(201);
     const createdId = createRes.body.data._id;
+    expect(createRes.body.data.grupoRubroId).toBeTruthy();
 
     const listRes = await request(app)
       .get("/api/harinas")

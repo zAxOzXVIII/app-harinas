@@ -115,8 +115,8 @@ export const UsuarioFormScreen = ({ userId, onSuccess }: Props) => {
         value={rol}
         onValueChange={(v) => setRol(v as "supervisor" | "operador")}
         buttons={[
-          { value: "supervisor", label: "Supervisor" },
-          { value: "operador", label: "Operador" },
+          { value: "supervisor", label: "Gerente" },
+          { value: "operador", label: "Usuario" },
         ]}
       />
       <Button mode="contained" loading={loading} onPress={submit} style={styles.button}>

@@ -26,11 +26,10 @@ export const GruposListScreen = () => {
   const isLoading = useGruposStore((s) => s.isLoading);
   const error = useGruposStore((s) => s.error);
   const fetchAll = useGruposStore((s) => s.fetchAll);
-  const rol = useAuthStore((s) => s.user?.rol);
+  const user = useAuthStore((s) => s.user);
+  const rol = user?.rol;
 
   const canEdit = rol === "gerente" || rol === "supervisor";
-  const canCreate = rol === "gerente";
-  const user = useAuthStore((s) => s.user);
   const { exporting, runExport } = usePdfExport();
 
   const onExportPdf = () =>
@@ -62,17 +61,6 @@ export const GruposListScreen = () => {
     >
       {error ? <Text style={styles.error}>{error}</Text> : null}
 
-      {canCreate ? (
-        <Button
-          mode="contained"
-          icon="plus-circle"
-          onPress={() => navigation.navigate("GrupoCreate")}
-          style={styles.pdfBtn}
-        >
-          Crear grupo
-        </Button>
-      ) : null}
-
       <Button
         mode="contained-tonal"
         icon="file-pdf-box"
@@ -90,7 +78,7 @@ export const GruposListScreen = () => {
               Humedad global
             </Text>
             <Text variant="bodyMedium" style={{ color: theme.colors.onPrimaryContainer, opacity: 0.85 }}>
-              Politica unica para todos los grupos de rubro.
+              Politica unica de humedad para todos los lotes.
             </Text>
             <Text
               variant="displaySmall"
@@ -120,17 +108,17 @@ export const GruposListScreen = () => {
       ) : null}
 
       <Text variant="titleLarge" style={[styles.sectionTitle, { color: theme.colors.primary }]}>
-        Grupos de rubro
+        Lotes del gerente
       </Text>
       <Text variant="bodySmall" style={[styles.queueHint, mutedText]}>
-        Orden de trabajo: del más antiguo (arriba) al más nuevo.
+        Calibra el producto que el gerente registró (nombre, tipo, kg). El operador solo acciona.
       </Text>
 
       {grupos.length === 0 ? (
         <Card>
           <Card.Content>
             <Text variant="bodyMedium" style={bodyStyle}>
-              No hay grupos creados todavía. {canCreate ? "Crea el primero arriba." : "Espera a que el gerente cree uno."}
+              No hay harinas todavía. El gerente las registra en Gestión de harinas.
             </Text>
           </Card.Content>
         </Card>
@@ -140,7 +128,6 @@ export const GruposListScreen = () => {
             <GrupoRubroCard
               grupo={grupo}
               humedad={humedad}
-              queuePosition={idx + 1}
               onPress={
                 canEdit
                   ? () => navigation.navigate("CalibracionEdit", { grupoId: grupo._id })

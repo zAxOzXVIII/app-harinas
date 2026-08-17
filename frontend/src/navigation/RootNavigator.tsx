@@ -16,7 +16,6 @@ import { OperadorHomeScreen } from "../screens/OperadorHomeScreen";
 import { AlertsListScreen } from "../screens/AlertsListScreen";
 import { LotesPendientesArchivoScreen } from "../screens/LotesPendientesArchivoScreen";
 import { FluctuacionesHumedadScreen } from "../screens/FluctuacionesHumedadScreen";
-import { GrupoFormScreen } from "../screens/GrupoFormScreen";
 import { useAuthStore } from "../store/auth.store";
 import { LoadingScreen } from "../components/LoadingScreen";
 import { useBootstrapSession } from "../hooks/useBootstrapSession";
@@ -96,13 +95,8 @@ const GerenteNavigator = () => (
     />
     <GerenteStack.Screen
       name="GruposList"
-      options={{ title: "Grupos de rubro" }}
+      options={{ title: "Calibración de lotes" }}
       component={GruposListScreen}
-    />
-    <GerenteStack.Screen
-      name="GrupoCreate"
-      options={{ title: "Nuevo grupo", presentation: "modal", animation: "slide_from_bottom" }}
-      children={({ navigation }) => <GrupoFormScreen onSuccess={() => navigation.goBack()} />}
     />
     <GerenteStack.Screen
       name="CalibracionEdit"
@@ -131,12 +125,12 @@ const GerenteNavigator = () => (
     />
     <GerenteStack.Screen
       name="PreviewSupervisor"
-      options={{ title: "Vista Supervisor" }}
+      options={{ title: "Vista Gerente" }}
       component={SupervisorHomeScreen}
     />
     <GerenteStack.Screen
       name="PreviewOperador"
-      options={{ title: "Vista Operador" }}
+      options={{ title: "Vista Usuario" }}
       component={OperadorHomeScreen}
     />
   </GerenteStack.Navigator>
@@ -146,12 +140,12 @@ const SupervisorNavigator = () => (
   <SupervisorStack.Navigator screenOptions={baseScreenOptions}>
     <SupervisorStack.Screen
       name="Home"
-      options={{ title: "Supervisor" }}
+      options={{ title: "Gerente" }}
       component={SupervisorHomeScreen}
     />
     <SupervisorStack.Screen
       name="GruposList"
-      options={{ title: "Grupos de rubro" }}
+      options={{ title: "Calibración de lotes" }}
       component={GruposListScreen}
     />
     <SupervisorStack.Screen
@@ -181,7 +175,7 @@ const OperadorNavigator = () => (
   <OperadorStack.Navigator screenOptions={baseScreenOptions}>
     <OperadorStack.Screen
       name="Home"
-      options={{ title: "Operador" }}
+      options={{ title: "Usuario" }}
       component={OperadorHomeScreen}
     />
     <OperadorStack.Screen

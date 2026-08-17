@@ -36,6 +36,7 @@ export interface GrupoRubro {
   creadoPor?: string | null;
   actualizadoPor?: string | null;
   actualizadoEn?: string | null;
+  vinculadoAHarina?: boolean;
   createdAt?: string;
   updatedAt?: string;
 }

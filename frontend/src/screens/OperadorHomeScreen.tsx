@@ -32,6 +32,8 @@ import type { ProcesoSecado } from "../types/procesoSecado";
 
 type Nav = NativeStackNavigationProp<OperadorStackParamList>;
 
+const uniqueItems = (items: string[]): string[] => [...new Set(items.filter(Boolean))];
+
 const getProcesoForGrupo = (
   grupoId: string,
   byGrupoId: Record<string, ProcesoSecado | null>
@@ -72,7 +74,7 @@ export const OperadorHomeScreen = () => {
   const activosSecado = useProcesoSecadoStore((s) => s.activos);
 
   const refreshOperador = useCallback(() => {
-    fetchAll({ activosOnly: true });
+    fetchAll({ activosOnly: true, soloHarinas: true });
     fetchLatest();
     fetchUnreadCount();
     fetchActivos();
@@ -96,12 +98,20 @@ export const OperadorHomeScreen = () => {
       if (!history[g._id]) fetchHistory(g._id, 30);
       if (byGrupoId[g._id] === undefined) fetchByGrupo(g._id);
     });
-  }, [grupos, history, fetchHistory, byGrupoId, fetchByGrupo]);
+    latest.forEach((item) => {
+      if (!history[item.grupoRubroId]) fetchHistory(item.grupoRubroId, 30);
+    });
+  }, [grupos, latest, history, fetchHistory, byGrupoId, fetchByGrupo]);
 
   const latestByGroup = useMemo(() => {
     const map = new Map<string, (typeof latest)[number]>();
     latest.forEach((item) => map.set(item.grupoRubroId, item));
     return map;
+  }, [latest]);
+
+  const plantLatest = useMemo(() => {
+    if (latest.length === 0) return null;
+    return latest.reduce((a, b) => (a.timestamp > b.timestamp ? a : b));
   }, [latest]);
 
   const onRefresh = () => {
@@ -144,7 +154,7 @@ export const OperadorHomeScreen = () => {
     async (grupoId: string) => {
       const p = await fetchByGrupo(grupoId);
       await fetchActivos();
-      await fetchAll({ activosOnly: true });
+      await fetchAll({ activosOnly: true, soloHarinas: true });
       await fetchUnreadCount();
       if (p?.estado === "revisado_empaquetado") {
         showCierreDialog(p);
@@ -162,7 +172,7 @@ export const OperadorHomeScreen = () => {
           try {
             const p = await completarSecado(procesoId, grupo._id);
             showCierreDialog(p);
-            await fetchAll({ activosOnly: true });
+            await fetchAll({ activosOnly: true, soloHarinas: true });
             await fetchUnreadCount();
           } catch {
             Alert.alert("Error", "No se pudo finalizar el secado.");
@@ -184,7 +194,7 @@ export const OperadorHomeScreen = () => {
             try {
               await marcarListo(procesoId, grupo._id);
               Alert.alert("Listo", "Lote marcado. El gerente podrá archivarlo desde su panel.");
-              await fetchAll({ activosOnly: true });
+              await fetchAll({ activosOnly: true, soloHarinas: true });
               await fetchByGrupo(grupo._id);
             } catch {
               Alert.alert("Error", "No se pudo marcar el lote como listo.");
@@ -210,9 +220,9 @@ export const OperadorHomeScreen = () => {
       refreshControl={<RefreshControl refreshing={isLoading} onRefresh={onRefresh} />}
     >
       <ScreenHero
-        roleLabel="Operador"
+        roleLabel="Usuario"
         title="Operación de secado"
-        subtitle="Inicia el secado por grupo y monitorea temperatura y humedad"
+        subtitle="Inicia el secado del lote del gerente y monitorea temperatura y humedad"
       >
         <View style={styles.alertBtnWrap}>
           <Button
@@ -268,26 +278,31 @@ export const OperadorHomeScreen = () => {
       ) : null}
 
       <Text variant="titleLarge" style={[styles.sectionTitle, titleStyle]}>
-        Grupos por trabajar
+        Lotes a secar
       </Text>
       <Text variant="bodySmall" style={mutedText}>
-        Orden de creación: el primero de la lista es el siguiente a despachar.
+        Producto registrado por el gerente. Tú solo inicias, finalizas o marcas listo.
       </Text>
 
       {grupos.length === 0 ? (
         <Card style={{ backgroundColor: theme.colors.surface }}>
           <Card.Content>
             <Text variant="bodyMedium" style={bodyStyle}>
-              No hay grupos pendientes. El gerente debe crear el siguiente.
+              No hay lotes pendientes. El gerente debe registrar una harina.
             </Text>
           </Card.Content>
         </Card>
       ) : (
         grupos.map((grupo, idx) => {
-          const last = latestByGroup.get(grupo._id);
-          const hist = history[grupo._id] ?? [];
+          const last = latestByGroup.get(grupo._id) ?? plantLatest;
+          const hist = history[grupo._id]?.length
+            ? history[grupo._id]
+            : plantLatest
+              ? (history[plantLatest.grupoRubroId] ?? [])
+              : [];
           const tempSeries = hist.map((h) => h.lecturas.temperatura).reverse();
           const humSeries = hist.map((h) => h.lecturas.humedad).reverse();
+          const chips = uniqueItems(grupo.items);
 
           const t = grupo.calibracion.temperatura;
           const tValue = last?.lecturas.temperatura ?? null;
@@ -322,30 +337,11 @@ export const OperadorHomeScreen = () => {
                 <Card.Content>
                   <View style={styles.cardHeader}>
                     <View style={{ flex: 1 }}>
-                      {idx === 0 ? (
-                        <Chip
-                          compact
-                          icon="arrow-up-bold-circle"
-                          style={[styles.queueChip, { backgroundColor: theme.colors.primaryContainer }]}
-                          textStyle={{ color: theme.colors.onPrimaryContainer, fontSize: 12 }}
-                        >
-                          Siguiente en la cola
-                        </Chip>
-                      ) : (
-                        <Chip
-                          compact
-                          icon="clock-outline"
-                          style={[styles.queueChip, { backgroundColor: theme.colors.surfaceVariant }]}
-                          textStyle={{ color: theme.colors.onSurfaceVariant, fontSize: 12 }}
-                        >
-                          #{idx + 1} en la cola
-                        </Chip>
-                      )}
                       <Text variant="titleMedium" style={{ color: theme.colors.onSurface }}>
                   {grupo.nombre}
                 </Text>
                       <View style={styles.chipsRow}>
-                        {grupo.items.map((it) => (
+                        {chips.map((it) => (
                           <Chip
                             key={it}
                             compact
@@ -393,12 +389,14 @@ export const OperadorHomeScreen = () => {
                   data={tempSeries}
                   width={layout.chartWidth}
                   color={theme.colors.primary}
+                  emptyMessage="Esperando lecturas del sensor…"
                 />
                 <ChartTrendBlock
                   label="Tendencia humedad"
                   data={humSeries}
                   width={layout.chartWidth}
                   color={theme.colors.secondary}
+                  emptyMessage="Esperando lecturas del sensor…"
                 />
 
                 {last ? (
@@ -419,7 +417,7 @@ export const OperadorHomeScreen = () => {
                   </View>
                 ) : (
                   <Text variant="bodySmall" style={mutedText}>
-                    Sin telemetria todavia para este grupo.
+                    Sin lecturas aún. La laptop debe enviar sensores al servidor.
                   </Text>
                 )}
 

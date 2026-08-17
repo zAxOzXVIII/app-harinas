@@ -171,7 +171,7 @@ export const FluctuacionesHumedadScreen = () => {
         <Card mode="elevated" style={styles.card}>
           <Card.Content>
             <Text variant="bodyMedium" style={bodyStyle}>
-              Sin telemetría en este rango. Activa el gateway o ESP32 para registrar humedad 24/7.
+              Sin telemetría en este rango. Enciende la laptop con el gateway USB para registrar humedad.
             </Text>
           </Card.Content>
         </Card>

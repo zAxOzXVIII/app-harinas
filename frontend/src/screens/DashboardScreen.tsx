@@ -55,7 +55,7 @@ export const DashboardScreen = ({ onGoToGestion }: Props) => {
       refreshControl={<RefreshControl refreshing={isLoading} onRefresh={fetchHarinas} />}
     >
       <ScreenHero
-        roleLabel="Gerente"
+        roleLabel="Admin"
         title="Inicio"
         subtitle="Panel de control — inventario, equipo y monitoreo de planta"
       />
@@ -219,10 +219,10 @@ export const DashboardScreen = ({ onGoToGestion }: Props) => {
             </View>
             <View style={styles.previewRow}>
               <Button mode="outlined" compact onPress={() => navigation.navigate("PreviewSupervisor")}>
-                Preview Supervisor
+                Preview Gerente
               </Button>
               <Button mode="outlined" compact onPress={() => navigation.navigate("PreviewOperador")}>
-                Preview Operador
+                Preview Usuario
               </Button>
             </View>
           </Card.Content>

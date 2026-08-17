@@ -28,6 +28,15 @@ describe("API /api/grupos-rubro", () => {
     expect(res.body.data[0].calibracion.temperatura).toBeDefined();
   });
 
+  it("filtra solo lotes vinculados a harina", async () => {
+    const res = await request(getApp())
+      .get("/api/grupos-rubro?soloHarinas=true")
+      .set("Authorization", `Bearer ${token}`);
+
+    expect(res.status).toBe(200);
+    expect(res.body.data.every((g) => g.vinculadoAHarina === true)).toBe(true);
+  });
+
   it("obtiene un grupo por id", async () => {
     const res = await request(getApp())
       .get(`/api/grupos-rubro/${grupoId}`)

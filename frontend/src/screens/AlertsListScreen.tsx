@@ -22,7 +22,7 @@ import type { ProcessAlert } from "../types/alert";
 const grupoNombre = (a: ProcessAlert): string => {
   const g = a.grupoRubroId;
   if (g && typeof g === "object" && "nombre" in g) return g.nombre;
-  return "Grupo";
+  return "Lote";
 };
 
 export const AlertsListScreen = () => {

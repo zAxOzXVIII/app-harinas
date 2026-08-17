@@ -6,6 +6,27 @@ const { evaluateTelemetryEvent } = require("./processAlert.service");
 const RATE_WINDOW_MS = 60 * 1000;
 const RATE_MAX_EVENTS = 120;
 
+/** Un solo sensor USB: si el firmware manda un código semilla, pegar la lectura al lote de harina. */
+const attachToLoteHarina = async (grupo) => {
+  if (!grupo || grupo.vinculadoAHarina) return grupo;
+
+  const ProcesoSecado = require("../models/ProcesoSecado");
+  const activo = await ProcesoSecado.findOne({ estado: "en_secado" })
+    .sort({ iniciadoEn: -1 })
+    .select("grupoRubroId");
+  if (activo?.grupoRubroId) {
+    const enSecado = await GrupoRubro.findById(activo.grupoRubroId).select(
+      "_id codigo nombre vinculadoAHarina"
+    );
+    if (enSecado?.vinculadoAHarina) return enSecado;
+  }
+
+  const lote = await GrupoRubro.findOne({ vinculadoAHarina: true })
+    .sort({ createdAt: -1 })
+    .select("_id codigo nombre vinculadoAHarina");
+  return lote || grupo;
+};
+
 const resolveGrupoId = async ({ grupoRubroId, codigoGrupo }) => {
   if (grupoRubroId) {
     if (!mongoose.Types.ObjectId.isValid(grupoRubroId)) {
@@ -13,23 +34,27 @@ const resolveGrupoId = async ({ grupoRubroId, codigoGrupo }) => {
       err.status = 400;
       throw err;
     }
-    const grupo = await GrupoRubro.findById(grupoRubroId).select("_id codigo nombre");
+    const grupo = await GrupoRubro.findById(grupoRubroId).select(
+      "_id codigo nombre vinculadoAHarina"
+    );
     if (!grupo) {
       const err = new Error("Grupo de rubro no encontrado");
       err.status = 404;
       throw err;
     }
-    return grupo;
+    return attachToLoteHarina(grupo);
   }
 
   if (codigoGrupo) {
-    const grupo = await GrupoRubro.findOne({ codigo: codigoGrupo }).select("_id codigo nombre");
+    const grupo = await GrupoRubro.findOne({ codigo: codigoGrupo }).select(
+      "_id codigo nombre vinculadoAHarina"
+    );
     if (!grupo) {
       const err = new Error("codigoGrupo no coincide con un grupo existente");
       err.status = 404;
       throw err;
     }
-    return grupo;
+    return attachToLoteHarina(grupo);
   }
 
   const err = new Error("Debes enviar grupoRubroId o codigoGrupo");

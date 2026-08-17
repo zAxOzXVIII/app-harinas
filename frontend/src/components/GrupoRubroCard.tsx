@@ -59,7 +59,7 @@ export const GrupoRubroCard = ({ grupo, humedad, onPress, rightSlot, queuePositi
               {grupo.nombre}
             </Text>
             <View style={styles.chipsRow}>
-              {grupo.items.map((item) => (
+              {[...new Set(grupo.items)].map((item) => (
                 <Chip
                   key={item}
                   compact

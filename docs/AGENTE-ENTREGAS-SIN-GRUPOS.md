@@ -2,8 +2,8 @@
 
 Documento para el feedback de **LeanHerz (17/8/2026)** en el monorepo App-Harinas.
 
-**Estado:** pendiente de implementar (este archivo es el brief + respuestas).  
-**No implementar todavía** salvo que se pida en otra sesión: primero alinear interpretación.
+**Estado:** implementado (17/8/2026).  
+La UI ya no expone cola de grupos; cada Harina tiene un `GrupoRubro` interno (`vinculadoAHarina`).
 
 **Referencias:** [`GUIA-SISTEMA-COMPLETA.md`](GUIA-SISTEMA-COMPLETA.md) · [`AGENTE-ENTREGAS.md`](AGENTE-ENTREGAS.md) · [`AGENTE-ENTREGAS-COLA-GRUPOS.md`](AGENTE-ENTREGAS-COLA-GRUPOS.md) · [`MONTAJE-HARDWARE-UNO-ESP12F.md`](MONTAJE-HARDWARE-UNO-ESP12F.md) (Ruta B USB).
 
@@ -225,14 +225,14 @@ Actualizar GUIA-SISTEMA-COMPLETA.md al cerrar.
 
 | # | Criterio | Estado |
 |---|----------|--------|
-| 1 | No hay “Nuevo grupo” / cola FIFO en UI operador | ⬜ |
-| 2 | Lo que crea el gerente (Harina) es lo que ven los demás | ⬜ |
-| 3 | Calibración sobre ese trabajo, no grupo abstracto | ⬜ |
-| 4 | Operador solo acciona | ⬜ |
-| 5 | Archivar lote listo intacto | ⬜ |
-| 6 | Gateway USB → Render → app (sin Wi‑Fi placa) | ⬜ |
-| 7 | Muro / fluctuaciones muestran T/HR reales | ⬜ |
-| 8 | `npm test` + `tsc` OK | ⬜ |
+| 1 | No hay “Nuevo grupo” / cola FIFO en UI operador | ✅ |
+| 2 | Lo que crea el gerente (Harina) es lo que ven los demás | ✅ |
+| 3 | Calibración sobre ese trabajo, no grupo abstracto | ✅ |
+| 4 | Operador solo acciona | ✅ |
+| 5 | Archivar lote listo intacto | ✅ |
+| 6 | Gateway USB → Render → app (sin Wi‑Fi placa) | ✅ (Ruta B; lecturas USB se pegan al lote de harina) |
+| 7 | Muro / fluctuaciones muestran T/HR reales | ✅ (si el gateway está enviando a Render) |
+| 8 | `npm test` + `tsc` OK | ✅ |
 
 ---
 

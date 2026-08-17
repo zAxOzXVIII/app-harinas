@@ -11,7 +11,11 @@ const list = async (req, res, next) => {
       req.query.activos === "1" ||
       req.query.activos === "true" ||
       req.query.activos === true;
-    const grupos = await listGrupos({ activos });
+    const soloHarinas =
+      req.query.soloHarinas === "1" ||
+      req.query.soloHarinas === "true" ||
+      req.query.soloHarinas === true;
+    const grupos = await listGrupos({ activos, soloHarinas });
     res.status(200).json({ success: true, data: grupos });
   } catch (error) {
     next(error);

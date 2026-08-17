@@ -1,4 +1,4 @@
-import { useCallback, useEffect } from "react";
+import { useCallback, useEffect, useMemo } from "react";
 import { RefreshControl, ScrollView, StyleSheet, View } from "react-native";
 import {
   ActivityIndicator,
@@ -24,12 +24,12 @@ import { brand } from "../theme";
 import type { TelemetryLatestItem } from "../types/telemetry";
 import type { ProcessAlert } from "../types/alert";
 
-const grupoNombreTelemetry = (item: TelemetryLatestItem) => item.grupo?.nombre ?? "Grupo";
+const grupoNombreTelemetry = (item: TelemetryLatestItem) => item.grupo?.nombre ?? "Lote";
 
 const grupoNombreAlerta = (a: ProcessAlert): string => {
   const g = a.grupoRubroId;
   if (g && typeof g === "object" && "nombre" in g) return g.nombre;
-  return "Grupo";
+  return "Lote";
 };
 
 export const MuroGerenteScreen = () => {
@@ -73,9 +73,28 @@ export const MuroGerenteScreen = () => {
     grupos.forEach((g) => {
       if (!history[g._id]) fetchHistory(g._id, 30);
     });
-  }, [grupos, history, fetchHistory]);
+    latest.forEach((item) => {
+      if (!history[item.grupoRubroId]) fetchHistory(item.grupoRubroId, 30);
+    });
+  }, [grupos, latest, history, fetchHistory]);
 
   const loading = telemetryLoading && latest.length === 0 && alertsLoading && alerts.length === 0;
+
+  const latestVisible = useMemo(() => {
+    const loteIds = new Set(grupos.map((g) => g._id));
+    if (loteIds.size === 0) return latest;
+    const matched = latest.filter((item) => loteIds.has(item.grupoRubroId));
+    if (matched.length > 0) return matched;
+    if (latest.length === 0 || grupos.length === 0) return latest;
+    const newest = latest.reduce((a, b) => (a.timestamp > b.timestamp ? a : b));
+    const lote = grupos[grupos.length - 1];
+    return [
+      {
+        ...newest,
+        grupo: { ...newest.grupo, nombre: lote.nombre },
+      },
+    ];
+  }, [latest, grupos]);
 
   if (loading) {
     return (
@@ -97,12 +116,12 @@ export const MuroGerenteScreen = () => {
       }
     >
       <ScreenHero
-        roleLabel="Gerente"
+        roleLabel="Admin"
         title="Muro de operaciones"
         subtitle="Vision en tiempo real de telemetria y alertas"
       >
         <View style={styles.heroStats}>
-          <Chip compact icon="chart-line">{latest.length} grupos con datos</Chip>
+          <Chip compact icon="chart-line">{latestVisible.length} lotes con datos</Chip>
           <Chip compact icon="bell-alert" style={{ backgroundColor: theme.colors.errorContainer }}>
             {criticas} criticas
           </Chip>
@@ -133,17 +152,17 @@ export const MuroGerenteScreen = () => {
       <Text variant="titleLarge" style={[styles.section, { color: theme.colors.primary }]}>
         Ultimas lecturas
       </Text>
-      {latest.length === 0 ? (
+      {latestVisible.length === 0 ? (
         <Card style={styles.card}>
           <Card.Content>
             <Text variant="bodyMedium" style={bodyStyle}>
-              Esperando lecturas del sensor. Cuando el operador inicie un secado, la
-              telemetría aparecerá aquí automáticamente.
+              Esperando lecturas del sensor (laptop + Uno USB → servidor).
+              Aparecen aquí al llegar al API; para alertas, el operador debe iniciar secado.
             </Text>
           </Card.Content>
         </Card>
       ) : (
-        latest.map((item, idx) => {
+        latestVisible.map((item, idx) => {
           const hist = history[item.grupoRubroId] ?? [];
           const tempSeries = hist.map((h) => h.lecturas.temperatura).reverse();
           const humSeries = hist.map((h) => h.lecturas.humedad).reverse();

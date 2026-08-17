@@ -25,19 +25,19 @@ export const SupervisorHomeScreen = () => {
       contentContainerStyle={layout.scrollContent}
     >
       <ScreenHero
-        roleLabel="Supervisor"
-        title="Cola de grupos"
-        subtitle="Calibra temperatura, nivel de secado y tiempo por grupo de rubro"
+        roleLabel="Gerente"
+        title="Calibración"
+        subtitle="Ajusta T°, nivel y tiempo sobre el lote que registró el gerente"
       />
 
       <AnimatedReveal delay={40}>
         <Card mode="elevated" style={styles.card}>
           <Card.Content>
             <Text variant="titleMedium" style={[styles.cardTitle, titleStyle]}>
-              Grupos de rubro
+              Lotes a calibrar
             </Text>
             <Text variant="bodySmall" style={mutedText}>
-              Garbanzo + Lenteja · Platano + Cambur · Yuca + Batata
+              Lo que el gerente creó en inventario (nombre, tipo, cantidad).
             </Text>
             <Button
               mode="contained"
@@ -45,7 +45,7 @@ export const SupervisorHomeScreen = () => {
               style={styles.btn}
               onPress={() => navigation.navigate("GruposList")}
             >
-              Ver y calibrar grupos
+              Calibrar lotes
             </Button>
           </Card.Content>
         </Card>
@@ -85,7 +85,7 @@ export const SupervisorHomeScreen = () => {
               Humedad global
             </Text>
             <Text variant="bodySmall" style={mutedText}>
-              Politica unica %RH para todos los grupos.
+              Politica unica %RH para todos los lotes.
             </Text>
             <Button
               mode="contained-tonal"

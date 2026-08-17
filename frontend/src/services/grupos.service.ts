@@ -14,11 +14,12 @@ interface ApiResponse<T> {
 }
 
 export const gruposService = {
-  async list(opts?: { activos?: boolean }): Promise<GrupoRubro[]> {
-    const params =
-      opts?.activos === true ? { activos: "true" } : undefined;
+  async list(opts?: { activos?: boolean; soloHarinas?: boolean }): Promise<GrupoRubro[]> {
+    const params: Record<string, string> = {};
+    if (opts?.activos === true) params.activos = "true";
+    if (opts?.soloHarinas === true) params.soloHarinas = "true";
     const { data } = await api.get<ApiResponse<GrupoRubro[]>>("/api/grupos-rubro", {
-      params,
+      params: Object.keys(params).length ? params : undefined,
     });
     return data.data;
   },

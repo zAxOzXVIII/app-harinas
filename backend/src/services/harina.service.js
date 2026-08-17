@@ -1,11 +1,36 @@
 const mongoose = require("mongoose");
 const Harina = require("../models/Harina");
+const { createGrupo } = require("./grupoRubro.service");
 
-const getAllHarinas = async () => Harina.find().sort({ fecha_registro: -1 });
+const getAllHarinas = async (userId) => {
+  const rows = await Harina.find().sort({ fecha_registro: -1 });
+  await Promise.all(rows.map((h) => ensureGrupoForHarina(h, userId)));
+  return Harina.find().sort({ fecha_registro: -1 }).populate("grupoRubroId");
+};
 
-const createHarina = async (payload) => Harina.create(payload);
+const ensureGrupoForHarina = async (harina, userId) => {
+  if (harina.grupoRubroId) return harina;
+  const tipo = (harina.tipo || "lote").trim() || "lote";
+  const grupo = await createGrupo(
+    {
+      nombre: harina.nombre,
+      items: [tipo, tipo],
+      vinculadoAHarina: true,
+    },
+    userId
+  );
+  harina.grupoRubroId = grupo._id;
+  await harina.save();
+  return harina;
+};
 
-const updateHarina = async (id, payload) => {
+const createHarina = async (payload, userId) => {
+  const harina = await Harina.create(payload);
+  await ensureGrupoForHarina(harina, userId);
+  return Harina.findById(harina._id).populate("grupoRubroId");
+};
+
+const updateHarina = async (id, payload, userId) => {
   if (!mongoose.Types.ObjectId.isValid(id)) {
     const err = new Error("ID de harina inválido");
     err.status = 400;
@@ -23,7 +48,12 @@ const updateHarina = async (id, payload) => {
     throw err;
   }
 
-  return harina;
+  await ensureGrupoForHarina(harina, userId);
+  if (payload.nombre && harina.grupoRubroId) {
+    const GrupoRubro = require("../models/GrupoRubro");
+    await GrupoRubro.findByIdAndUpdate(harina.grupoRubroId, { nombre: payload.nombre.trim() });
+  }
+  return Harina.findById(harina._id).populate("grupoRubroId");
 };
 
 const deleteHarina = async (id) => {
@@ -39,6 +69,13 @@ const deleteHarina = async (id) => {
     err.status = 404;
     throw err;
   }
+  if (harina.grupoRubroId) {
+    const GrupoRubro = require("../models/GrupoRubro");
+    await GrupoRubro.findOneAndDelete({
+      _id: harina.grupoRubroId,
+      vinculadoAHarina: true,
+    });
+  }
 };
 
-module.exports = { getAllHarinas, createHarina, updateHarina, deleteHarina };
+module.exports = { getAllHarinas, createHarina, updateHarina, deleteHarina, ensureGrupoForHarina };

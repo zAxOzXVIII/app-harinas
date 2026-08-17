@@ -16,20 +16,21 @@ Monorepo **Nativa Superalimentos** para control de planta de secado de harinas:
 | Base de datos | MongoDB (`app_harinas`) — local o Atlas | vía `MONGODB_URI` |
 | App móvil | Expo SDK 54 + React Native + TypeScript | `frontend/` |
 | Sensores | AHT10 (T° + HR) + DS3231 (reloj) | cableado en docs hardware |
-| Firmware producción | ESP32 o ESP-12F + Wi‑Fi → API | `firmware/esp32-aht10-ds3231/` · `firmware/esp8266-esp12f-aht10-ds3231/` |
-| Firmware examen / kit Uno | Arduino Uno + gateway Node en PC | `firmware/arduino-uno-aht10-ds3231-hc05/` |
+| Firmware vigente (Ruta B) | Arduino Uno USB + gateway Node en laptop → Render | `firmware/arduino-uno-aht10-ds3231-hc05/` |
+| Firmware Wi‑Fi (fuera de alcance ahora) | ESP32 / ESP-12F | `firmware/esp32-aht10-ds3231/` · `firmware/esp8266-esp12f-aht10-ds3231/` |
 
-### Flujo de datos (siempre el mismo)
+### Flujo de datos (Ruta B, sin Wi‑Fi de placa)
 
 ```
 Sensores (AHT10 + DS3231)
-        │ I2C → micro (ESP32 o Uno)
-        │ HTTP POST /api/arduino/telemetry
+        │ I2C → Arduino Uno (USB)
+        │ gateway npm start (laptop)
+        │ HTTP POST /api/arduino/telemetry  (Render)
         ▼
-   Backend Express  ──►  MongoDB (telemetría, alertas, usuarios, secados)
+   Backend Express  ──►  MongoDB Atlas (telemetría, alertas, usuarios, secados)
         │ REST + JWT
         ▼
-   APK / Expo (Gerente, Supervisor, Operador)
+   APK / Expo  (Admin, Gerente de calibración, Usuario)
 ```
 
 Reglas importantes:
@@ -37,14 +38,15 @@ Reglas importantes:
 - La **app móvil nunca habla con el Arduino** (ni Bluetooth ni USB). Solo consume el backend por HTTPS.
 - El **backend es el único punto de verdad**: guarda telemetría, evalúa alertas, gestiona secados y roles.
 - Las **alertas de anomalía** (T°, humedad fuera de rango, etc.) solo se generan si hay un **secado activo** (`ProcesoSecado` en `en_secado`). La telemetría **sí se guarda siempre** que llegue al API, aunque no haya secado.
-- Los **grupos de rubro**: 3 parejas iniciales vienen del seed (`npm run seed:grupos`); desde jul/2026 el **gerente puede crear grupos nuevos** desde la app (`POST /api/grupos-rubro`). La lista siempre se ordena por **fecha de creación** (más viejo primero = cola FIFO): Admin crea → Supervisor calibra → Operador despacha en ese orden.
+- **Flujo directo (ago/2026):** el gerente crea una **Harina** (ej. Cambir). El backend le asocia un `GrupoRubro` interno (`vinculadoAHarina`) para calibración, telemetría y secado. La UI **no** muestra cola de grupos ni “Nuevo grupo”. El operador acciona sobre ese lote.
+- Lecturas USB: si el firmware manda un código semilla (`garbanzo-lenteja`, etc.), el backend las **pega al lote de harina** (secado activo o el más reciente).
 
 ### Rutas de hardware
 
 | Ruta | Cuándo | Requiere PC encendida |
 |------|--------|------------------------|
-| **ESP32 + Wi‑Fi** (recomendada en planta) | Producción / demo con sensores reales | No — el ESP32 envía directo al API |
-| **Arduino Uno + gateway** (kit examen) | Montaje docente, pruebas con Uno | Sí — script Node lee serial y hace POST al API |
+| **Arduino Uno + gateway** (Ruta B, vigente) | Demo / planta sin Wi‑Fi de placa | Sí — `npm start` en `firmware/.../gateway` |
+| **ESP32 / ESP-12F + Wi‑Fi** | No usar en esta etapa | No |
 | **Simulador** (`npm run simulate:telemetry`) | Desarrollo sin hardware | Sí — solo en la máquina del backend |
 
 ---
@@ -171,21 +173,21 @@ flowchart TB
 
 El rol viene en el JWT tras login. `RootNavigator.tsx` elige el stack:
 
-| Rol en BD | Rol en app | Navigator | Archivo |
-|-----------|------------|-----------|---------|
-| `gerente` | Gerente / Admin | `GerenteNavigator` | `frontend/src/navigation/RootNavigator.tsx` |
-| `supervisor` | Supervisor | `SupervisorNavigator` | idem |
-| `operador` | Operador | `OperadorNavigator` | idem |
+| Rol en BD (JWT) | Etiqueta en UI | Navigator | Archivo |
+|-----------------|----------------|-----------|---------|
+| `gerente` | **Admin** | `GerenteNavigator` | `frontend/src/navigation/RootNavigator.tsx` |
+| `supervisor` | **Gerente** (calibra lotes) | `SupervisorNavigator` | idem |
+| `operador` | **Usuario** (inicia / finaliza / ✓) | `OperadorNavigator` | idem |
 
 ### Credenciales demo (tras `npm run seed:demo`)
 
-| Rol | Email | Contraseña |
-|-----|-------|------------|
-| Gerente | `admin@nativa.com` | `admin123` |
-| Supervisor | `supervisor@nativa.com` | `supervisor123` |
-| Operador | `operador@nativa.com` | `operador123` |
+| Quién (UI) | Email | Contraseña |
+|------------|-------|------------|
+| Admin | `admin@nativa.com` | `admin123` |
+| Gerente | `supervisor@nativa.com` | `supervisor123` |
+| Usuario | `operador@nativa.com` | `operador123` |
 
-**Truco para el Gerente:** en el Dashboard hay botones **Preview Supervisor** y **Preview Operador** para ver esas pantallas sin cambiar de cuenta.
+**Truco para el Admin:** en el Dashboard hay botones **Preview Gerente** y **Preview Usuario** para ver esas pantallas sin cambiar de cuenta.
 
 ---
 
@@ -219,57 +221,55 @@ Usa esta tabla: abres la app, llegas a la pantalla, y sabes qué archivo impleme
 | Lotes pendientes archivo | **Lotes pendientes** | `frontend/src/screens/LotesPendientesArchivoScreen.tsx` | `GET /api/procesos-secado/pendientes-archivo`, `POST .../archivar` |
 | Fluctuaciones humedad | **Fluctuaciones humedad** | `frontend/src/screens/FluctuacionesHumedadScreen.tsx` | `GET /api/telemetry/fluctuaciones/humedad`, export PDF |
 | Alertas de proceso | **Alertas de proceso** | `frontend/src/screens/AlertsListScreen.tsx` | `GET /api/alerts` |
-| Grupos de rubro | **Grupos de rubro** | `frontend/src/screens/GruposListScreen.tsx` | `GET /api/grupos-rubro` (orden cola) |
-| Nuevo grupo | **Nuevo grupo** | `frontend/src/screens/GrupoFormScreen.tsx` | `POST /api/grupos-rubro` (solo gerente) |
-| Calibración por grupo | **Calibracion** | `frontend/src/screens/CalibracionFormScreen.tsx` | `PUT /api/grupos-rubro/:id` |
+| Calibración de lotes | **Calibración de lotes** | `frontend/src/screens/GruposListScreen.tsx` | `GET /api/grupos-rubro?soloHarinas=true` |
+| Calibrar harina (desde lista) | icono tune en **Gestion de Harinas** | `HarinasListScreen.tsx` → `CalibracionFormScreen.tsx` | `PUT /api/grupos-rubro/:id/calibracion` |
 | Humedad global | **Humedad global** | `frontend/src/screens/HumedadFormScreen.tsx` | `GET/PUT /api/config/humedad` |
-| Preview Supervisor | **Vista Supervisor** | `SupervisorHomeScreen.tsx` (reutilizada) | — |
-| Preview Operador | **Vista Operador** | `OperadorHomeScreen.tsx` (reutilizada) | — |
+| Preview Gerente | **Vista Gerente** | `SupervisorHomeScreen.tsx` (reutilizada) | — |
+| Preview Usuario | **Vista Usuario** | `OperadorHomeScreen.tsx` (reutilizada) | — |
 
 **Cómo llegar desde Dashboard:** botones en `DashboardScreen.tsx` → **Accesos rapidos** (Equipo, Calibracion, Muro, **Fluctuaciones HR**, **Lotes pendientes**, Alertas) y **Gestion de harinas**.
 
-**Checklist fotos Gerente:**
+**Checklist fotos Admin:**
 
 - [ ] Dashboard con contador de inventario
-- [ ] Lista de harinas + botón FAB crear
+- [ ] Lista de harinas + FAB crear + icono calibrar (tune)
 - [ ] Formulario harina (crear o editar)
-- [ ] Lista equipo + formulario usuario
-- [ ] Muro con gráficas y chips de alertas
-- [ ] Lista alertas + export PDF (icono en header si está)
-- [ ] Grupos de rubro + pantalla calibración
-- [ ] Crear grupo nuevo (Nuevo grupo) → aparece al final de la cola
+- [ ] Lista equipo + formulario usuario (roles Gerente / Usuario)
+- [ ] Muro con lecturas USB y chips de alertas
+- [ ] Lista alertas + export PDF
+- [ ] Calibración sobre el lote (Cambir, etc.), sin “Nuevo grupo”
 - [ ] Humedad global
 - [ ] Lotes pendientes de archivo (papelera 🗑)
-- [ ] Fluctuaciones humedad (supervisor / gerente) + export PDF
+- [ ] Fluctuaciones humedad + export PDF
 
 ---
 
-### 5.3 Supervisor
+### 5.3 Gerente (calibración) — JWT `supervisor`
 
 | Pantalla | Título | Archivo | API |
 |----------|--------|---------|-----|
-| Home supervisor | **Supervisor** | `frontend/src/screens/SupervisorHomeScreen.tsx` | — |
+| Home | **Gerente** | `frontend/src/screens/SupervisorHomeScreen.tsx` | — |
 | Fluctuaciones humedad | **Fluctuaciones humedad** | `frontend/src/screens/FluctuacionesHumedadScreen.tsx` | `GET /api/telemetry/fluctuaciones/humedad` |
-| Grupos de rubro | **Grupos de rubro** | `frontend/src/screens/GruposListScreen.tsx` | `GET /api/grupos-rubro` |
-| Calibración | **Calibracion** | `frontend/src/screens/CalibracionFormScreen.tsx` | `PUT /api/grupos-rubro/:id` |
+| Lotes a calibrar | **Calibración de lotes** | `frontend/src/screens/GruposListScreen.tsx` | `GET /api/grupos-rubro?soloHarinas=true` |
+| Calibración | **Calibracion** | `frontend/src/screens/CalibracionFormScreen.tsx` | `PUT /api/grupos-rubro/:id/calibracion` |
 | Humedad global | **Humedad global** | `frontend/src/screens/HumedadFormScreen.tsx` | `/api/config/humedad` |
 
-**Checklist fotos Supervisor:**
+**Checklist fotos Gerente:**
 
-- [ ] Home con botón "Ver y calibrar grupos"
-- [ ] Registro fluctuaciones humedad (7/30 días, chips fuera de rango) + export PDF
-- [ ] Lista de grupos en orden de cola (chip "Siguiente en la cola" / "#N en la cola")
+- [ ] Home con botón "Calibrar lotes"
+- [ ] Registro fluctuaciones humedad (7/30 días) + export PDF
+- [ ] Lista de lotes del gerente (nombres de harina, sin cola FIFO)
 - [ ] Formulario calibración (T°, nivel secado, tiempo)
 - [ ] Humedad global (% min/max)
 
 ---
 
-### 5.4 Operador
+### 5.4 Usuario (operación) — JWT `operador`
 
 | Pantalla | Título | Archivo | API / componentes |
 |----------|--------|---------|-------------------|
-| Home operador | **Operador** | `frontend/src/screens/OperadorHomeScreen.tsx` | varios |
-| Tarjeta por grupo | (en Home) | `OperadorHomeScreen.tsx` + `GrupoRubroCard` | `/api/grupos-rubro`, telemetría |
+| Home | **Usuario** | `frontend/src/screens/OperadorHomeScreen.tsx` | varios |
+| Tarjeta por lote | (en Home) | `OperadorHomeScreen.tsx` | `/api/grupos-rubro?soloHarinas=true&activos=true`, telemetría |
 | Iniciar secado | botón en card | `frontend/src/components/SecadoTimer.tsx` | `POST /api/procesos-secado/grupo/:id/iniciar` |
 | Timer + finalizar | chip / botón | `SecadoTimer.tsx` | `POST /api/procesos-secado/:id/completar` |
 | Marcar como listo (✓) | botón en card | `OperadorHomeScreen.tsx` | `POST /api/procesos-secado/:id/marcar-listo` |
@@ -277,16 +277,16 @@ Usa esta tabla: abres la app, llegas a la pantalla, y sabes qué archivo impleme
 | Gráfica T/HR | sparkline + gauge | `ChartTrendBlock.tsx`, `MetricGauge.tsx` | `GET /api/telemetry/group/:id` |
 | Lista alertas | **Alertas** | `frontend/src/screens/AlertsListScreen.tsx` | `GET /api/alerts` |
 
-**Checklist fotos Operador:**
+**Checklist fotos Usuario:**
 
-- [ ] Home con grupos en cola (chip "Siguiente en la cola") y telemetría (T°, HR, chips)
-- [ ] Grupo con secado **inactivo** → botón **Iniciar secado**
-- [ ] Grupo con secado **activo** → timer + **Finalizar secado**
-- [ ] Alertas dentro de la card del grupo (durante secado)
+- [ ] Home con el lote del gerente (ej. Cambir) y lecturas T° / HR
+- [ ] Lote **inactivo** → botón **Iniciar secado**
+- [ ] Lote **activo** → timer + **Finalizar secado**
+- [ ] Alertas dentro de la card (durante secado)
 - [ ] Pantalla Alertas (lista completa)
 - [ ] Resultado tras finalizar (listo / poco óptimo si aplica)
-- [ ] Grupo cerrado → botón **Marcar como listo** (✓)
-- [ ] Tras marcar listo, grupo desaparece de la lista operador
+- [ ] Lote cerrado → botón **Marcar como listo** (✓)
+- [ ] Tras marcar listo, el lote desaparece de la lista
 
 **Para que haya datos en pantalla:**
 
@@ -376,14 +376,14 @@ erDiagram
 | Modelo | Archivo | Para qué sirve |
 |--------|---------|----------------|
 | **User** | `User.js` | Login, roles, push token |
-| **Harina** | `Harina.js` | Inventario CRUD (Gerente) |
-| **GrupoRubro** | `GrupoRubro.js` | Parejas de rubros + calibración (T°, nivel, tiempo). 3 sembradas por seed + las que crea el gerente (cola FIFO por `createdAt`) |
+| **Harina** | `Harina.js` | Inventario CRUD (Admin). Cada harina tiene `grupoRubroId` interno para calibrar/secar |
+| **GrupoRubro** | `GrupoRubro.js` | Receta de secado. Las semilla siguen en BD; la UI lista `vinculadoAHarina=true` |
 | **HumedadConfig** | `HumedadConfig.js` | Umbrales globales de humedad |
-| **TelemetryEvent** | `TelemetryEvent.js` | Lecturas ESP32/simulador |
+| **TelemetryEvent** | `TelemetryEvent.js` | Lecturas Uno USB / simulador (se asocian al lote de harina) |
 | **ProcessAlert** | `ProcessAlert.js` | Alertas por umbrales o fin de secado |
-| **ProcesoSecado** | `ProcesoSecado.js` | Ciclo operador: iniciar → timer → finalizar → calificación |
+| **ProcesoSecado** | `ProcesoSecado.js` | Ciclo usuario: iniciar → timer → finalizar → calificación |
 
-**Grupos fijos (seed):**
+**Códigos semilla (firmware / tests, no se muestran como cola):**
 
 - `garbanzo-lenteja`
 - `platano-cambur`
@@ -411,11 +411,11 @@ Todas las rutas van bajo `/api/...`. La raíz `/` del servicio Render puede devo
 | PUT | `/api/auth/push-token` | Sí | todos | Token Expo push |
 | GET/POST/PUT/DELETE | `/api/harinas` | Sí | gerente | CRUD harinas |
 | GET/POST/PUT/DELETE | `/api/users` | Sí | gerente | CRUD equipo |
-| GET | `/api/grupos-rubro` | Sí | todos* | Lista grupos (orden `createdAt` ASC = cola FIFO) |
-| POST | `/api/grupos-rubro` | Sí | gerente | Crear grupo nuevo (entra al final de la cola) |
-| GET/PUT | `/api/grupos-rubro/:id` | Sí | supervisor/gerente | Calibración |
+| GET | `/api/grupos-rubro` | Sí | todos* | Lista recetas. Query `soloHarinas=true` = lotes de inventario |
+| POST | `/api/grupos-rubro` | Sí | gerente | Interno / API (la app ya no crea grupos desde UI) |
+| GET/PUT | `/api/grupos-rubro/:id` | Sí | supervisor/gerente | Calibración del lote |
 | GET/PUT | `/api/config/humedad` | Sí | supervisor/gerente | Humedad global |
-| POST | `/api/arduino/telemetry` | No | — | Ingesta ESP32 |
+| POST | `/api/arduino/telemetry` | No | — | Ingesta USB/gateway (se pega al lote de harina si existe) |
 | GET | `/api/telemetry/latest` | Sí | todos | Última lectura por grupo |
 | GET | `/api/telemetry/group/:id` | Sí | todos | Historial telemetría |
 | GET | `/api/telemetry/fluctuaciones/humedad` | Sí | sup/ger | Registro diario humedad |
@@ -675,9 +675,9 @@ La APK **embebe** la URL del API al compilar. Si cambias de Render a otro host, 
 | `firmware/README.md` | ESP32 Wi‑Fi + rutas hardware |
 | `docs/AGENTE-ENTREGAS.md` | Prompts por partes (LeanHerz 11/7: ✓ operador, papelera gerente, fluctuaciones) |
 | `docs/AGENTE-ENTREGAS-COLA-GRUPOS.md` | Cola FIFO de grupos Admin→Sup→Op, saludos, gráficas (LeanHerz 22/7) — implementada |
-| `docs/AGENTE-ENTREGAS-SIN-GRUPOS.md` | Brief LeanHerz 17/8: quitar grupos, flujo directo, lecturas Render/USB |
+| `docs/AGENTE-ENTREGAS-SIN-GRUPOS.md` | LeanHerz 17/8: sin grupos en UX, flujo directo, lecturas USB→Render — **implementada** |
 | `SPRINTS.md` | Historial de sprints |
 
 ---
 
-*Última actualización: julio 2026 — entornos local vs Render+Atlas, rutas hardware Uno/ESP32.*
+*Última actualización: 17/8/2026 — flujo directo harina→lote, Ruta B USB, etiquetas Admin/Gerente/Usuario.*

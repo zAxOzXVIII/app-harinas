@@ -5,9 +5,9 @@ const {
   deleteHarina,
 } = require("../services/harina.service");
 
-const listHarinas = async (_req, res, next) => {
+const listHarinas = async (req, res, next) => {
   try {
-    const harinas = await getAllHarinas();
+    const harinas = await getAllHarinas(req.user?.userId);
     res.status(200).json({
       success: true,
       data: harinas,
@@ -19,7 +19,7 @@ const listHarinas = async (_req, res, next) => {
 
 const createHarinaController = async (req, res, next) => {
   try {
-    const harina = await createHarina(req.body);
+    const harina = await createHarina(req.body, req.user?.userId);
     res.status(201).json({
       success: true,
       message: "Harina creada correctamente",
@@ -32,7 +32,7 @@ const createHarinaController = async (req, res, next) => {
 
 const updateHarinaController = async (req, res, next) => {
   try {
-    const harina = await updateHarina(req.params.id, req.body);
+    const harina = await updateHarina(req.params.id, req.body, req.user?.userId);
     res.status(200).json({
       success: true,
       message: "Harina actualizada correctamente",

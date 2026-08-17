@@ -1,6 +1,8 @@
 import { useEffect, useCallback } from "react";
 import { Alert, FlatList, StyleSheet, View } from "react-native";
 import { ActivityIndicator, Button, Card, FAB, IconButton, Text, useTheme } from "react-native-paper";
+import { useNavigation } from "@react-navigation/native";
+import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { AnimatedReveal } from "../components/AnimatedReveal";
 import { useMutedTextStyle } from "../hooks/useMutedTextStyle";
 import { useScreenLayout } from "../hooks/useScreenLayout";
@@ -10,16 +12,27 @@ import { usePdfExport } from "../hooks/usePdfExport";
 import { exportHarinasPdf } from "../pdf/reports";
 import { brand } from "../theme";
 import type { Harina } from "../types/harina";
+import type { GerenteStackParamList } from "../navigation/types";
+import type { GrupoRubro } from "../types/grupoRubro";
 
 interface Props {
   onCreateNew: () => void;
   onEdit: (harina: Harina) => void;
 }
 
+type Nav = NativeStackNavigationProp<GerenteStackParamList>;
+
+const grupoIdOf = (h: Harina): string | null => {
+  const g = h.grupoRubroId;
+  if (!g) return null;
+  return typeof g === "string" ? g : (g as GrupoRubro)._id;
+};
+
 export const HarinasListScreen = ({ onCreateNew, onEdit }: Props) => {
   const theme = useTheme();
   const layout = useScreenLayout();
   const mutedText = useMutedTextStyle();
+  const navigation = useNavigation<Nav>();
   const harinas = useHarinasStore((state) => state.harinas);
   const isLoading = useHarinasStore((state) => state.isLoading);
   const isMutating = useHarinasStore((state) => state.isMutating);
@@ -128,6 +141,15 @@ export const HarinasListScreen = ({ onCreateNew, onEdit }: Props) => {
                 </Text>
               </Card.Content>
               <Card.Actions>
+                <IconButton
+                  icon="tune-vertical"
+                  onPress={() => {
+                    const gid = grupoIdOf(item);
+                    if (gid) navigation.navigate("CalibracionEdit", { grupoId: gid });
+                    else Alert.alert("Calibración", "Este lote aún no tiene receta. Recarga la lista.");
+                  }}
+                  disabled={isMutating}
+                />
                 <IconButton
                   icon="pencil"
                   onPress={() => onEdit(item)}

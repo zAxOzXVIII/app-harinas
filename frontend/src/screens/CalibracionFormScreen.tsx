@@ -5,8 +5,9 @@ import { KeyboardAwareScreen } from "../components/KeyboardAwareScreen";
 import { useContrastStyles } from "../hooks/useContrastStyles";
 import { useGruposStore } from "../store/grupos.store";
 import { useAuthStore } from "../store/auth.store";
+import { gruposService } from "../services/grupos.service";
 import { procesoSecadoService } from "../services/procesoSecado.service";
-import type { CalibracionPayload } from "../types/grupoRubro";
+import type { CalibracionPayload, GrupoRubro } from "../types/grupoRubro";
 import type { ProcesoSecado } from "../types/procesoSecado";
 
 interface Props {
@@ -29,12 +30,15 @@ const toStr = (n: number | undefined): string => (n === undefined || n === null 
 export const CalibracionFormScreen = ({ grupoId, onSuccess }: Props) => {
   const { muted: mutedText, title: titleStyle, body: bodyStyle } = useContrastStyles();
   const grupos = useGruposStore((s) => s.grupos);
+  const fetchAll = useGruposStore((s) => s.fetchAll);
   const isMutating = useGruposStore((s) => s.isMutating);
   const updateCalibracion = useGruposStore((s) => s.updateCalibracion);
   const user = useAuthStore((s) => s.user);
   const isGerente = user?.rol === "gerente" || !user?.rol;
 
-  const grupo = useMemo(() => grupos.find((g) => g._id === grupoId), [grupos, grupoId]);
+  const grupoFromStore = useMemo(() => grupos.find((g) => g._id === grupoId), [grupos, grupoId]);
+  const [grupoFetched, setGrupoFetched] = useState<GrupoRubro | null>(null);
+  const grupo = grupoFromStore ?? grupoFetched;
 
   const [fields, setFields] = useState<FormFields | null>(null);
   const [touched, setTouched] = useState(false);
@@ -42,6 +46,15 @@ export const CalibracionFormScreen = ({ grupoId, onSuccess }: Props) => {
   const [reabriendo, setReabriendo] = useState(false);
 
   const loteCerrado = procesoActual?.estado === "revisado_empaquetado";
+
+  useEffect(() => {
+    fetchAll();
+  }, [fetchAll]);
+
+  useEffect(() => {
+    if (!grupoId || grupoFromStore) return;
+    gruposService.getOne(grupoId).then(setGrupoFetched).catch(() => setGrupoFetched(null));
+  }, [grupoId, grupoFromStore]);
 
   useEffect(() => {
     if (!grupoId) return;
@@ -160,7 +173,7 @@ export const CalibracionFormScreen = ({ grupoId, onSuccess }: Props) => {
         <Card.Content>
           <Text variant="titleLarge" style={bodyStyle}>{grupo.nombre}</Text>
           <Text variant="bodyMedium" style={mutedText}>
-            {grupo.items.join(" + ")}
+            {[...new Set(grupo.items)].join(" · ")}
           </Text>
         </Card.Content>
       </Card>

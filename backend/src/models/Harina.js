@@ -26,6 +26,13 @@ const harinaSchema = new mongoose.Schema(
       type: Date,
       required: true,
     },
+    /** Receta de secado/telemetría asociada (GrupoRubro interno). */
+    grupoRubroId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "GrupoRubro",
+      default: null,
+      index: true,
+    },
   },
   {
     versionKey: false,

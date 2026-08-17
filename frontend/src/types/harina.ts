@@ -1,3 +1,5 @@
+import type { GrupoRubro } from "./grupoRubro";
+
 export interface Harina {
   _id: string;
   nombre: string;
@@ -5,6 +7,7 @@ export interface Harina {
   cantidad: number;
   unidad: string;
   fecha_registro: string;
+  grupoRubroId?: string | GrupoRubro | null;
   createdAt?: string;
   updatedAt?: string;
 }

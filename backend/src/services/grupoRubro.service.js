@@ -7,8 +7,9 @@ const { getEmpaquetadoGrupoIds, isGrupoLoteCerrado } = require("./procesoSecado.
  * nunca por nombre. El admin crea el grupo -> entra al final de la fila; al
  * salir el primero (marcado listo), el siguiente en createdAt queda arriba.
  */
-const listGrupos = async ({ activos = false } = {}) => {
-  const grupos = await GrupoRubro.find().sort({ createdAt: 1 }).lean();
+const listGrupos = async ({ activos = false, soloHarinas = false } = {}) => {
+  const filter = soloHarinas ? { vinculadoAHarina: true } : {};
+  const grupos = await GrupoRubro.find(filter).sort({ createdAt: 1 }).lean();
   if (!activos) return grupos;
 
   const ocultos = await getEmpaquetadoGrupoIds();
@@ -37,7 +38,7 @@ const buildUniqueCodigo = async (nombre) => {
   return codigo;
 };
 
-const createGrupo = async ({ nombre, items, calibracion }, userId) => {
+const createGrupo = async ({ nombre, items, calibracion, vinculadoAHarina = false }, userId) => {
   if (!nombre || !nombre.trim()) {
     const err = new Error("nombre es requerido");
     err.status = 422;
@@ -57,6 +58,7 @@ const createGrupo = async ({ nombre, items, calibracion }, userId) => {
     items: items.map((i) => i.trim()),
     ...(calibracion ? { calibracion } : {}),
     creadoPor: userId || null,
+    vinculadoAHarina: Boolean(vinculadoAHarina),
   });
 
   return grupo;

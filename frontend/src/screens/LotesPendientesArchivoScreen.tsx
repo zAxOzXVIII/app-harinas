@@ -16,7 +16,7 @@ import { brand } from "../theme";
 import type { ProcesoSecado, ProcesoSecadoGrupoRef } from "../types/procesoSecado";
 
 const grupoLabel = (grupoRubroId: string | ProcesoSecadoGrupoRef): string =>
-  typeof grupoRubroId === "string" ? "Grupo de rubro" : grupoRubroId.nombre;
+  typeof grupoRubroId === "string" ? "Lote" : grupoRubroId.nombre;
 
 const operadorLabel = (proceso: ProcesoSecado): string => {
   const ref = proceso.confirmadoListoPor;
@@ -80,7 +80,7 @@ export const LotesPendientesArchivoScreen = () => {
       }
     >
       <Text variant="bodyMedium" style={[bodyStyle, styles.intro]}>
-        Lotes confirmados por el operador (✓). Archívalos para liberar el ciclo del grupo.
+        Lotes confirmados por el operador (✓). Archívalos para liberar el ciclo.
       </Text>
 
       {error ? <Text style={styles.error}>{error}</Text> : null}

@@ -163,4 +163,38 @@ describe("API telemetria", () => {
     expect(bucket.umbrales.min).toBeDefined();
     expect(bucket.fueraRango).toBeGreaterThanOrEqual(1);
   });
+
+  it("asocia lecturas USB (codigo semilla) al lote de harina", async () => {
+    const createRes = await request(getApp())
+      .post("/api/harinas")
+      .set("Authorization", `Bearer ${token}`)
+      .send({
+        nombre: "Cambir",
+        tipo: "Calidad",
+        cantidad: 20,
+        unidad: "kg",
+        fecha_registro: new Date().toISOString(),
+      });
+
+    expect(createRes.status).toBe(201);
+    const grupoRef = createRes.body.data.grupoRubroId;
+    const grupoId = typeof grupoRef === "string" ? grupoRef : grupoRef._id;
+    expect(grupoId).toBeTruthy();
+
+    const ingestRes = await request(getApp())
+      .post("/api/arduino/telemetry")
+      .send({
+        eventId: `remap-${Date.now()}`,
+        deviceId: "uno-usb-01",
+        codigoGrupo: "garbanzo-lenteja",
+        lecturas: { temperatura: 33.1, humedad: 41.2 },
+      });
+
+    expect([200, 201]).toContain(ingestRes.status);
+    expect(String(ingestRes.body.data.grupoRubroId)).toBe(String(grupoId));
+
+    await request(getApp())
+      .delete(`/api/harinas/${createRes.body.data._id}`)
+      .set("Authorization", `Bearer ${token}`);
+  });
 });

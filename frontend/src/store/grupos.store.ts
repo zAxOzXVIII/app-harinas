@@ -14,7 +14,7 @@ interface GruposState {
   isLoading: boolean;
   isMutating: boolean;
   error: string | null;
-  fetchAll: (opts?: { activosOnly?: boolean }) => Promise<void>;
+  fetchAll: (opts?: { activosOnly?: boolean; soloHarinas?: boolean }) => Promise<void>;
   createGrupo: (payload: GrupoRubroPayload) => Promise<GrupoRubro>;
   updateCalibracion: (id: string, payload: CalibracionPayload) => Promise<void>;
   updateHumedad: (payload: HumedadPayload) => Promise<void>;
@@ -32,12 +32,15 @@ export const useGruposStore = create<GruposState>((set, get) => ({
     try {
       set({ isLoading: true, error: null });
       const [grupos, humedad] = await Promise.all([
-        gruposService.list(opts?.activosOnly ? { activos: true } : undefined),
+        gruposService.list({
+          activos: opts?.activosOnly === true,
+          soloHarinas: opts?.soloHarinas !== false,
+        }),
         humedadService.get(),
       ]);
       set({ grupos, humedad, isLoading: false });
     } catch (_error) {
-      set({ isLoading: false, error: "No fue posible cargar los grupos de rubro" });
+      set({ isLoading: false, error: "No fue posible cargar los lotes de trabajo" });
     }
   },
 
