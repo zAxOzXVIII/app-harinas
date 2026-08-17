@@ -675,6 +675,7 @@ La APK **embebe** la URL del API al compilar. Si cambias de Render a otro host, 
 | `firmware/README.md` | ESP32 Wi‑Fi + rutas hardware |
 | `docs/AGENTE-ENTREGAS.md` | Prompts por partes (LeanHerz 11/7: ✓ operador, papelera gerente, fluctuaciones) |
 | `docs/AGENTE-ENTREGAS-COLA-GRUPOS.md` | Cola FIFO de grupos Admin→Sup→Op, saludos, gráficas (LeanHerz 22/7) — implementada |
+| `docs/AGENTE-ENTREGAS-SIN-GRUPOS.md` | Brief LeanHerz 17/8: quitar grupos, flujo directo, lecturas Render/USB |
 | `SPRINTS.md` | Historial de sprints |
 
 ---

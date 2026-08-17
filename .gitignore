@@ -7,3 +7,5 @@ docs/prompts/
 apk/
 *.apk
 firmware/**/config.h
+*.rar
+App-Harinas.rar
