@@ -79,7 +79,16 @@ mongodb://mardenrosales44_db_user:TU_PASSWORD@ac-xmbqxbd-shard-00-00.0jgv676.mon
 
 ### Atlas — Network Access
 
-- Debe estar **`0.0.0.0/0` Active** (Render usa IPs dinámicas).
+En Atlas → **Network Access** → **Add IP Address**, permite el origen de Render:
+
+| CIDR | Uso |
+|------|-----|
+| `74.220.48.0/24` | Salida Render |
+| `74.220.56.0/24` | Salida Render |
+
+Si el servicio en Render **no llega a Atlas** tras limitar IPs, vuelve a `0.0.0.0/0` (plan gratis puede usar IPs distintas). Para `seed:demo` desde tu PC, añade también tu IP actual.
+
+Esto **no despliega código**. El commit nuevo se monta con **Manual Deploy** en el servicio `app-harinas`.
 
 ---
 
@@ -176,7 +185,7 @@ Descarga la APK desde el enlace que devuelve Expo.
 |---------|--------|
 | Health tarda mucho | Plan gratis despertando; espera y reintenta |
 | 503 en Render | Revisa logs → **Logs** en el dashboard |
-| Atlas no conecta en Render | `0.0.0.0/0` en Network Access; revisa `MONGODB_URI` |
+| Atlas no conecta en Render | Whitelist `74.220.48.0/24` y `74.220.56.0/24` (o `0.0.0.0/0`); revisa `MONGODB_URI` |
 | Login 401 | `npm run seed:demo`; revisa `JWT_SECRET` |
 | Gateway sin POST | `API_URL` debe ser HTTPS Render + gateway en marcha |
 

@@ -114,9 +114,24 @@ export const OperadorHomeScreen = () => {
     return latest.reduce((a, b) => (a.timestamp > b.timestamp ? a : b));
   }, [latest]);
 
+  /** Una sola línea de trabajo: secado activo, o pendiente de ✓, o el más antiguo. */
+  const loteActual = useMemo(() => {
+    if (grupos.length === 0) return null;
+    const enSecado = grupos.find((g) => byGrupoId[g._id]?.estado === "en_secado");
+    if (enSecado) return enSecado;
+    const pendienteListo = grupos.find((g) => {
+      const p = byGrupoId[g._id];
+      return p?.estado === "revisado_empaquetado" && !p.confirmadoListoPorOperador;
+    });
+    if (pendienteListo) return pendienteListo;
+    return grupos[0];
+  }, [grupos, byGrupoId]);
+
+  const lotesEnEspera = Math.max(0, grupos.length - (loteActual ? 1 : 0));
+
   const onRefresh = () => {
     refreshOperador();
-    grupos.forEach((g) => fetchHistory(g._id, 30));
+    if (loteActual) fetchHistory(loteActual._id, 30);
   };
 
   const handleIniciarSecado = async (grupo: GrupoRubro) => {
@@ -278,13 +293,18 @@ export const OperadorHomeScreen = () => {
       ) : null}
 
       <Text variant="titleLarge" style={[styles.sectionTitle, titleStyle]}>
-        Lotes a secar
+        Lote a secar
       </Text>
       <Text variant="bodySmall" style={mutedText}>
         Producto registrado por el gerente. Tú solo inicias, finalizas o marcas listo.
       </Text>
+      {lotesEnEspera > 0 ? (
+        <Text variant="bodySmall" style={[mutedText, { marginBottom: 8 }]}>
+          {lotesEnEspera} lote{lotesEnEspera === 1 ? "" : "s"} más cuando termines este.
+        </Text>
+      ) : null}
 
-      {grupos.length === 0 ? (
+      {!loteActual ? (
         <Card style={{ backgroundColor: theme.colors.surface }}>
           <Card.Content>
             <Text variant="bodyMedium" style={bodyStyle}>
@@ -293,7 +313,9 @@ export const OperadorHomeScreen = () => {
           </Card.Content>
         </Card>
       ) : (
-        grupos.map((grupo, idx) => {
+        (() => {
+          const grupo = loteActual;
+          const idx = 0;
           const last = latestByGroup.get(grupo._id) ?? plantLatest;
           const hist = history[grupo._id]?.length
             ? history[grupo._id]
@@ -477,7 +499,7 @@ export const OperadorHomeScreen = () => {
               </Card>
             </AnimatedReveal>
           );
-        })
+        })()
       )}
 
       <Button mode="outlined" onPress={logout} style={styles.logoutBtn}>
