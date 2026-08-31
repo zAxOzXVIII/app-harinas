@@ -10,8 +10,10 @@ const bootstrap = async () => {
 
     await connectDb();
 
-    app.listen(env.port, () => {
-      console.log(`Servidor ejecutándose en puerto ${env.port}`);
+    // 0.0.0.0: obligatorio en Render / contenedores (no solo localhost)
+    const host = process.env.HOST || "0.0.0.0";
+    app.listen(env.port, host, () => {
+      console.log(`Servidor ejecutándose en http://${host}:${env.port}`);
     });
   } catch (error) {
     console.error("Error al iniciar el servidor:", error.message);

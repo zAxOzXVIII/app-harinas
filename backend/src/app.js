@@ -43,15 +43,17 @@ app.use(
     skip: (_req, res) => env.nodeEnv === "test" || res.statusCode < 400,
   })
 );
-app.use(apiRateLimiter);
 app.use(express.json({ limit: "1mb" }));
 
+// Health fuera del rate limit: Render lo usa para marcar el servicio vivo.
 app.get("/api/health", (_req, res) => {
   res.status(200).json({
     success: true,
     message: "API activa",
   });
 });
+
+app.use(apiRateLimiter);
 
 app.use("/api/auth", authRoutes);
 app.use("/api/harinas", harinaRoutes);

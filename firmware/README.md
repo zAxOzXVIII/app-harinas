@@ -69,6 +69,5 @@ npm run simulate:telemetry
 
 ## Documentación relacionada
 
-- Operación local, ngrok, Atlas, APK: [`docs/OPERACION-LOCAL.md`](../docs/OPERACION-LOCAL.md)
-- **Montaje kit Uno + ESP-12F:** [`docs/MONTAJE-HARDWARE-UNO-ESP12F.md`](../docs/MONTAJE-HARDWARE-UNO-ESP12F.md)
+- **Operación COM3 (kit Uno + laptop):** [`docs/OPERACION-COM3.md`](../docs/OPERACION-COM3.md)
 - Deploy backend + Atlas: [`DEPLOY-PLAN.md`](../DEPLOY-PLAN.md)
