@@ -45,7 +45,16 @@ app.use(
 );
 app.use(express.json({ limit: "1mb" }));
 
-// Health fuera del rate limit: Render lo usa para marcar el servicio vivo.
+// Render pega GET/HEAD / al marcar el servicio live; health real: /api/health
+app.get("/", (_req, res) => {
+  res.status(200).json({
+    success: true,
+    service: "app-harinas",
+    message: "API activa",
+    health: "/api/health",
+  });
+});
+
 app.get("/api/health", (_req, res) => {
   res.status(200).json({
     success: true,

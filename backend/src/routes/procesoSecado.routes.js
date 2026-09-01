@@ -33,7 +33,7 @@ router.get("/grupo/:grupoRubroId", getActualController);
 
 router.post(
   "/grupo/:grupoRubroId/iniciar",
-  requireRoles("operador"),
+  requireRoles("operador", "gerente"),
   iniciarController
 );
 
@@ -45,7 +45,7 @@ router.post(
 
 router.post(
   "/:id/marcar-listo",
-  requireRoles("operador"),
+  requireRoles("operador", "gerente"),
   marcarListoController
 );
 

@@ -32,12 +32,17 @@ describe("API /api/procesos-secado", () => {
     expect(res.body.data.finalizaEn).toBeDefined();
   });
 
-  it("rechaza doble inicio en el mismo grupo", async () => {
+  it("segundo inicio en el mismo grupo reusa el secado activo", async () => {
+    const first = await request(getApp())
+      .get(`/api/procesos-secado/grupo/${grupoGarbanzo._id}`)
+      .set("Authorization", `Bearer ${operadorToken}`);
     const res = await request(getApp())
       .post(`/api/procesos-secado/grupo/${grupoGarbanzo._id}/iniciar`)
       .set("Authorization", `Bearer ${operadorToken}`);
 
-    expect(res.status).toBe(409);
+    expect(res.status).toBe(200);
+    expect(res.body.data.estado).toBe("en_secado");
+    expect(res.body.data._id).toBe(first.body.data._id);
   });
 
   it("lista procesos activos", async () => {
@@ -197,12 +202,13 @@ describe("API /api/procesos-secado", () => {
     expect(completeRes.body.data.alertasPendientesAlCierre).toBe(1);
   });
 
-  it("rechaza iniciar secado como gerente", async () => {
+  it("gerente puede iniciar secado (vista usuario / preview)", async () => {
     const res = await request(getApp())
       .post(`/api/procesos-secado/grupo/${grupoYuca._id}/iniciar`)
       .set("Authorization", `Bearer ${gerenteToken}`);
 
-    expect(res.status).toBe(403);
+    expect(res.status).toBe(201);
+    expect(res.body.data.estado).toBe("en_secado");
   });
 
   it("gerente reabre lote cerrado y operador puede iniciar de nuevo", async () => {

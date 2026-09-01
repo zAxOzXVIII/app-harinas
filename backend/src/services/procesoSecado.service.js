@@ -168,9 +168,9 @@ const iniciarSecado = async (grupoRubroId, userId) => {
 
   const activo = await ProcesoSecado.findOne({ grupoRubroId, estado: "en_secado" });
   if (activo) {
-    const err = new Error("Ya hay un secado en curso para este grupo");
-    err.status = 409;
-    throw err;
+    const reused = enrichProceso(activo);
+    reused.reused = true;
+    return reused;
   }
 
   if (await isGrupoLoteCerrado(grupoRubroId)) {

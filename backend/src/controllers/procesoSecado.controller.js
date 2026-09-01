@@ -31,7 +31,12 @@ const getActualController = async (req, res, next) => {
 const iniciarController = async (req, res, next) => {
   try {
     const data = await iniciarSecado(req.params.grupoRubroId, req.user?.userId);
-    res.status(201).json({ success: true, message: "Secado iniciado", data });
+    const reused = Boolean(data?.reused);
+    res.status(reused ? 200 : 201).json({
+      success: true,
+      message: reused ? "Secado ya en curso" : "Secado iniciado",
+      data,
+    });
   } catch (error) {
     next(error);
   }

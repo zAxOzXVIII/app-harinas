@@ -29,6 +29,7 @@ import { brand, statusColors } from "../theme";
 import { ScreenHero } from "../components/ScreenHero";
 import type { GrupoRubro } from "../types/grupoRubro";
 import type { ProcesoSecado } from "../types/procesoSecado";
+import { apiErrorMessage } from "../utils/apiError";
 
 type Nav = NativeStackNavigationProp<OperadorStackParamList>;
 
@@ -138,15 +139,22 @@ export const OperadorHomeScreen = () => {
     clearSecadoError();
     try {
       await iniciarSecado(grupo._id);
-      // Refresco inmediato: que las graficas reflejen actividad al instante,
-      // sin que el operador tenga que mirar la terminal del backend.
       await Promise.all([
         fetchLatest(),
         fetchHistory(grupo._id, 30),
         fetchActivos(),
+        fetchByGrupo(grupo._id),
       ]);
-    } catch {
-      Alert.alert("No se pudo iniciar", "Verifica que el lote no este cerrado o en secado.");
+    } catch (error) {
+      const actual = await fetchByGrupo(grupo._id);
+      if (actual?.estado === "en_secado") {
+        await Promise.all([fetchLatest(), fetchHistory(grupo._id, 30), fetchActivos()]);
+        return;
+      }
+      Alert.alert(
+        "No se pudo iniciar",
+        apiErrorMessage(error, "El lote puede estar cerrado o pendiente de archivo.")
+      );
     }
   };
 
@@ -329,12 +337,17 @@ export const OperadorHomeScreen = () => {
           const t = grupo.calibracion.temperatura;
           const tValue = last?.lecturas.temperatura ?? null;
           const proceso = getProcesoForGrupo(grupo._id, byGrupoId);
+          const procesoCargado = proceso !== undefined;
           const enSecado = proceso?.estado === "en_secado";
           const lotePendienteListo =
             proceso?.estado === "revisado_empaquetado" && !proceso.confirmadoListoPorOperador;
+          const loteEsperandoArchivo =
+            proceso?.estado === "revisado_empaquetado" && Boolean(proceso.confirmadoListoPorOperador);
           const puedeIniciarSecado =
+            procesoCargado &&
             !enSecado &&
             !lotePendienteListo &&
+            !loteEsperandoArchivo &&
             (!proceso || proceso.estado === "archivado");
           const tiempoEst = grupo.calibracion.tiempoSecado?.estimadoMin ?? 0;
 
@@ -488,6 +501,12 @@ export const OperadorHomeScreen = () => {
                       Marcar como listo
                     </Button>
                   </View>
+                ) : loteEsperandoArchivo ? (
+                  <Text variant="bodySmall" style={[mutedText, { marginTop: 12 }]}>
+                    Este lote ya se cerró. El gerente debe archivarlo (o reabrirlo) para un nuevo ciclo.
+                  </Text>
+                ) : !procesoCargado ? (
+                  <ActivityIndicator style={{ marginTop: 12 }} />
                 ) : puedeIniciarSecado && tiempoEst > 0 ? (
                   <IniciarSecadoButton
                     duracionMin={tiempoEst}

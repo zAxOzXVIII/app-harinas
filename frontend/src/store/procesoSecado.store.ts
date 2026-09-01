@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import { procesoSecadoService } from "../services/procesoSecado.service";
 import type { ProcesoSecado } from "../types/procesoSecado";
+import { apiErrorMessage } from "../utils/apiError";
 
 interface ProcesoSecadoState {
   activos: ProcesoSecado[];
@@ -83,7 +84,7 @@ export const useProcesoSecadoStore = create<ProcesoSecadoState>((set, get) => ({
       });
       return proceso;
     } catch (error) {
-      set({ isMutating: false, error: "No fue posible iniciar el secado" });
+      set({ isMutating: false, error: apiErrorMessage(error, "No fue posible iniciar el secado") });
       throw error;
     }
   },
