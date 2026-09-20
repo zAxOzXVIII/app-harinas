@@ -1,6 +1,7 @@
 import type { AlertTipo } from "../types/alert";
 import type { Rol } from "../types/auth";
 import { brand } from "../theme";
+import { uiRolLabel } from "./roles";
 
 export interface PdfKpi {
   label: string;
@@ -80,14 +81,7 @@ export const labelAlertTipo = (tipo: AlertTipo): string => {
   return map[tipo] ?? tipo;
 };
 
-export const labelRol = (rol: Rol | string): string => {
-  const map: Record<string, string> = {
-    gerente: "Gerente",
-    supervisor: "Supervisor",
-    operador: "Operador",
-  };
-  return map[rol] ?? rol;
-};
+export const labelRol = (rol: Rol | string): string => uiRolLabel(rol);
 
 export const statusBadgeHtml = (status: string): string => {
   const s = status.toUpperCase();

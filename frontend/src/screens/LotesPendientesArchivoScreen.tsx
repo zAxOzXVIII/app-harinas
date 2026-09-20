@@ -20,8 +20,8 @@ const grupoLabel = (grupoRubroId: string | ProcesoSecadoGrupoRef): string =>
 
 const operadorLabel = (proceso: ProcesoSecado): string => {
   const ref = proceso.confirmadoListoPor;
-  if (!ref) return "Operador";
-  return typeof ref === "string" ? "Operador" : ref.nombre;
+  if (!ref) return "Usuario";
+  return typeof ref === "string" ? "Usuario" : ref.nombre;
 };
 
 export const LotesPendientesArchivoScreen = () => {
@@ -80,7 +80,7 @@ export const LotesPendientesArchivoScreen = () => {
       }
     >
       <Text variant="bodyMedium" style={[bodyStyle, styles.intro]}>
-        Lotes confirmados por el operador (✓). Archívalos para liberar el ciclo.
+        Lotes confirmados por el Usuario (✓). Archívalos para liberar el ciclo.
       </Text>
 
       {error ? <Text style={styles.error}>{error}</Text> : null}
@@ -89,7 +89,7 @@ export const LotesPendientesArchivoScreen = () => {
         <Card mode="elevated" style={styles.card}>
           <Card.Content>
             <Text variant="bodyMedium" style={bodyStyle}>
-              No hay lotes pendientes de archivo. Aparecerán aquí cuando el operador marque un
+              No hay lotes pendientes de archivo. Aparecerán aquí cuando el Usuario marque un
               secado como listo.
             </Text>
           </Card.Content>

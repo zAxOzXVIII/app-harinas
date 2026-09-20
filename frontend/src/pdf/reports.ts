@@ -314,8 +314,8 @@ export const exportEquipoPdf = async (
       reportTitle: "Equipo de trabajo",
       userLabel: userLabel(user),
       kpis: [
-        { label: "Supervisores", value: String(sorted.filter((u) => u.rol === "supervisor").length) },
-        { label: "Operadores", value: String(sorted.filter((u) => u.rol === "operador").length) },
+        { label: "Gerentes", value: String(sorted.filter((u) => u.rol === "supervisor").length) },
+        { label: "Usuarios", value: String(sorted.filter((u) => u.rol === "operador").length) },
       ],
       sections: [
         {

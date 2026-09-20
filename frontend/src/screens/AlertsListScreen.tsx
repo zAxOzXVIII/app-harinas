@@ -65,7 +65,7 @@ export const AlertsListScreen = () => {
     if (items.length === 0) return;
     Alert.alert(
       "Limpiar todas las alertas",
-      `Se ocultaran ${items.length} alerta(s) de la lista (borrado logico). Solo el gerente puede hacer esto.`,
+      `Se ocultaran ${items.length} alerta(s) de la lista (borrado logico). Solo el Admin puede hacer esto.`,
       [
         { text: "Cancelar", style: "cancel" },
         {

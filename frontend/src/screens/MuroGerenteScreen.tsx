@@ -157,7 +157,7 @@ export const MuroGerenteScreen = () => {
           <Card.Content>
             <Text variant="bodyMedium" style={bodyStyle}>
               Esperando lecturas del sensor (laptop + Uno USB → servidor).
-              Aparecen aquí al llegar al API; para alertas, el operador debe iniciar secado.
+              Aparecen aquí al llegar al API; para alertas, el Usuario debe iniciar secado.
             </Text>
           </Card.Content>
         </Card>

@@ -90,7 +90,7 @@ export const UsuarioFormScreen = ({ userId, onSuccess }: Props) => {
   return (
     <KeyboardAwareScreen backgroundColor={theme.colors.background}>
       <Text variant="titleLarge" style={[styles.title, { color: theme.colors.onSurface }]}>
-        {isEdit ? "Editar miembro del equipo" : "Nuevo supervisor u operador"}
+        {isEdit ? "Editar miembro del equipo" : "Nuevo gerente o usuario"}
       </Text>
       <TextInput mode="outlined" label="Nombre" value={nombre} onChangeText={setNombre} style={styles.input} />
       <TextInput

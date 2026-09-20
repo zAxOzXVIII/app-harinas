@@ -13,6 +13,7 @@ import { usersService } from "../services/users.service";
 import type { TeamUser } from "../types/auth";
 import type { GerenteStackParamList } from "../navigation/types";
 import { brand } from "../theme";
+import { uiRolLabel } from "../utils/roles";
 
 type Nav = NativeStackNavigationProp<GerenteStackParamList>;
 
@@ -94,7 +95,7 @@ export const EquipoListScreen = () => {
         ListEmptyComponent={
           <View style={styles.centered}>
             <Text variant="bodyLarge" style={{ color: theme.colors.onSurface }}>
-              No hay supervisores ni operadores registrados
+              No hay gerentes ni usuarios registrados
             </Text>
             <Text variant="bodySmall" style={mutedText}>
               Agrega miembros del equipo con el boton +.
@@ -112,7 +113,7 @@ export const EquipoListScreen = () => {
                   {item.email}
                 </Text>
                 <Text variant="labelLarge" style={{ color: theme.colors.onSurfaceVariant }}>
-                  Rol: {item.rol}
+                  Rol: {uiRolLabel(item.rol)}
                 </Text>
               </Card.Content>
               <Card.Actions>

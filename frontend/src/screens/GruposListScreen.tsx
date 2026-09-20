@@ -108,17 +108,17 @@ export const GruposListScreen = () => {
       ) : null}
 
       <Text variant="titleLarge" style={[styles.sectionTitle, { color: theme.colors.primary }]}>
-        Lotes del gerente
+        Lotes del Admin
       </Text>
       <Text variant="bodySmall" style={[styles.queueHint, mutedText]}>
-        Calibra el producto que el gerente registró (nombre, tipo, kg). El operador solo acciona.
+        Calibra el producto que el Admin registró (nombre, tipo, kg). El Usuario solo acciona.
       </Text>
 
       {grupos.length === 0 ? (
         <Card>
           <Card.Content>
             <Text variant="bodyMedium" style={bodyStyle}>
-              No hay harinas todavía. El gerente las registra en Gestión de harinas.
+              No hay harinas todavía. El Admin las registra en Gestión de harinas.
             </Text>
           </Card.Content>
         </Card>

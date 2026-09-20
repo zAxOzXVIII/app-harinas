@@ -125,7 +125,7 @@ export const LoginScreen = () => {
 
           {__DEV__ ? (
             <Text style={styles.devHint}>
-              Demo gerente: admin@nativa.com / admin123
+              Demo Admin: admin@nativa.com / admin123
             </Text>
           ) : null}
         </Card.Content>

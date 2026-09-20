@@ -107,25 +107,10 @@ export const DashboardScreen = ({ onGoToGestion }: Props) => {
             <Text variant="titleMedium" style={[styles.blockTitle, titleStyle]}>
               Accesos rapidos
             </Text>
+            <Text variant="labelLarge" style={[styles.groupLabel, mutedText]}>
+              Operación de planta
+            </Text>
             <View style={styles.gerenteGrid}>
-              <Button
-                mode="contained-tonal"
-                icon="account-group"
-                onPress={() => navigation.navigate("EquipoList")}
-                style={[
-                  styles.gridBtn,
-                  {
-                    minWidth:
-                      layout.dashboardColumns === 1
-                        ? "100%"
-                        : layout.dashboardColumns === 2
-                          ? "48%"
-                          : "31%",
-                  },
-                ]}
-              >
-                Equipo
-              </Button>
               <Button
                 mode="contained-tonal"
                 icon="tune-vertical"
@@ -182,24 +167,6 @@ export const DashboardScreen = ({ onGoToGestion }: Props) => {
               </Button>
               <Button
                 mode="contained-tonal"
-                icon="delete-outline"
-                onPress={() => navigation.navigate("LotesPendientesArchivo")}
-                style={[
-                  styles.gridBtn,
-                  {
-                    minWidth:
-                      layout.dashboardColumns === 1
-                        ? "100%"
-                        : layout.dashboardColumns === 2
-                          ? "48%"
-                          : "31%",
-                  },
-                ]}
-              >
-                Lotes pendientes{pendientesArchivo.length > 0 ? ` (${pendientesArchivo.length})` : ""}
-              </Button>
-              <Button
-                mode="contained-tonal"
                 icon="bell-alert"
                 onPress={() => navigation.navigate("AlertsList")}
                 style={[
@@ -216,13 +183,57 @@ export const DashboardScreen = ({ onGoToGestion }: Props) => {
               >
                 Alertas
               </Button>
+              <Button
+                mode="contained-tonal"
+                icon="delete-outline"
+                onPress={() => navigation.navigate("LotesPendientesArchivo")}
+                style={[
+                  styles.gridBtn,
+                  {
+                    minWidth:
+                      layout.dashboardColumns === 1
+                        ? "100%"
+                        : layout.dashboardColumns === 2
+                          ? "48%"
+                          : "31%",
+                  },
+                ]}
+              >
+                Lotes pendientes{pendientesArchivo.length > 0 ? ` (${pendientesArchivo.length})` : ""}
+              </Button>
             </View>
+            <Text variant="labelLarge" style={[styles.groupLabel, mutedText]}>
+              Personal
+            </Text>
+            <View style={styles.gerenteGrid}>
+              <Button
+                mode="contained-tonal"
+                icon="account-group"
+                onPress={() => navigation.navigate("EquipoList")}
+                style={[
+                  styles.gridBtn,
+                  {
+                    minWidth:
+                      layout.dashboardColumns === 1
+                        ? "100%"
+                        : layout.dashboardColumns === 2
+                          ? "48%"
+                          : "31%",
+                  },
+                ]}
+              >
+                Equipo
+              </Button>
+            </View>
+            <Text variant="labelLarge" style={[styles.groupLabel, mutedText]}>
+              Ver como
+            </Text>
             <View style={styles.previewRow}>
               <Button mode="outlined" compact onPress={() => navigation.navigate("PreviewSupervisor")}>
-                Preview Gerente
+                Vista Gerente
               </Button>
               <Button mode="outlined" compact onPress={() => navigation.navigate("PreviewOperador")}>
-                Preview Usuario
+                Vista Usuario
               </Button>
             </View>
           </Card.Content>
@@ -244,6 +255,7 @@ const styles = StyleSheet.create({
   statCard: { borderRadius: 14 },
   card: { borderRadius: 14 },
   blockTitle: { marginBottom: 10 },
+  groupLabel: { marginTop: 8, marginBottom: 4 },
   primaryBtn: { borderRadius: 10 },
   errorText: { marginTop: 8, color: brand.critical },
   gerenteGrid: {

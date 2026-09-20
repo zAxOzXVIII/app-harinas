@@ -82,7 +82,7 @@ const GerenteNavigator = () => (
     <GerenteStack.Screen name="EquipoList" options={{ title: "Equipo" }} component={EquipoListScreen} />
     <GerenteStack.Screen
       name="UsuarioForm"
-      options={{ title: "Usuario", presentation: "modal", animation: "slide_from_bottom" }}
+      options={{ title: "Miembro del equipo", presentation: "modal", animation: "slide_from_bottom" }}
       children={({ route, navigation }) => (
         <UsuarioFormScreen userId={route.params?.userId} onSuccess={() => navigation.goBack()} />
       )}
@@ -140,7 +140,7 @@ const SupervisorNavigator = () => (
   <SupervisorStack.Navigator screenOptions={baseScreenOptions}>
     <SupervisorStack.Screen
       name="Home"
-      options={{ title: "Gerente" }}
+      options={{ title: "Inicio" }}
       component={SupervisorHomeScreen}
     />
     <SupervisorStack.Screen
@@ -175,7 +175,7 @@ const OperadorNavigator = () => (
   <OperadorStack.Navigator screenOptions={baseScreenOptions}>
     <OperadorStack.Screen
       name="Home"
-      options={{ title: "Usuario" }}
+      options={{ title: "Inicio" }}
       component={OperadorHomeScreen}
     />
     <OperadorStack.Screen

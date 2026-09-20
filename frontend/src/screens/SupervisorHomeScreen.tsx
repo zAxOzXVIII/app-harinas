@@ -18,6 +18,8 @@ export const SupervisorHomeScreen = () => {
   const { muted: mutedText, title: titleStyle } = useContrastStyles();
   const navigation = useNavigation<Nav>();
   const logout = useAuthStore((s) => s.logout);
+  const rol = useAuthStore((s) => s.user?.rol);
+  const showLogout = rol === "supervisor";
 
   return (
     <ScrollView
@@ -27,7 +29,7 @@ export const SupervisorHomeScreen = () => {
       <ScreenHero
         roleLabel="Gerente"
         title="Calibración"
-        subtitle="Ajusta T°, nivel y tiempo sobre el lote que registró el gerente"
+        subtitle="Ajusta T°, nivel y tiempo sobre el lote que registró el Admin"
       />
 
       <AnimatedReveal delay={40}>
@@ -37,7 +39,7 @@ export const SupervisorHomeScreen = () => {
               Lotes a calibrar
             </Text>
             <Text variant="bodySmall" style={mutedText}>
-              Lo que el gerente creó en inventario (nombre, tipo, cantidad).
+              Lo que el Admin creó en inventario (nombre, tipo, cantidad).
             </Text>
             <Button
               mode="contained"
@@ -99,11 +101,13 @@ export const SupervisorHomeScreen = () => {
         </Card>
       </AnimatedReveal>
 
+      {showLogout ? (
       <AnimatedReveal delay={160}>
         <Button mode="outlined" onPress={logout} icon="logout" style={styles.logoutBtn}>
           Cerrar sesion
         </Button>
       </AnimatedReveal>
+      ) : null}
     </ScrollView>
   );
 };

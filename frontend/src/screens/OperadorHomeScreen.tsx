@@ -47,6 +47,8 @@ export const OperadorHomeScreen = () => {
   const chipText = { color: theme.colors.onSurfaceVariant, fontSize: 12 };
   const navigation = useNavigation<Nav>();
   const logout = useAuthStore((s) => s.logout);
+  const rol = useAuthStore((s) => s.user?.rol);
+  const showLogout = rol === "operador";
 
   const grupos = useGruposStore((s) => s.grupos);
   const humedad = useGruposStore((s) => s.humedad);
@@ -216,7 +218,7 @@ export const OperadorHomeScreen = () => {
           onPress: async () => {
             try {
               await marcarListo(procesoId, grupo._id);
-              Alert.alert("Listo", "Lote marcado. El gerente podrá archivarlo desde su panel.");
+              Alert.alert("Listo", "Lote marcado. El Admin podrá archivarlo desde su panel.");
               await fetchAll({ activosOnly: true, soloHarinas: true });
               await fetchByGrupo(grupo._id);
             } catch {
@@ -245,7 +247,7 @@ export const OperadorHomeScreen = () => {
       <ScreenHero
         roleLabel="Usuario"
         title="Operación de secado"
-        subtitle="Inicia el secado del lote del gerente y monitorea temperatura y humedad"
+        subtitle="Inicia el secado del lote del Admin y monitorea temperatura y humedad"
       >
         <View style={styles.alertBtnWrap}>
           <Button
@@ -304,7 +306,7 @@ export const OperadorHomeScreen = () => {
         Lote a secar
       </Text>
       <Text variant="bodySmall" style={mutedText}>
-        Producto registrado por el gerente. Tú solo inicias, finalizas o marcas listo.
+        Producto registrado por el Admin. Tú solo inicias, finalizas o marcas listo.
       </Text>
       {lotesEnEspera > 0 ? (
         <Text variant="bodySmall" style={[mutedText, { marginBottom: 8 }]}>
@@ -316,7 +318,7 @@ export const OperadorHomeScreen = () => {
         <Card style={{ backgroundColor: theme.colors.surface }}>
           <Card.Content>
             <Text variant="bodyMedium" style={bodyStyle}>
-              No hay lotes pendientes. El gerente debe registrar una harina.
+              No hay lotes pendientes. El Admin debe registrar una harina.
             </Text>
           </Card.Content>
         </Card>
@@ -521,9 +523,11 @@ export const OperadorHomeScreen = () => {
         })()
       )}
 
+      {showLogout ? (
       <Button mode="outlined" onPress={logout} style={styles.logoutBtn}>
         Cerrar sesion
       </Button>
+      ) : null}
     </ScrollView>
   );
 };
