@@ -1,8 +1,6 @@
-# Desplegar backend en Render + Atlas (Venezuela / sin ngrok)
+# Desplegar backend en Render + Atlas
 
-Guía para publicar la API en **Render** con **MongoDB Atlas** y conectar la **APK** y el **gateway Arduino**.
-
-> **Por qué Render:** ngrok no funciona desde Venezuela (ERR_NGROK_9040). Render da una URL HTTPS fija sin VPN.
+Guía para publicar la API en **Render** con **MongoDB Atlas** y conectar la **APK** y el **gateway Arduino USB**.
 
 ---
 

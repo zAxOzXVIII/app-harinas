@@ -1,8 +1,8 @@
 /**
- * Nativa — Arduino Uno + AHT10 + DS3231 + HC-05
+ * Nativa — Arduino Uno + AHT10 + DS3231
  *
- * Emite una línea JSON por lectura (mismo contrato que ESP32) por Bluetooth y/o USB.
- * La app móvil NO lee Bluetooth: usa el gateway en PC o cable USB → POST al backend.
+ * Emite una línea JSON por USB (115200). El gateway en la PC la sube a Render.
+ * Sin Wi‑Fi de placa y sin Bluetooth.
  *
  * Librerías (Gestor de librerías Arduino IDE):
  *   - Adafruit AHTX0
@@ -12,7 +12,6 @@
 
 #include <Wire.h>
 #include <ArduinoJson.h>
-#include <SoftwareSerial.h>
 #include <Adafruit_AHTX0.h>
 #include <RTClib.h>
 
@@ -20,7 +19,6 @@
 
 Adafruit_AHTX0 aht;
 RTC_DS3231 rtc;
-SoftwareSerial btSerial(BT_RX_PIN, BT_TX_PIN);
 
 static void formatIso8601(const DateTime& dt, char* buf, size_t len) {
   snprintf(
@@ -34,13 +32,6 @@ static void formatIso8601(const DateTime& dt, char* buf, size_t len) {
     dt.minute(),
     dt.second()
   );
-}
-
-static void emitJsonLine(const char* jsonLine) {
-#if MIRROR_USB_SERIAL
-  Serial.println(jsonLine);
-#endif
-  btSerial.println(jsonLine);
 }
 
 static bool buildTelemetryJson(float tempC, float humRh, const char* eventId, const char* timestamp, char* out, size_t outLen) {
@@ -60,11 +51,10 @@ static bool buildTelemetryJson(float tempC, float humRh, const char* eventId, co
 
 void setup() {
   Serial.begin(115200);
-  btSerial.begin(BT_BAUD);
   delay(800);
 
-  Serial.println(F("Nativa Uno — AHT10 + DS3231 + HC-05"));
-  Serial.println(F("Salida: una linea JSON por lectura (BT + USB)"));
+  Serial.println(F("Nativa Uno — AHT10 + DS3231 (USB)"));
+  Serial.println(F("Salida: una linea JSON por lectura"));
 
   Wire.begin();
 
@@ -109,7 +99,7 @@ void loop() {
 
   char jsonLine[320];
   if (buildTelemetryJson(temp.temperature, humidity.relative_humidity, eventId, ts, jsonLine, sizeof(jsonLine))) {
-    emitJsonLine(jsonLine);
+    Serial.println(jsonLine);
   }
 
   delay(INTERVAL_MS);

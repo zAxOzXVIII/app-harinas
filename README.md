@@ -258,22 +258,22 @@ npm run simulate:telemetry
 
 ---
 
-## Telemetria de planta (ESP32 + Wi‑Fi)
+## Telemetria de planta (Uno USB → Render)
 
-La app **no** se conecta al Arduino por Bluetooth. El flujo oficial es:
+La app **no** se conecta al Arduino. El flujo vigente es:
 
 ```
-AHT10 + DS3231 ──I2C──► ESP32 ──Wi‑Fi──► POST /api/arduino/telemetry ──► Backend ──► App
+AHT10 + DS3231 ──I2C──► Arduino Uno ──USB──► gateway (PC) ──HTTPS──► Render ──► App
 ```
 
 | Recurso | Descripcion |
 |---------|-------------|
-| [`firmware/README.md`](firmware/README.md) | Arquitectura y guia rapida |
-| [`firmware/esp32-aht10-ds3231/`](firmware/esp32-aht10-ds3231/README.md) | Firmware de produccion (Wi‑Fi directo) |
-| [`backend/docs/arduino-telemetry-contract.md`](backend/docs/arduino-telemetry-contract.md) | Contrato JSON del API |
-| [`firmware/arduino-uno-aht10-ds3231-hc05/`](firmware/arduino-uno-aht10-ds3231-hc05/README.md) | Solo desarrollo con Uno + gateway PC |
+| [`docs/COMO-EJECUTAR-GATEWAY-ARDUINO.md`](docs/COMO-EJECUTAR-GATEWAY-ARDUINO.md) | Cómo arrancar el gateway |
+| [`firmware/README.md`](firmware/README.md) | Arquitectura |
+| [`firmware/arduino-uno-aht10-ds3231-hc05/`](firmware/arduino-uno-aht10-ds3231-hc05/README.md) | Sketch Uno + gateway |
+| [`backend/docs/arduino-telemetry-contract.md`](backend/docs/arduino-telemetry-contract.md) | Contrato JSON |
 
-Configura en el ESP32 `WIFI_SSID`, `WIFI_PASSWORD` y `API_URL` (LAN, ngrok o Render). Tras `npm run seed:grupos`, asigna `CODIGO_GRUPO` al secador fisico.
+En `gateway/.env`: `SERIAL_PORT=COM3` y `API_URL=https://app-harinas.onrender.com/api/arduino/telemetry`.
 
 ---
 
@@ -323,17 +323,13 @@ Medidas activas en backend:
 ## Documentación adicional
 
 - Plan de trabajo por sprint: `SPRINTS.md`
-- Entregas LeanHerz (estado e implementación): `docs/AGENTE-ENTREGAS.md`
-- Guía rápida Postman: `backend/docs/postman/USO-RAPIDO.md`
-- Seguridad y backups (Sprint 8): `backend/docs/BACKUP-SECURITY.md`
-- Informe de cierre: `SECURITY-AUDIT.md`
-- **Render + Atlas (producción):** https://app-harinas.onrender.com/api/health
-- Deploy: `DEPLOY-PLAN.md`
-- **Render + Atlas (Venezuela, sin ngrok):** `docs/RENDER-DEPLOY.md`
-- Operación local (ngrok, Atlas, APK, tests): `docs/OPERACION-LOCAL.md`
-- Montaje hardware Uno + ESP-12F + sensores: `docs/MONTAJE-HARDWARE-UNO-ESP12F.md`
-- Guía sistema (pantallas, código, API): `docs/GUIA-SISTEMA-COMPLETA.md`
-- Telemetría hardware (ESP32 Wi‑Fi): `firmware/README.md`
+- **Render + Atlas:** `docs/RENDER-DEPLOY.md`
+- Operación local: `docs/OPERACION-LOCAL.md`
+- Gateway Arduino → Render: `docs/COMO-EJECUTAR-GATEWAY-ARDUINO.md`
+- Puerto COM: `docs/OPERACION-COM3.md`
+- Montaje USB sensores: `docs/MONTAJE-HARDWARE-UNO-USB.md`
+- Guía sistema: `docs/GUIA-SISTEMA-COMPLETA.md`
+- Telemetría: `firmware/README.md`
 - Deploy Render (blueprint): `render.yaml`
 
 ---

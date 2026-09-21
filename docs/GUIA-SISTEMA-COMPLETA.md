@@ -16,10 +16,9 @@ Monorepo **Nativa Superalimentos** para control de planta de secado de harinas:
 | Base de datos | MongoDB (`app_harinas`) — local o Atlas | vía `MONGODB_URI` |
 | App móvil | Expo SDK 54 + React Native + TypeScript | `frontend/` |
 | Sensores | AHT10 (T° + HR) + DS3231 (reloj) | cableado en docs hardware |
-| Firmware vigente (Ruta B) | Arduino Uno USB + gateway Node en laptop → Render | `firmware/arduino-uno-aht10-ds3231-hc05/` |
-| Firmware Wi‑Fi (fuera de alcance ahora) | ESP32 / ESP-12F | `firmware/esp32-aht10-ds3231/` · `firmware/esp8266-esp12f-aht10-ds3231/` |
+| Firmware | Arduino Uno USB + gateway Node en laptop → Render | `firmware/arduino-uno-aht10-ds3231-hc05/` |
 
-### Flujo de datos (Ruta B, sin Wi‑Fi de placa)
+### Flujo de datos (USB → PC → Render)
 
 ```
 Sensores (AHT10 + DS3231)
@@ -30,7 +29,7 @@ Sensores (AHT10 + DS3231)
    Backend Express  ──►  MongoDB Atlas (telemetría, alertas, usuarios, secados)
         │ REST + JWT
         ▼
-   APK / Expo  (Admin, Gerente de calibración, Usuario)
+   APK / Expo  (Admin, Gerente de calibración, Operador)
 ```
 
 Reglas importantes:
@@ -41,12 +40,11 @@ Reglas importantes:
 - **Flujo directo (ago/2026):** el gerente crea una **Harina** (ej. Cambir). El backend le asocia un `GrupoRubro` interno (`vinculadoAHarina`) para calibración, telemetría y secado. La UI **no** muestra cola de grupos ni “Nuevo grupo”. El operador acciona sobre ese lote.
 - Lecturas USB: si el firmware manda un código semilla (`garbanzo-lenteja`, etc.), el backend las **pega al lote de harina** (secado activo o el más reciente).
 
-### Rutas de hardware
+### Hardware
 
 | Ruta | Cuándo | Requiere PC encendida |
 |------|--------|------------------------|
-| **Arduino Uno + gateway** (Ruta B, vigente) | Demo / planta sin Wi‑Fi de placa | Sí — `npm start` en `firmware/.../gateway` |
-| **ESP32 / ESP-12F + Wi‑Fi** | No usar en esta etapa | No |
+| **Arduino Uno + gateway USB** (vigente) | Sensores reales → Render | Sí — `npm start` en `firmware/.../gateway` |
 | **Simulador** (`npm run simulate:telemetry`) | Desarrollo sin hardware | Sí — solo en la máquina del backend |
 
 ---
@@ -60,10 +58,9 @@ El sistema **no es offline-first**: app, backend y base de datos deben poder com
 | Modo | Uso típico | Backend | MongoDB | App móvil | Telemetría |
 |------|------------|---------|---------|-----------|------------|
 | **A — Desarrollo local** | Programar en PC, Expo Go, tests | `http://localhost:4000` en tu PC | Local `127.0.0.1:27017` **o** Atlas | `EXPO_PUBLIC_API_URL` → localhost / IP LAN / `10.0.2.2` (emulador) | `npm run simulate:telemetry` |
-| **B — Examen / demo (Venezuela)** | APK en teléfono + sensores reales | **Render** `https://app-harinas.onrender.com` | **MongoDB Atlas** (nube) | APK con URL Render embebida (`eas.json` perfil `preview`) | ESP32 o gateway Uno → **HTTPS Render** |
-| **C — ngrok (opcional)** | Solo si tu región lo permite | Túnel a backend local | Local o Atlas | URL ngrok en `EXPO_PUBLIC_API_URL` | POST al dominio ngrok |
+| **B — Examen / demo** | APK en teléfono + sensores reales | **Render** `https://app-harinas.onrender.com` | **MongoDB Atlas** | APK con URL Render (`eas.json` preview) | Gateway Uno USB → **HTTPS Render** |
 
-> **Entorno oficial del proyecto (jun 2026): modo B.** Render + Atlas. ngrok **no funciona** desde Venezuela (ERR_NGROK_9040); no usarlo como plan principal.
+> **Entorno oficial: modo B.** Render + Atlas. Telemetría real = Uno por USB + gateway en la laptop.
 
 ### Diagrama por entorno
 
@@ -82,7 +79,7 @@ flowchart LR
     APP_C[APK Android]
     BE_C[Render HTTPS]
     DB_C[(MongoDB Atlas)]
-    HW[ESP32 o gateway Uno]
+    HW[Gateway Uno USB]
     APP_C -->|internet| BE_C --> DB_C
     HW -->|internet| BE_C
   end
@@ -94,9 +91,8 @@ flowchart LR
 |------------|--------------|---------------|
 | PC del desarrollador | Solo para levantar backend/Expo | Para seeds, builds EAS, gateway Uno |
 | Teléfono con APK | No aplica (Expo en LAN) | **Sí** — login, telemetría, alertas van a Render |
-| ESP32 en planta | Solo si `API_URL` apunta a Render | **Sí** — Wi‑Fi de planta + internet |
 | Gateway Uno (PC) | Backend local o Render | **Sí** si API es Render |
-| MongoDB Atlas desde PC | **Sí** (sin VPN bloqueante) | Render se conecta solo |
+| MongoDB Atlas desde PC | **Sí** | Render se conecta solo |
 
 ### Variables que definen el entorno
 
@@ -104,7 +100,7 @@ flowchart LR
 |----------|-------|-------------|
 | `MONGODB_URI` | `backend/.env` o Render Environment | Backend → MongoDB |
 | `EXPO_PUBLIC_API_URL` | `frontend/.env` y `frontend/eas.json` (build APK) | App → Backend |
-| `API_URL` | `firmware/**/config.h` o `gateway/.env` | Hardware → `POST .../api/arduino/telemetry` |
+| `API_URL` | `gateway/.env` | Hardware → `POST .../api/arduino/telemetry` |
 | `CORS_ORIGINS` | `backend/.env` / Render | Orígenes permitidos (APK no envía Origin; `*` OK en examen) |
 
 **Valores vigentes (modo B):**
@@ -113,7 +109,7 @@ flowchart LR
 # frontend/.env y eas.json → profile preview
 EXPO_PUBLIC_API_URL=https://app-harinas.onrender.com
 
-# gateway Uno o ESP32 config
+# gateway Uno USB
 API_URL=https://app-harinas.onrender.com/api/arduino/telemetry
 ```
 
@@ -139,7 +135,7 @@ Guías detalladas: [`OPERACION-LOCAL.md`](OPERACION-LOCAL.md) (arranque diario) 
 flowchart TB
   subgraph Hardware
     SENS[AHT10 + DS3231]
-    MCU[ESP32 Wi‑Fi o Uno + gateway PC]
+    MCU[Arduino Uno + gateway USB]
     SENS --> MCU
   end
 
@@ -177,7 +173,7 @@ El rol viene en el JWT tras login. `RootNavigator.tsx` elige el stack:
 |-----------------|----------------|-----------|---------|
 | `gerente` | **Admin** | `GerenteNavigator` | `frontend/src/navigation/RootNavigator.tsx` |
 | `supervisor` | **Gerente** (calibra lotes) | `SupervisorNavigator` | idem |
-| `operador` | **Usuario** (inicia / finaliza / ✓) | `OperadorNavigator` | idem |
+| `operador` | **Operador** (inicia / finaliza / ✓) | `OperadorNavigator` | idem |
 
 ### Credenciales demo (tras `npm run seed:demo`)
 
@@ -185,7 +181,7 @@ El rol viene en el JWT tras login. `RootNavigator.tsx` elige el stack:
 |------------|-------|------------|
 | Admin | `admin@nativa.com` | `admin123` |
 | Gerente | `supervisor@nativa.com` | `supervisor123` |
-| Usuario | `operador@nativa.com` | `operador123` |
+| Operador | `operador@nativa.com` | `operador123` |
 
 **Truco para el Admin:** en el Dashboard hay botones **Preview Gerente** y **Preview Usuario** para ver esas pantallas sin cambiar de cuenta.
 
@@ -487,14 +483,15 @@ App-Harinas/
 │
 ├── firmware/
 │   ├── README.md
-│   ├── esp32-aht10-ds3231/                    ← producción Wi‑Fi
-│   └── arduino-uno-aht10-ds3231-hc05/         ← kit Uno + gateway PC
+│   └── arduino-uno-aht10-ds3231-hc05/         ← Uno USB + gateway PC → Render
 │
 └── docs/
     ├── GUIA-SISTEMA-COMPLETA.md    ← este archivo
-    ├── OPERACION-LOCAL.md          ← arranque local, Atlas, APK
-    ├── RENDER-DEPLOY.md            ← Render + Atlas (modo B)
-    └── MONTAJE-HARDWARE-UNO-ESP12F.md
+    ├── COMO-EJECUTAR-GATEWAY-ARDUINO.md
+    ├── OPERACION-COM3.md
+    ├── OPERACION-LOCAL.md
+    ├── RENDER-DEPLOY.md
+    └── MONTAJE-HARDWARE-UNO-USB.md
 ```
 
 ---
@@ -590,16 +587,10 @@ cd frontend
 eas build -p android --profile preview
 ```
 
-5. Telemetría real: ESP32 o gateway Uno con `API_URL=https://app-harinas.onrender.com/api/arduino/telemetry`
-6. Teléfono con **datos móviles o Wi‑Fi con internet** — la app **no funciona** contra un backend local sin estar en la misma LAN
+5. Telemetría real: gateway Uno USB con `API_URL=https://app-harinas.onrender.com/api/arduino/telemetry`
+6. Teléfono con **datos móviles o Wi‑Fi con internet** — la app habla con Render, no con el Arduino
 
-Guía paso a paso: [`RENDER-DEPLOY.md`](RENDER-DEPLOY.md)
-
----
-
-### Modo C — ngrok (solo si tu región lo permite)
-
-Backend local + túnel ngrok + `EXPO_PUBLIC_API_URL` con dominio ngrok. **No recomendado en Venezuela.** Ver [`OPERACION-LOCAL.md`](OPERACION-LOCAL.md) §3b.
+Guía paso a paso: [`RENDER-DEPLOY.md`](RENDER-DEPLOY.md) · [`COMO-EJECUTAR-GATEWAY-ARDUINO.md`](COMO-EJECUTAR-GATEWAY-ARDUINO.md)
 
 ---
 
@@ -632,8 +623,7 @@ La APK **embebe** la URL del API al compilar. Si cambias de Render a otro host, 
 | PDF export | `frontend/src/utils/pdfTemplates.ts`, `pdf/reports.ts` |
 | Seeds / usuarios demo | `backend/src/scripts/seedDemo.js` |
 | Tests API | `backend/tests/*.test.js` → `npm test` |
-| Firmware ESP32 / ESP-12F | `firmware/esp32-aht10-ds3231/`, `firmware/esp8266-esp12f-aht10-ds3231/` |
-| Gateway Uno (kit examen) | `firmware/arduino-uno-aht10-ds3231-hc05/gateway/` |
+| Gateway Uno USB → Render | `firmware/arduino-uno-aht10-ds3231-hc05/gateway/` |
 | Variables entorno backend | `backend/.env.example`, `backend/src/config/env.js` |
 | URL API en app | `frontend/.env`, `frontend/eas.json` |
 | Entornos local vs nube | **Este doc §2**, `OPERACION-LOCAL.md`, `RENDER-DEPLOY.md` |
@@ -650,7 +640,7 @@ La APK **embebe** la URL del API al compilar. Si cambias de Render a otro host, 
 | **Preview APK** | Build EAS | Sección 11 + enlace Expo |
 | **Esquema BD** | Este doc §6 | Captura del diagrama ER o MongoDB Compass |
 | **Arquitectura** | Este doc §3 | Diagrama flowchart |
-| **Entornos y conectividad** | Este doc §2 | Tabla modos A/B/C |
+| **Entornos y conectividad** | Este doc §2 | Tabla modos A/B |
 
 **Preguntas útiles para ella (qué más falta):**
 
@@ -668,16 +658,16 @@ La APK **embebe** la URL del API al compilar. Si cambias de Render a otro host, 
 |-----------|-----------|
 | `README.md` | Instalación general |
 | `docs/OPERACION-LOCAL.md` | Arranque local, Atlas, APK, tests |
-| `docs/RENDER-DEPLOY.md` | Render + Atlas (modo B, Venezuela) |
-| `docs/MONTAJE-HARDWARE-UNO-ESP12F.md` | Cableado Uno, ESP-12F, gateway, checklist |
+| `docs/RENDER-DEPLOY.md` | Render + Atlas |
+| `docs/COMO-EJECUTAR-GATEWAY-ARDUINO.md` | Arranque gateway USB → Render |
+| `docs/OPERACION-COM3.md` | Puerto COM y operación diaria |
+| `docs/MONTAJE-HARDWARE-UNO-USB.md` | Cableado Uno + sensores |
 | `DEPLOY-PLAN.md` | Plan de despliegue |
 | `backend/docs/arduino-telemetry-contract.md` | JSON telemetría |
-| `firmware/README.md` | ESP32 Wi‑Fi + rutas hardware |
-| `docs/AGENTE-ENTREGAS.md` | Prompts por partes (LeanHerz 11/7: ✓ operador, papelera gerente, fluctuaciones) |
-| `docs/AGENTE-ENTREGAS-COLA-GRUPOS.md` | Cola FIFO de grupos Admin→Sup→Op, saludos, gráficas (LeanHerz 22/7) — implementada |
-| `docs/AGENTE-ENTREGAS-SIN-GRUPOS.md` | LeanHerz 17/8: sin grupos en UX, flujo directo, lecturas USB→Render — **implementada** |
+| `firmware/README.md` | Arquitectura USB → Render |
+| `docs/AGENTE-ENTREGAS-SIN-GRUPOS.md` | Flujo directo harina→lote, lecturas USB |
 | `SPRINTS.md` | Historial de sprints |
 
 ---
 
-*Última actualización: 17/8/2026 — flujo directo harina→lote, Ruta B USB, etiquetas Admin/Gerente/Usuario.*
+*Última actualización: 21/9/2026 — solo USB Uno → gateway → Render; etiquetas Admin/Gerente/Operador.*

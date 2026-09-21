@@ -1,29 +1,26 @@
-# Contrato Telemetria Arduino -> Backend (Sprint 6)
+# Contrato Telemetria Arduino -> Backend
 
-## Arquitectura
+## Arquitectura vigente
 
 ```
-ESP32 + AHT10 + DS3231  ──Wi‑Fi──►  POST /api/arduino/telemetry  ──►  MongoDB
-                                              │
-                                              └──► App móvil (REST, no Bluetooth)
+AHT10 + DS3231 ──I2C──► Arduino Uno ──USB──► gateway (PC) ──HTTPS──► POST /api/arduino/telemetry ──► MongoDB
+                                                                              │
+                                                                              └──► App móvil (REST)
 ```
 
-- **Producción:** [`firmware/esp32-aht10-ds3231/`](../../firmware/esp32-aht10-ds3231/README.md) — ESP32 envía JSON por HTTP.
-- **Solo desarrollo:** [`firmware/arduino-uno-aht10-ds3231-hc05/`](../../firmware/arduino-uno-aht10-ds3231-hc05/README.md) — Uno + gateway PC (sin Wi‑Fi en placa).
-- Índice hardware: [`firmware/README.md`](../../firmware/README.md).
+- Firmware: [`firmware/arduino-uno-aht10-ds3231-hc05/`](../../firmware/arduino-uno-aht10-ds3231-hc05/README.md)
+- Índice: [`firmware/README.md`](../../firmware/README.md)
 
-Endpoint de ingesta:
+Endpoint: `POST /api/arduino/telemetry`
 
-- `POST /api/arduino/telemetry`
+## Payload JSON v1.1 (AHT10 + DS3231)
 
-## Payload JSON v1.1 (recomendado — AHT10 + DS3231)
-
-Solo **temperatura** y **humedad** son obligatorias. Firmware de referencia: **ESP32** con **AHT10** y **DS3231**.
+Solo **temperatura** y **humedad** son obligatorias.
 
 ```json
 {
-  "eventId": "esp32-01-20260601143000",
-  "deviceId": "esp32-secador-01",
+  "eventId": "uno-01-20260601143000",
+  "deviceId": "uno-secador-01",
   "codigoGrupo": "garbanzo-lenteja",
   "timestamp": "2026-06-01T14:30:00.000Z",
   "lecturas": {
@@ -54,7 +51,7 @@ Solo **temperatura** y **humedad** son obligatorias. Firmware de referencia: **E
 
 | Campo | Obligatorio | Origen típico |
 |-------|-------------|----------------|
-| `deviceId` | Sí | ID fijo del ESP32 / Arduino |
+| `deviceId` | Sí | ID fijo del Arduino (ej. `uno-secador-01`) |
 | `codigoGrupo` o `grupoRubroId` | Uno de los dos | Config en firmware |
 | `timestamp` | No (ISO 8601) | **DS3231**; si falta, usa hora del servidor |
 | `eventId` | No | Recomendado (`deviceId` + hora) para deduplicar |
@@ -75,7 +72,7 @@ Solo **temperatura** y **humedad** son obligatorias. Firmware de referencia: **E
 - `GET /api/telemetry/group/:grupoRubroId?limit=20` (auth): historial reciente por grupo.
 - `GET /api/telemetry/fluctuaciones/humedad?from=&to=&grupoRubroId=` (auth, supervisor/gerente): agregación diaria min/max/promedio y conteo fuera de rango.
 
-Para el **registro de fluctuaciones 24/7**, el gateway o ESP32 debe enviar telemetría de forma continua (no solo durante secado activo). Cada evento se persiste en `TelemetryEvent`.
+Para el **registro de fluctuaciones 24/7**, el gateway debe enviar telemetría de forma continua (no solo durante secado activo). Cada evento se persiste en `TelemetryEvent`.
 
 ## Alertas (Sprint 7)
 

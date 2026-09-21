@@ -1,6 +1,6 @@
 # Operación local — App Harinas / Nativa
 
-Guía rápida para desarrollo, ngrok, APK y MongoDB Atlas.
+Arranque en PC, APK preview y MongoDB Atlas. Telemetría real: Uno USB + gateway → Render ([`COMO-EJECUTAR-GATEWAY-ARDUINO.md`](COMO-EJECUTAR-GATEWAY-ARDUINO.md)).
 
 ---
 
@@ -42,7 +42,7 @@ Tras `npm run seed:admin`:
 
 ## 3) API pública — Render (recomendado en Venezuela)
 
-Backend desplegado en **Render** (sin ngrok):
+Backend desplegado en **Render**:
 
 ```text
 https://app-harinas.onrender.com
@@ -57,33 +57,6 @@ EXPO_PUBLIC_API_URL=https://app-harinas.onrender.com
 Health: `GET https://app-harinas.onrender.com/api/health`
 
 Guía completa: [`RENDER-DEPLOY.md`](RENDER-DEPLOY.md)
-
----
-
-## 3b) ngrok (solo si tu región lo permite)
-
-> **Venezuela:** ngrok suele bloquear conexiones (ERR_NGROK_9040). Usa Render.
-
-1. Backend en marcha en puerto **4000**.
-2. En `backend/.env`:
-
-```env
-TRUST_PROXY=1
-```
-
-3. Túnel con dominio reservado:
-
-```powershell
-npx ngrok http --domain=TU_DOMINIO.ngrok-free.app 4000
-```
-
-4. En `frontend/.env`:
-
-```env
-EXPO_PUBLIC_API_URL=https://TU_DOMINIO.ngrok-free.app
-```
-
-5. Reiniciar Expo: `npx expo start -c`
 
 ---
 
@@ -109,30 +82,14 @@ La **APK** solo necesita `EXPO_PUBLIC_API_URL` apuntando al backend HTTPS (no a 
 
 ---
 
-## 4b) Telemetría ESP32 (Wi‑Fi → servidor → app)
-
-Arquitectura oficial: el **ESP32** lee AHT10 + DS3231 y hace `POST` al backend; los teléfonos solo consultan el API.
+## 4b) Telemetría Uno USB → gateway → Render
 
 ```
-ESP32 ──Wi‑Fi──► Backend (Atlas) ──REST──► APK
+Arduino Uno ──USB──► gateway (laptop) ──HTTPS──► Render ──► APK
 ```
 
-1. Backend en marcha (local, ngrok o Render) con `MONGODB_URI` de Atlas.
-2. Firmware: [`firmware/esp32-aht10-ds3231/`](../firmware/esp32-aht10-ds3231/README.md) — copia `config.example.h` → `config.h`, configura `WIFI_*` y `API_URL`.
-3. Sube el sketch al ESP32; en monitor serie debe aparecer `POST 201`.
-4. En la app: operador **inicia secado** → gráficos T/HR y alertas.
-
-| `API_URL` del ESP32 | Cuándo |
-|---------------------|--------|
-| `http://IP_PC:4000/api/arduino/telemetry` | Misma red LAN |
-| `https://tu-dominio.ngrok-free.app/api/arduino/telemetry` | Demo con APK |
-| `https://app-harinas.onrender.com/api/arduino/telemetry` | Producción (Render + Atlas) |
-
-Guía completa: [`firmware/README.md`](../firmware/README.md).
-
-> El kit **Arduino Uno + ESP-12F** (reguladores, DS3231, AHT10): cableado y operación local en [`MONTAJE-HARDWARE-UNO-ESP12F.md`](MONTAJE-HARDWARE-UNO-ESP12F.md).
-
-> El kit **Arduino Uno + HC-05** sin ESP32 requiere un PC con gateway; no es la ruta de planta.
+Guía corta: [`COMO-EJECUTAR-GATEWAY-ARDUINO.md`](COMO-EJECUTAR-GATEWAY-ARDUINO.md)  
+Cableado: [`MONTAJE-HARDWARE-UNO-USB.md`](MONTAJE-HARDWARE-UNO-USB.md)
 
 ---
 
@@ -202,7 +159,5 @@ En pantallas Harinas, Calibración, Alertas, Muro, Equipo y **Fluctuaciones hume
 
 | Problema | Acción |
 |----------|--------|
-| Login 401 con ngrok | `TRUST_PROXY=1`, reiniciar backend |
 | Expo `fetch failed` al iniciar | `EXPO_NO_DOCTOR=1` o `EXPO_OFFLINE=1` |
-| Rate limit ngrok | Reiniciar backend tras activar trust proxy |
-| Telemetría vacía | `npm run simulate:telemetry` o firmware ESP32 (`firmware/README.md`) |
+| Telemetría vacía | Gateway `npm start` o `npm run simulate:telemetry` |

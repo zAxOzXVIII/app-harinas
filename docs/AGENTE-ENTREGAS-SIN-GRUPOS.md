@@ -5,7 +5,7 @@ Documento para el feedback de **LeanHerz (17/8/2026)** en el monorepo App-Harina
 **Estado:** implementado (17/8/2026).  
 La UI ya no expone cola de grupos; cada Harina tiene un `GrupoRubro` interno (`vinculadoAHarina`).
 
-**Referencias:** [`GUIA-SISTEMA-COMPLETA.md`](GUIA-SISTEMA-COMPLETA.md) · [`AGENTE-ENTREGAS.md`](AGENTE-ENTREGAS.md) · [`AGENTE-ENTREGAS-COLA-GRUPOS.md`](AGENTE-ENTREGAS-COLA-GRUPOS.md) · [`MONTAJE-HARDWARE-UNO-ESP12F.md`](MONTAJE-HARDWARE-UNO-ESP12F.md) (Ruta B USB).
+**Referencias:** [`GUIA-SISTEMA-COMPLETA.md`](GUIA-SISTEMA-COMPLETA.md) · [`COMO-EJECUTAR-GATEWAY-ARDUINO.md`](COMO-EJECUTAR-GATEWAY-ARDUINO.md) · [`MONTAJE-HARDWARE-UNO-USB.md`](MONTAJE-HARDWARE-UNO-USB.md).
 
 ---
 

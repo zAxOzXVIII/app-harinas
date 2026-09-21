@@ -2,7 +2,7 @@
   "name": "nativa-uno-telemetry-gateway",
   "version": "1.0.0",
   "private": true,
-  "description": "Lee JSON por puerto serial (USB o Bluetooth emparejado) y reenvía a la API Nativa",
+  "description": "Lee JSON por USB (puerto COM) y reenvía a la API Nativa en Render",
   "main": "gateway.js",
   "scripts": {
     "start": "node gateway.js",
