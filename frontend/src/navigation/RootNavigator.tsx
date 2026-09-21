@@ -2,6 +2,7 @@ import { useColorScheme } from "react-native";
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { LoginScreen } from "../screens/LoginScreen";
+import { RecuperarAccesoScreen } from "../screens/RecuperarAccesoScreen";
 import { DashboardScreen } from "../screens/DashboardScreen";
 import { HarinasListScreen } from "../screens/HarinasListScreen";
 import { HarinaFormScreen } from "../screens/HarinaFormScreen";
@@ -13,6 +14,7 @@ import { CalibracionFormScreen } from "../screens/CalibracionFormScreen";
 import { HumedadFormScreen } from "../screens/HumedadFormScreen";
 import { SupervisorHomeScreen } from "../screens/SupervisorHomeScreen";
 import { OperadorHomeScreen } from "../screens/OperadorHomeScreen";
+import { PreguntasSeguridadScreen } from "../screens/PreguntasSeguridadScreen";
 import { AlertsListScreen } from "../screens/AlertsListScreen";
 import { LotesPendientesArchivoScreen } from "../screens/LotesPendientesArchivoScreen";
 import { FluctuacionesHumedadScreen } from "../screens/FluctuacionesHumedadScreen";
@@ -26,6 +28,7 @@ import { brand, navDark, navLight } from "../theme";
 
 type AuthStackParamList = {
   Login: undefined;
+  RecuperarAcceso: undefined;
 };
 
 const AuthStack = createNativeStackNavigator<AuthStackParamList>();
@@ -45,6 +48,7 @@ const baseScreenOptions = {
 const AuthNavigator = () => (
   <AuthStack.Navigator screenOptions={{ headerShown: false, animation: "fade" }}>
     <AuthStack.Screen name="Login" component={LoginScreen} />
+    <AuthStack.Screen name="RecuperarAcceso" component={RecuperarAccesoScreen} />
   </AuthStack.Navigator>
 );
 
@@ -86,6 +90,11 @@ const GerenteNavigator = () => (
       children={({ route, navigation }) => (
         <UsuarioFormScreen userId={route.params?.userId} onSuccess={() => navigation.goBack()} />
       )}
+    />
+    <GerenteStack.Screen
+      name="PreguntasSeguridad"
+      options={{ title: "Preguntas de seguridad" }}
+      component={PreguntasSeguridadScreen}
     />
     <GerenteStack.Screen name="MuroGerente" options={{ title: "Muro" }} component={MuroGerenteScreen} />
     <GerenteStack.Screen
@@ -130,7 +139,7 @@ const GerenteNavigator = () => (
     />
     <GerenteStack.Screen
       name="PreviewOperador"
-      options={{ title: "Vista Usuario" }}
+      options={{ title: "Vista Operador" }}
       component={OperadorHomeScreen}
     />
   </GerenteStack.Navigator>
@@ -168,6 +177,11 @@ const SupervisorNavigator = () => (
       options={{ title: "Humedad global", presentation: "modal", animation: "slide_from_bottom" }}
       children={({ navigation }) => <HumedadFormScreen onSuccess={() => navigation.goBack()} />}
     />
+    <SupervisorStack.Screen
+      name="PreguntasSeguridad"
+      options={{ title: "Preguntas de seguridad" }}
+      component={PreguntasSeguridadScreen}
+    />
   </SupervisorStack.Navigator>
 );
 
@@ -182,6 +196,11 @@ const OperadorNavigator = () => (
       name="AlertsList"
       options={{ title: "Alertas" }}
       component={AlertsListScreen}
+    />
+    <OperadorStack.Screen
+      name="PreguntasSeguridad"
+      options={{ title: "Preguntas de seguridad" }}
+      component={PreguntasSeguridadScreen}
     />
   </OperadorStack.Navigator>
 );

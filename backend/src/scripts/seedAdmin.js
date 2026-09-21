@@ -2,6 +2,7 @@ const bcrypt = require("bcryptjs");
 const { connectDb } = require("../config/db");
 const env = require("../config/env");
 const User = require("../models/User");
+const { hashQuestionAnswers } = require("../utils/securityAnswers");
 
 const seedAdmin = async () => {
   try {
@@ -26,12 +27,17 @@ const seedAdmin = async () => {
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
+    const securityQuestions = await hashQuestionAnswers("gerente", [
+      { questionId: "gerente_planta", answer: "nativa" },
+      { questionId: "gerente_ciudad", answer: "caracas" },
+    ]);
 
     await User.create({
       nombre,
       email: adminEmailLower,
       password: hashedPassword,
       rol: "gerente",
+      securityQuestions,
     });
 
     console.log("Cuenta Gerente creada correctamente");

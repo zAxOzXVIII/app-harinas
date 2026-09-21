@@ -48,7 +48,7 @@ export const EquipoListScreen = () => {
   );
 
   const onDelete = (u: TeamUser) => {
-    Alert.alert("Eliminar usuario", `¿Eliminar a ${u.nombre}?`, [
+    Alert.alert("Eliminar miembro", `¿Eliminar a ${u.nombre}?`, [
       { text: "Cancelar", style: "cancel" },
       {
         text: "Eliminar",
@@ -95,7 +95,7 @@ export const EquipoListScreen = () => {
         ListEmptyComponent={
           <View style={styles.centered}>
             <Text variant="bodyLarge" style={{ color: theme.colors.onSurface }}>
-              No hay gerentes ni usuarios registrados
+              No hay gerentes ni operadores registrados
             </Text>
             <Text variant="bodySmall" style={mutedText}>
               Agrega miembros del equipo con el boton +.
@@ -115,6 +115,11 @@ export const EquipoListScreen = () => {
                 <Text variant="labelLarge" style={{ color: theme.colors.onSurfaceVariant }}>
                   Rol: {uiRolLabel(item.rol)}
                 </Text>
+                {item.hasSecurityQuestions ? null : (
+                  <Text variant="labelSmall" style={{ color: brand.critical, marginTop: 4 }}>
+                    Sin preguntas de seguridad
+                  </Text>
+                )}
               </Card.Content>
               <Card.Actions>
                 <IconButton

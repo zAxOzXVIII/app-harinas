@@ -245,7 +245,7 @@ export const OperadorHomeScreen = () => {
       refreshControl={<RefreshControl refreshing={isLoading} onRefresh={onRefresh} />}
     >
       <ScreenHero
-        roleLabel="Usuario"
+        roleLabel="Operador"
         title="Operación de secado"
         subtitle="Inicia el secado del lote del Admin y monitorea temperatura y humedad"
       >
@@ -524,9 +524,19 @@ export const OperadorHomeScreen = () => {
       )}
 
       {showLogout ? (
+      <>
+      <Button
+        mode="contained-tonal"
+        icon="shield-account"
+        onPress={() => navigation.navigate("PreguntasSeguridad")}
+        style={styles.logoutBtn}
+      >
+        Preguntas de seguridad
+      </Button>
       <Button mode="outlined" onPress={logout} style={styles.logoutBtn}>
         Cerrar sesion
       </Button>
+      </>
       ) : null}
     </ScrollView>
   );

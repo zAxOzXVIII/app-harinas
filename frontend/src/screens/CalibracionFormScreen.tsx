@@ -139,7 +139,7 @@ export const CalibracionFormScreen = ({ grupoId, onSuccess }: Props) => {
     try {
       await procesoSecadoService.reabrirLote(grupoId);
       setProcesoActual(null);
-      Alert.alert("Lote reabierto", "El Usuario puede iniciar un nuevo ciclo de secado.");
+      Alert.alert("Lote reabierto", "El Operador puede iniciar un nuevo ciclo de secado.");
     } catch {
       Alert.alert("Error", "No fue posible reabrir el lote.");
     } finally {

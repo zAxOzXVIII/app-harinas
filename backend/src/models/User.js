@@ -31,6 +31,17 @@ const userSchema = new mongoose.Schema(
       default: null,
       trim: true,
     },
+    securityQuestions: {
+      type: [
+        {
+          _id: false,
+          questionId: { type: String, required: true, trim: true },
+          answerHash: { type: String, required: true },
+        },
+      ],
+      default: [],
+      select: false,
+    },
   },
   {
     versionKey: false,

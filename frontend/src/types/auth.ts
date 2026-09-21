@@ -18,6 +18,8 @@ export interface TeamUser {
   email: string;
   nombre: string;
   rol: Exclude<Rol, "gerente">;
+  securityQuestionIds?: string[];
+  hasSecurityQuestions?: boolean;
   createdAt?: string;
   updatedAt?: string;
 }

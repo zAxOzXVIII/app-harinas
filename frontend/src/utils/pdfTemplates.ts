@@ -148,7 +148,7 @@ export const buildPdfHtml = (opts: PdfBuildOptions): string => {
     .join("");
 
   const userLine = opts.userLabel
-    ? ` · Usuario: ${escapeHtml(opts.userLabel)}`
+    ? ` · Cuenta: ${escapeHtml(opts.userLabel)}`
     : "";
 
   return `<!DOCTYPE html>

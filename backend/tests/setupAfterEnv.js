@@ -1,44 +1,67 @@
 const mongoose = require("mongoose");
 const bcrypt = require("bcryptjs");
+const { hashQuestionAnswers } = require("../src/utils/securityAnswers");
+
+const TEST_SECURITY = {
+  gerente: [
+    { questionId: "gerente_planta", answer: "nativa" },
+    { questionId: "gerente_ciudad", answer: "caracas" },
+  ],
+  supervisor: [
+    { questionId: "supervisor_linea", answer: "secado" },
+    { questionId: "supervisor_color", answer: "azul" },
+  ],
+  operador: [
+    { questionId: "operador_turno", answer: "manana" },
+    { questionId: "operador_color", answer: "verde" },
+  ],
+};
+
+const ensureTestUser = async ({ email, nombre, password, rol }) => {
+  const User = require("../src/models/User");
+  const hashedPassword = await bcrypt.hash(password, 10);
+  const securityQuestions = await hashQuestionAnswers(rol, TEST_SECURITY[rol]);
+  const existing = await User.findOne({ email }).select("+securityQuestions");
+  if (existing) {
+    existing.nombre = nombre;
+    existing.rol = rol;
+    existing.password = hashedPassword;
+    existing.securityQuestions = securityQuestions;
+    await existing.save();
+    return;
+  }
+  await User.create({
+    email,
+    nombre,
+    password: hashedPassword,
+    rol,
+    securityQuestions,
+  });
+};
 
 beforeAll(async () => {
   if (mongoose.connection.readyState === 0) {
     await mongoose.connect(process.env.MONGODB_URI);
   }
 
-  const User = require("../src/models/User");
-  const email = "admin@nativa.com";
-  const exists = await User.findOne({ email });
-  if (!exists) {
-    await User.create({
-      email,
-      nombre: "Admin Test",
-      password: await bcrypt.hash("admin123", 10),
-      rol: "gerente",
-    });
-  }
-
-  const operadorEmail = "operador@nativa.com";
-  const operadorExists = await User.findOne({ email: operadorEmail });
-  if (!operadorExists) {
-    await User.create({
-      email: operadorEmail,
-      nombre: "Operador Test",
-      password: await bcrypt.hash("operador123", 10),
-      rol: "operador",
-    });
-  }
-
-  const supervisorEmail = "supervisor@nativa.com";
-  const supervisorExists = await User.findOne({ email: supervisorEmail });
-  if (!supervisorExists) {
-    await User.create({
-      email: supervisorEmail,
-      nombre: "Supervisor Test",
-      password: await bcrypt.hash("supervisor123", 10),
-      rol: "supervisor",
-    });
-  }
+  await ensureTestUser({
+    email: "admin@nativa.com",
+    nombre: "Admin Test",
+    password: "admin123",
+    rol: "gerente",
+  });
+  await ensureTestUser({
+    email: "operador@nativa.com",
+    nombre: "Operador Test",
+    password: "operador123",
+    rol: "operador",
+  });
+  await ensureTestUser({
+    email: "supervisor@nativa.com",
+    nombre: "Supervisor Test",
+    password: "supervisor123",
+    rol: "supervisor",
+  });
 
   const GrupoRubro = require("../src/models/GrupoRubro");
   const HumedadConfig = require("../src/models/HumedadConfig");

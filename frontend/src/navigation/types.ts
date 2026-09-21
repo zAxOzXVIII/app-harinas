@@ -7,6 +7,7 @@ export type GerenteStackParamList = {
   HarinaEdit: { harina: Harina };
   EquipoList: undefined;
   UsuarioForm: { userId?: string };
+  PreguntasSeguridad: undefined;
   MuroGerente: undefined;
   AlertsList: undefined;
   PreviewSupervisor: undefined;
@@ -24,9 +25,11 @@ export type GruposStackParamList = {
   CalibracionEdit: { grupoId: string };
   HumedadEdit: undefined;
   FluctuacionesHumedad: undefined;
+  PreguntasSeguridad: undefined;
 };
 
 export type OperadorStackParamList = {
   Home: undefined;
   AlertsList: undefined;
+  PreguntasSeguridad: undefined;
 };

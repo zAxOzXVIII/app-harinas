@@ -1,12 +1,17 @@
 import { useMemo, useState } from "react";
 import { Image, StyleSheet, View } from "react-native";
 import { Button, Card, HelperText, Text, TextInput } from "react-native-paper";
+import { useNavigation } from "@react-navigation/native";
+import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { KeyboardAwareScreen } from "../components/KeyboardAwareScreen";
 import { NativaGreenCube } from "../components/NativaGreenCube";
 import { useAuthStore } from "../store/auth.store";
 import { brand } from "../theme";
 
+type AuthNav = NativeStackNavigationProp<{ Login: undefined; RecuperarAcceso: undefined }>;
+
 export const LoginScreen = () => {
+  const navigation = useNavigation<AuthNav>();
   const login = useAuthStore((state) => state.login);
   const isLoading = useAuthStore((state) => state.isLoading);
   const authError = useAuthStore((state) => state.error);
@@ -66,7 +71,7 @@ export const LoginScreen = () => {
 
           <TextInput
             mode="outlined"
-            label="Usuario (email)"
+            label="Correo electrónico"
             keyboardType="email-address"
             autoCapitalize="none"
             value={email}
@@ -123,6 +128,15 @@ export const LoginScreen = () => {
             INGRESAR
           </Button>
 
+          <Button
+            mode="text"
+            onPress={() => navigation.navigate("RecuperarAcceso")}
+            textColor={brand.primaryBlueDark}
+            style={styles.recoverBtn}
+          >
+            ¿Olvidaste tu contraseña?
+          </Button>
+
           {__DEV__ ? (
             <Text style={styles.devHint}>
               Demo Admin: admin@nativa.com / admin123
@@ -177,6 +191,9 @@ const styles = StyleSheet.create({
   submitLabel: {
     fontWeight: "700",
     letterSpacing: 1,
+  },
+  recoverBtn: {
+    marginTop: 4,
   },
   devHint: {
     marginTop: 16,

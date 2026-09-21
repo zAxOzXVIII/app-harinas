@@ -5,7 +5,7 @@ export const uiRolLabel = (rol?: Rol | string | null): string => {
   const map: Record<string, string> = {
     gerente: "Admin",
     supervisor: "Gerente",
-    operador: "Usuario",
+    operador: "Operador",
   };
   return map[rol ?? ""] ?? "Admin";
 };

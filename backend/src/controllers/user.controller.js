@@ -5,14 +5,19 @@ const {
   deleteTeamUser,
 } = require("../services/user.service");
 
-const toPublicUser = (doc) => ({
-  id: doc._id.toString(),
-  email: doc.email,
-  nombre: doc.nombre,
-  rol: doc.rol,
-  createdAt: doc.createdAt,
-  updatedAt: doc.updatedAt,
-});
+const toPublicUser = (doc) => {
+  const questionIds = (doc.securityQuestions || []).map((q) => q.questionId);
+  return {
+    id: doc._id.toString(),
+    email: doc.email,
+    nombre: doc.nombre,
+    rol: doc.rol,
+    securityQuestionIds: questionIds,
+    hasSecurityQuestions: questionIds.length >= 2,
+    createdAt: doc.createdAt,
+    updatedAt: doc.updatedAt,
+  };
+};
 
 const list = async (_req, res, next) => {
   try {

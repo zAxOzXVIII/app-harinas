@@ -1,5 +1,6 @@
 import { api } from "./api";
 import type { TeamUser } from "../types/auth";
+import type { SecurityQuestionAnswer } from "../types/securityQuestions";
 
 interface ApiResponse<T> {
   success: boolean;
@@ -12,6 +13,7 @@ export interface TeamUserPayload {
   password?: string;
   nombre: string;
   rol: "supervisor" | "operador";
+  securityQuestions?: SecurityQuestionAnswer[];
 }
 
 export const usersService = {

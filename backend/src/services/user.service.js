@@ -1,6 +1,7 @@
 const bcrypt = require("bcryptjs");
 const mongoose = require("mongoose");
 const User = require("../models/User");
+const { hashQuestionAnswers } = require("../utils/securityAnswers");
 
 const ALLOWED_CREATE_ROLES = ["supervisor", "operador"];
 
@@ -15,10 +16,11 @@ const assertValidRoleForCreate = (rol) => {
 const listTeamUsers = async () => {
   return User.find({ rol: { $in: ["supervisor", "operador"] } })
     .select("email nombre rol createdAt updatedAt")
+    .select("+securityQuestions")
     .sort({ createdAt: -1 });
 };
 
-const createTeamUser = async ({ email, password, nombre, rol }) => {
+const createTeamUser = async ({ email, password, nombre, rol, securityQuestions }) => {
   assertValidRoleForCreate(rol);
   const exists = await User.findOne({ email: email.toLowerCase().trim() });
   if (exists) {
@@ -27,22 +29,24 @@ const createTeamUser = async ({ email, password, nombre, rol }) => {
     throw err;
   }
   const hashedPassword = await bcrypt.hash(password, 10);
+  const hashedQuestions = await hashQuestionAnswers(rol, securityQuestions);
   const user = await User.create({
     email: email.toLowerCase().trim(),
     password: hashedPassword,
     nombre: nombre.trim(),
     rol,
+    securityQuestions: hashedQuestions,
   });
-  return User.findById(user._id).select("email nombre rol createdAt updatedAt");
+  return User.findById(user._id).select("email nombre rol createdAt updatedAt").select("+securityQuestions");
 };
 
-const updateTeamUser = async (id, { email, password, nombre, rol }) => {
+const updateTeamUser = async (id, { email, password, nombre, rol, securityQuestions }) => {
   if (!mongoose.Types.ObjectId.isValid(id)) {
     const err = new Error("ID invalido");
     err.status = 400;
     throw err;
   }
-  const user = await User.findById(id).select("+password");
+  const user = await User.findById(id).select("+password +securityQuestions");
   if (!user) {
     const err = new Error("Usuario no encontrado");
     err.status = 404;
@@ -69,12 +73,22 @@ const updateTeamUser = async (id, { email, password, nombre, rol }) => {
     user.email = nextEmail;
   }
   if (nombre) user.nombre = nombre.trim();
-  if (rol) user.rol = rol;
+  if (rol && rol !== user.rol) {
+    if (!securityQuestions) {
+      const err = new Error("Al cambiar el rol debes configurar nuevas preguntas de seguridad");
+      err.status = 400;
+      throw err;
+    }
+    user.rol = rol;
+  }
   if (password && password.length >= 6) {
     user.password = await bcrypt.hash(password, 10);
   }
+  if (securityQuestions) {
+    user.securityQuestions = await hashQuestionAnswers(user.rol, securityQuestions);
+  }
   await user.save();
-  return User.findById(user._id).select("email nombre rol createdAt updatedAt");
+  return User.findById(user._id).select("email nombre rol createdAt updatedAt").select("+securityQuestions");
 };
 
 const deleteTeamUser = async (id) => {

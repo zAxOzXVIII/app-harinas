@@ -111,7 +111,7 @@ export const GruposListScreen = () => {
         Lotes del Admin
       </Text>
       <Text variant="bodySmall" style={[styles.queueHint, mutedText]}>
-        Calibra el producto que el Admin registró (nombre, tipo, kg). El Usuario solo acciona.
+        Calibra el producto que el Admin registró (nombre, tipo, kg). El Operador solo acciona.
       </Text>
 
       {grupos.length === 0 ? (

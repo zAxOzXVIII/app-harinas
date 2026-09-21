@@ -103,9 +103,19 @@ export const SupervisorHomeScreen = () => {
 
       {showLogout ? (
       <AnimatedReveal delay={160}>
+        <>
+        <Button
+          mode="contained-tonal"
+          icon="shield-account"
+          onPress={() => navigation.navigate("PreguntasSeguridad")}
+          style={styles.logoutBtn}
+        >
+          Preguntas de seguridad
+        </Button>
         <Button mode="outlined" onPress={logout} icon="logout" style={styles.logoutBtn}>
           Cerrar sesion
         </Button>
+        </>
       </AnimatedReveal>
       ) : null}
     </ScrollView>

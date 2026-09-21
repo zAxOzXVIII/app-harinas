@@ -224,6 +224,24 @@ export const DashboardScreen = ({ onGoToGestion }: Props) => {
               >
                 Equipo
               </Button>
+              <Button
+                mode="contained-tonal"
+                icon="shield-account"
+                onPress={() => navigation.navigate("PreguntasSeguridad")}
+                style={[
+                  styles.gridBtn,
+                  {
+                    minWidth:
+                      layout.dashboardColumns === 1
+                        ? "100%"
+                        : layout.dashboardColumns === 2
+                          ? "48%"
+                          : "31%",
+                  },
+                ]}
+              >
+                Preguntas de seguridad
+              </Button>
             </View>
             <Text variant="labelLarge" style={[styles.groupLabel, mutedText]}>
               Ver como
@@ -233,7 +251,7 @@ export const DashboardScreen = ({ onGoToGestion }: Props) => {
                 Vista Gerente
               </Button>
               <Button mode="outlined" compact onPress={() => navigation.navigate("PreviewOperador")}>
-                Vista Usuario
+                Vista Operador
               </Button>
             </View>
           </Card.Content>

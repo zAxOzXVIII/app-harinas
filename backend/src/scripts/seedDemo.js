@@ -12,6 +12,7 @@ const GrupoRubro = require("../models/GrupoRubro");
 const HumedadConfig = require("../models/HumedadConfig");
 const ProcesoSecado = require("../models/ProcesoSecado");
 const { ingestTelemetry } = require("../services/telemetry.service");
+const { hashQuestionAnswers } = require("../utils/securityAnswers");
 
 const GRUPOS = [
   {
@@ -52,18 +53,30 @@ const DEMO_USERS = [
     nombre: "Administrador",
     password: process.env.ADMIN_PASSWORD || "admin123",
     rol: "gerente",
+    securityQuestions: [
+      { questionId: "gerente_planta", answer: "nativa" },
+      { questionId: "gerente_ciudad", answer: "caracas" },
+    ],
   },
   {
     email: "supervisor@nativa.com",
     nombre: "Supervisor Demo",
     password: "supervisor123",
     rol: "supervisor",
+    securityQuestions: [
+      { questionId: "supervisor_linea", answer: "secado" },
+      { questionId: "supervisor_color", answer: "azul" },
+    ],
   },
   {
     email: "operador@nativa.com",
     nombre: "Operador Demo",
     password: "operador123",
     rol: "operador",
+    securityQuestions: [
+      { questionId: "operador_turno", answer: "manana" },
+      { questionId: "operador_color", answer: "verde" },
+    ],
   },
 ];
 
@@ -76,15 +89,17 @@ const HARINAS = [
   { nombre: "Harina de batata", tipo: "Industrial", cantidad: 72, unidad: "kg" },
 ];
 
-const ensureUser = async ({ email, nombre, password, rol }) => {
+const ensureUser = async ({ email, nombre, password, rol, securityQuestions }) => {
   const emailLower = email.toLowerCase().trim();
-  const existing = await User.findOne({ email: emailLower });
+  const existing = await User.findOne({ email: emailLower }).select("+securityQuestions");
   const hashed = await bcrypt.hash(password, 10);
+  const hashedQuestions = await hashQuestionAnswers(rol, securityQuestions);
 
   if (existing) {
     existing.nombre = nombre;
     existing.rol = rol;
     existing.password = hashed;
+    existing.securityQuestions = hashedQuestions;
     await existing.save();
     console.log(`Usuario ${emailLower} actualizado (${rol})`);
     return;
@@ -95,6 +110,7 @@ const ensureUser = async ({ email, nombre, password, rol }) => {
     nombre,
     password: hashed,
     rol,
+    securityQuestions: hashedQuestions,
   });
   console.log(`Usuario ${emailLower} creado (${rol})`);
 };
@@ -270,9 +286,13 @@ const seedDemo = async () => {
 
     console.log("\nSeed demo completado.");
     console.log("Credenciales:");
-    console.log("  Gerente:    admin@nativa.com / admin123");
-    console.log("  Supervisor: supervisor@nativa.com / supervisor123");
-    console.log("  Operador:   operador@nativa.com / operador123");
+    console.log("  Admin:     admin@nativa.com / admin123");
+    console.log("  Gerente:   supervisor@nativa.com / supervisor123");
+    console.log("  Operador:  operador@nativa.com / operador123");
+    console.log("Preguntas de recuperacion (demo):");
+    console.log("  Admin:     planta = nativa, ciudad = caracas");
+    console.log("  Gerente:   linea = secado, color = azul");
+    console.log("  Operador:  turno = manana, color = verde");
     process.exit(0);
   } catch (error) {
     console.error("Error seed demo:", error.message);
