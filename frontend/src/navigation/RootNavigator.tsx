@@ -93,7 +93,7 @@ const GerenteNavigator = () => (
     />
     <GerenteStack.Screen
       name="PreguntasSeguridad"
-      options={{ title: "Preguntas de seguridad" }}
+      options={{ title: "Seguridad de la cuenta" }}
       component={PreguntasSeguridadScreen}
     />
     <GerenteStack.Screen name="MuroGerente" options={{ title: "Muro" }} component={MuroGerenteScreen} />
@@ -179,7 +179,7 @@ const SupervisorNavigator = () => (
     />
     <SupervisorStack.Screen
       name="PreguntasSeguridad"
-      options={{ title: "Preguntas de seguridad" }}
+      options={{ title: "Seguridad de la cuenta" }}
       component={PreguntasSeguridadScreen}
     />
   </SupervisorStack.Navigator>
@@ -199,7 +199,7 @@ const OperadorNavigator = () => (
     />
     <OperadorStack.Screen
       name="PreguntasSeguridad"
-      options={{ title: "Preguntas de seguridad" }}
+      options={{ title: "Seguridad de la cuenta" }}
       component={PreguntasSeguridadScreen}
     />
   </OperadorStack.Navigator>

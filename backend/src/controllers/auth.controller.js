@@ -1,4 +1,4 @@
-const { loginUser, updatePushToken } = require("../services/auth.service");
+const { loginUser, updatePushToken, changeOwnPassword } = require("../services/auth.service");
 const {
   listSecurityQuestionCatalog,
   startRecovery,
@@ -87,6 +87,19 @@ const updateMeSecurityQuestions = async (req, res, next) => {
   }
 };
 
+const changePassword = async (req, res, next) => {
+  try {
+    const data = await changeOwnPassword(req.user.userId, req.body);
+    res.status(200).json({
+      success: true,
+      message: "Contraseña actualizada",
+      data,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   login,
   registerPushToken,
@@ -95,4 +108,5 @@ module.exports = {
   recoveryReset,
   meSecurityQuestions,
   updateMeSecurityQuestions,
+  changePassword,
 };

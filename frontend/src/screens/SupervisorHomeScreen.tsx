@@ -110,7 +110,7 @@ export const SupervisorHomeScreen = () => {
           onPress={() => navigation.navigate("PreguntasSeguridad")}
           style={styles.logoutBtn}
         >
-          Preguntas de seguridad
+          Seguridad / clave
         </Button>
         <Button mode="outlined" onPress={logout} icon="logout" style={styles.logoutBtn}>
           Cerrar sesion

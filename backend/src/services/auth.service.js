@@ -64,4 +64,41 @@ const updatePushToken = async (userId, expoPushToken) => {
   return user;
 };
 
-module.exports = { loginUser, updatePushToken };
+const changeOwnPassword = async (userId, { currentPassword, newPassword }) => {
+  if (!currentPassword || String(currentPassword).length < 6) {
+    const err = new Error("La contraseña actual es obligatoria");
+    err.status = 400;
+    throw err;
+  }
+  if (!newPassword || String(newPassword).length < 6) {
+    const err = new Error("La nueva contraseña debe tener al menos 6 caracteres");
+    err.status = 400;
+    throw err;
+  }
+  if (String(currentPassword) === String(newPassword)) {
+    const err = new Error("La nueva contraseña debe ser distinta a la actual");
+    err.status = 400;
+    throw err;
+  }
+
+  const user = await User.findById(userId).select("+password email rol");
+  if (!user) {
+    const err = new Error("Usuario no encontrado");
+    err.status = 404;
+    throw err;
+  }
+
+  const ok = await bcrypt.compare(String(currentPassword), user.password);
+  if (!ok) {
+    const err = new Error("La contraseña actual no es correcta");
+    err.status = 401;
+    throw err;
+  }
+
+  user.password = await bcrypt.hash(String(newPassword), 10);
+  await user.save();
+
+  return { email: user.email, rol: user.rol };
+};
+
+module.exports = { loginUser, updatePushToken, changeOwnPassword };

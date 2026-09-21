@@ -101,6 +101,56 @@ describe("preguntas de seguridad y recuperacion", () => {
     expect(restore.status).toBe(200);
   });
 
+  it("permite cambiar la propia contraseña con la clave actual", async () => {
+    const token = await loginAsGerente(request);
+    const email = `clave-${Date.now()}@nativa.com`;
+
+    await request(getApp())
+      .post("/api/users")
+      .set("Authorization", `Bearer ${token}`)
+      .send({
+        email,
+        password: "vieja123",
+        nombre: "Cambia Clave",
+        rol: "operador",
+        securityQuestions: [
+          { questionId: "operador_turno", answer: "tarde" },
+          { questionId: "operador_color", answer: "azul" },
+        ],
+      });
+
+    const loginOp = await request(getApp()).post("/api/auth/login").send({
+      email,
+      password: "vieja123",
+    });
+    expect(loginOp.status).toBe(200);
+    const opToken = loginOp.body.data.token;
+
+    const bad = await request(getApp())
+      .put("/api/auth/me/password")
+      .set("Authorization", `Bearer ${opToken}`)
+      .send({ currentPassword: "mala123", newPassword: "nueva123" });
+    expect(bad.status).toBe(401);
+
+    const ok = await request(getApp())
+      .put("/api/auth/me/password")
+      .set("Authorization", `Bearer ${opToken}`)
+      .send({ currentPassword: "vieja123", newPassword: "nueva123" });
+    expect(ok.status).toBe(200);
+
+    const oldLogin = await request(getApp()).post("/api/auth/login").send({
+      email,
+      password: "vieja123",
+    });
+    expect(oldLogin.status).toBe(401);
+
+    const newLogin = await request(getApp()).post("/api/auth/login").send({
+      email,
+      password: "nueva123",
+    });
+    expect(newLogin.status).toBe(200);
+  });
+
   it("exige preguntas al crear un miembro del equipo", async () => {
     const token = await loginAsGerente(request);
     const res = await request(getApp())

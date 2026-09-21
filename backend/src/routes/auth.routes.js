@@ -8,6 +8,7 @@ const {
   recoveryReset,
   meSecurityQuestions,
   updateMeSecurityQuestions,
+  changePassword,
 } = require("../controllers/auth.controller");
 const { authRateLimiter } = require("../middlewares/rateLimit.middleware");
 const { requireAuth } = require("../middlewares/auth.middleware");
@@ -74,6 +75,23 @@ router.put(
   requireAuth,
   [...securityQuestionsRules("securityQuestions", false), validateRequest],
   updateMeSecurityQuestions
+);
+
+router.put(
+  "/me/password",
+  requireAuth,
+  [
+    body("currentPassword")
+      .isString()
+      .isLength({ min: 6 })
+      .withMessage("La contraseña actual es obligatoria"),
+    body("newPassword")
+      .isString()
+      .isLength({ min: 6 })
+      .withMessage("La nueva contraseña debe tener al menos 6 caracteres"),
+    validateRequest,
+  ],
+  changePassword
 );
 
 router.post(

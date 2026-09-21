@@ -531,7 +531,7 @@ export const OperadorHomeScreen = () => {
         onPress={() => navigation.navigate("PreguntasSeguridad")}
         style={styles.logoutBtn}
       >
-        Preguntas de seguridad
+        Seguridad / clave
       </Button>
       <Button mode="outlined" onPress={logout} style={styles.logoutBtn}>
         Cerrar sesion

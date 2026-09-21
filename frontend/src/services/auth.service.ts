@@ -62,4 +62,8 @@ export const authService = {
   async updateMySecurityQuestions(securityQuestions: SecurityQuestionAnswer[]): Promise<void> {
     await api.put("/api/auth/me/security-questions", { securityQuestions });
   },
+
+  async changePassword(currentPassword: string, newPassword: string): Promise<void> {
+    await api.put("/api/auth/me/password", { currentPassword, newPassword });
+  },
 };

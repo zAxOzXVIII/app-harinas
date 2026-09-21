@@ -240,7 +240,7 @@ export const DashboardScreen = ({ onGoToGestion }: Props) => {
                   },
                 ]}
               >
-                Preguntas de seguridad
+                Seguridad / clave
               </Button>
             </View>
             <Text variant="labelLarge" style={[styles.groupLabel, mutedText]}>
